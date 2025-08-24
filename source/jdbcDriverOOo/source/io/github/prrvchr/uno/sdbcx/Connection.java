@@ -25,11 +25,11 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.SQLException;
 import java.util.Set;
 
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
@@ -75,6 +75,7 @@ public final class Connection
     @Override
     protected XPreparedStatement getPreparedStatement(String sql)
         throws SQLException {
+        checkDisposed();
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         getStatements().put(statement, statement);

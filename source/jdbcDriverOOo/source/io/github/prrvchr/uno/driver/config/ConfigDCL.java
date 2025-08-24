@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.driver.config;
 
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import java.util.Map;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
 
 import io.github.prrvchr.uno.driver.helper.DBTools;
@@ -71,7 +71,7 @@ public class ConfigDCL extends ConfigDDL {
                      final String url,
                      final DatabaseMetaData metadata,
                      final String subProtocol)
-        throws SQLException, java.sql.SQLException {
+        throws SQLException {
         super(config, opts, infos, url, metadata, subProtocol);
         if (mPrivileges != null) {
             mPrivilegeNames = new ArrayList<>();

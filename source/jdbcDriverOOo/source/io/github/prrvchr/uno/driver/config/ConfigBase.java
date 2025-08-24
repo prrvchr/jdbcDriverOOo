@@ -25,14 +25,19 @@
 */
 package io.github.prrvchr.uno.driver.config;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +46,6 @@ import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.sdb.XOfficeDatabaseDocument;
 
@@ -73,9 +77,11 @@ public abstract class ConfigBase extends ParameterBase {
     private static final String ADD_INDEX_APPENDIX = "AddIndexAppendix";
     private static final String AUTO_RETRIEVING_STATEMENT = "AutoRetrievingStatement";
     private static final String IS_AUTORETRIEVING_ENABLED = "IsAutoRetrievingEnabled";
-    private static final String USE_CATALOG_IN_VIEW = "UseCatalogInView";
     private static final String USE_CATALOG_IN_SELECT = "UseCatalogInSelect";
     private static final String USE_SCHEMA_IN_SELECT = "UseSchemaInSelect";
+    private static final String USE_CATALOG_IN_VIEW = "UseCatalogInView";
+    private static final String USE_SCHEMA_IN_VIEW = "UseSchemaInView";
+    private static final String SYSTEM_PROPERTIES = "SystemProperties";
 
     private static final String INDEX_PATTERN = "[(]\\s*(\\d+)\\s*[)]";
     private static final String VALUE_PATTERN = "[=]\\s*([\\w+\\s*\\W*]+)";
@@ -84,9 +90,9 @@ public abstract class ConfigBase extends ParameterBase {
     protected RowSetData mTableData = null;
     protected Short mCachedRowSet = null;
 
-    private boolean mAddIndexAppendix = false;
-    private boolean mIgnoreCurrency = false;
-    private boolean mIgnoreDriverPrivileges = false;
+    private Boolean mAddIndexAppendix = null;
+    private Boolean mIgnoreCurrency = null;
+    private Boolean mIgnoreDriverPrivileges = null;
 
     private String mAutoIncrementCreation = "";
     private String mAutoRetrievingStatement = "";
@@ -96,9 +102,10 @@ public abstract class ConfigBase extends ParameterBase {
  
     private Boolean mIsAutoRetrievingEnabled = null;
     private Boolean mShowSystemTable = null;
-    private boolean mUseCatalogsInViewDefinitions;
-    private boolean mUseCatalogsInSelectCompositions;
-    private boolean mUseSchemasInSelectCompositions;
+    private Boolean mUseCatalogsInSelectDefinitions;
+    private Boolean mUseSchemasInSelectDefinitions;
+    private Boolean mUseCatalogsInViewDefinitions;
+    private Boolean mUseSchemasInViewDefinitions;
 
     private XOfficeDatabaseDocument mDocument = null;
 
@@ -123,37 +130,17 @@ public abstract class ConfigBase extends ParameterBase {
                          final DatabaseMetaData metadata,
                          final String subProtocol,
                          final boolean rewriteTable)
-        throws SQLException, java.sql.SQLException {
+        throws SQLException {
 
         // XXX: Driver.xcs default properties
         Object[] typeInfo = null;
         Object[] tableType = null;
-        Boolean useCatalogInSelect = null;
-        Boolean useSchemaInSelect = null;
-        Boolean useCatalogInView = null;
-        setPropertiesInfo(infos, typeInfo, tableType, useCatalogInSelect, useSchemaInSelect, useCatalogInView);
+
+        setPropertiesInfo(infos, typeInfo, tableType);
 
         mInfos = infos;
-        if (useCatalogInSelect == null) {
-            useCatalogInSelect = (boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
-                                                                                USE_CATALOG_IN_SELECT,
-                                                                                Boolean.valueOf(true));
-        }
-        mUseCatalogsInSelectCompositions = useCatalogInSelect;
 
-        if (useSchemaInSelect == null) {
-            useSchemaInSelect = (boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
-                                                                               USE_SCHEMA_IN_SELECT,
-                                                                               Boolean.valueOf(true));
-        }
-        mUseCatalogsInSelectCompositions = useSchemaInSelect;
-
-        if (useCatalogInView == null) {
-            useCatalogInView = (boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
-                                                                              USE_CATALOG_IN_VIEW,
-                                                                              Boolean.valueOf(true));
-        }
-        mUseCatalogsInViewDefinitions = useCatalogInView;
+        setPropertiesConfig(config, metadata, subProtocol);
 
         if (typeInfo == null) {
             typeInfo = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
@@ -178,6 +165,7 @@ public abstract class ConfigBase extends ParameterBase {
                           systemCatalog, systemSchema, systemTable, tablePrivilege);
 
         setProperties(opts, url, metadata, rewriteTable);
+        setSystemProperties(config, subProtocol);
     }
 
     public static final boolean addDriverToClassPath(XNameAccess opts) {
@@ -203,16 +191,20 @@ public abstract class ConfigBase extends ParameterBase {
         return mInfos;
     }
 
+    public boolean useCatalogsInSelectDefinitions() {
+        return mUseCatalogsInSelectDefinitions;
+    }
+
+    public boolean useSchemasInSelectDefinitions() {
+        return mUseSchemasInSelectDefinitions;
+    }
+
     public boolean useCatalogsInViewDefinitions() {
         return mUseCatalogsInViewDefinitions;
     }
 
-    public boolean useCatalogsInSelectCompositions() {
-        return mUseCatalogsInSelectCompositions;
-    }
-
-    public boolean useSchemasInSelectCompositions() {
-        return mUseSchemasInSelectCompositions;
+    public boolean useSchemasInViewDefinitions() {
+        return mUseSchemasInViewDefinitions;
     }
 
     public String getTableType(String type) {
@@ -365,6 +357,57 @@ public abstract class ConfigBase extends ParameterBase {
     }
 
     // XXX: private methods
+    private void setPropertiesConfig(final XHierarchicalNameAccess config,
+                                     final DatabaseMetaData metadata,
+                                     final String subProtocol)
+        throws SQLException {
+
+        Boolean useCatalog = Boolean.valueOf(metadata.supportsCatalogsInTableDefinitions());
+        Boolean useSchema = Boolean.valueOf(metadata.supportsSchemasInTableDefinitions());
+
+        if (mUseCatalogsInSelectDefinitions == null) {
+            mUseCatalogsInSelectDefinitions = (Boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                                             USE_CATALOG_IN_SELECT,
+                                                                                             useCatalog);
+        }
+
+        if (mUseSchemasInSelectDefinitions == null) {
+            mUseSchemasInSelectDefinitions = (Boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                                            USE_SCHEMA_IN_SELECT,
+                                                                                            useSchema);
+        }
+
+        if (mUseCatalogsInViewDefinitions == null) {
+            mUseCatalogsInViewDefinitions = (Boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                                           USE_CATALOG_IN_VIEW,
+                                                                                           useCatalog);
+        }
+
+        if (mUseSchemasInViewDefinitions == null) {
+            mUseSchemasInViewDefinitions = (Boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                                          USE_SCHEMA_IN_VIEW,
+                                                                                          useSchema);
+        }
+
+        if (mIgnoreDriverPrivileges == null) {
+            mIgnoreDriverPrivileges = (Boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                                     ADD_INDEX_APPENDIX,
+                                                                                     Boolean.valueOf(false));
+        }
+
+        if (mIgnoreCurrency == null) {
+            mIgnoreCurrency = (Boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                             ADD_INDEX_APPENDIX,
+                                                                             Boolean.valueOf(true));
+        }
+
+        if (mAddIndexAppendix == null) {
+            mAddIndexAppendix = (Boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                               ADD_INDEX_APPENDIX,
+                                                                               Boolean.valueOf(true));
+        }
+    }
+
     private void setPropertiesData(final Object[] typeInfo,
                                    final Object[] tableType,
                                    final Object[] tableSetting,
@@ -372,7 +415,7 @@ public abstract class ConfigBase extends ParameterBase {
                                    final Object[] systemSchema,
                                    final Object[] systemTable,
                                    final Object[] tablePrivilege)
-        throws java.sql.SQLException {
+        throws SQLException {
         if (tableSetting != null) {
             mTableData = parseRowsetData(tableSetting);
         }
@@ -417,8 +460,8 @@ public abstract class ConfigBase extends ParameterBase {
             setShowSystemTable(opts);
             setPropertiesMetaData(url, metadata, rewriteTable);
 
-        } catch (NoSuchElementException | WrappedTargetException | java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
+        } catch (NoSuchElementException | WrappedTargetException e) {
+            throw new SQLException(e);
         }
     }
 
@@ -457,7 +500,7 @@ public abstract class ConfigBase extends ParameterBase {
     private void setPropertiesMetaData(final String url,
                                        final java.sql.DatabaseMetaData metadata,
                                        final boolean rewriteTable)
-        throws java.sql.SQLException {
+        throws SQLException {
         // XXX: If Url not provided in the connection information properties it will be obtained
         // XXX: from the connection and overwrite in the DataBaseMetaData.getURL() method
         if (mUrl == null) {
@@ -480,11 +523,8 @@ public abstract class ConfigBase extends ParameterBase {
     @SuppressWarnings("unused")
     private void setPropertiesInfo(PropertyValue[] infos,
                                    Object[] typeInfo,
-                                   Object[] tableType,
-                                   Boolean useCatalogInSelect,
-                                   Boolean useSchemaInSelect,
-                                   Boolean useCatalogInView)
-        throws java.sql.SQLException {
+                                   Object[] tableType)
+        throws SQLException {
         Object obj;
         for (PropertyValue info : infos) {
 
@@ -503,52 +543,69 @@ public abstract class ConfigBase extends ParameterBase {
                     mPrivileges = (Object[]) obj;
                     break;
                 case AUTO_INCREMENT_CREATION:
-                    mAutoIncrementCreation = (String) obj;
-                    break;
+                    mAutoIncrementCreation = getStringConfig(obj, mAutoIncrementCreation);
                 case IGNORE_DRIVER_PRIVILEGES:
-                    mIgnoreDriverPrivileges = (boolean) obj;
+                    mIgnoreDriverPrivileges = getBooleanConfig(obj, mIgnoreDriverPrivileges);
                     break;
                 case IGNORE_CURRENCY:
-                    mIgnoreCurrency = (boolean) obj;
+                    mIgnoreCurrency = getBooleanConfig(obj, mIgnoreCurrency);
                     break;
                 case ADD_INDEX_APPENDIX:
-                    mAddIndexAppendix = (boolean) obj;
+                    mAddIndexAppendix = getBooleanConfig(obj, mAddIndexAppendix);
                     break;
                 case AUTO_RETRIEVING_STATEMENT:
-                    mAutoRetrievingStatement = (String) obj;
+                    mAutoRetrievingStatement = getStringConfig(obj, mAutoRetrievingStatement);
                     break;
                 case IS_AUTORETRIEVING_ENABLED:
-                    mIsAutoRetrievingEnabled = (Boolean) obj;
+                    mIsAutoRetrievingEnabled = getBooleanConfig(obj, mIsAutoRetrievingEnabled);
                     break;
                 case SHOW_SYSTEM_TABLE:
-                    if (obj != null && AnyConverter.isBoolean(obj)) {
-                        mShowSystemTable = AnyConverter.toBoolean(obj);
-                    }
+                    mShowSystemTable = getBooleanConfig(obj, mShowSystemTable);
                     break;
                 case CACHED_ROWSET:
-                    if (obj != null && AnyConverter.isShort(obj)) {
-                        mCachedRowSet = AnyConverter.toShort(obj);
-                    }
+                    mCachedRowSet = getShortConfig(obj, mCachedRowSet);
                     break;
                 case CONNECTION_URL:
-                    if (obj != null && AnyConverter.isString(obj)) {
-                        mUrl = AnyConverter.toString(obj);
-                    }
+                    mUrl = getStringConfig(obj, mUrl);
                     break;
                 case USE_CATALOG_IN_SELECT:
-                    useCatalogInSelect = (Boolean) obj;
+                    mUseCatalogsInSelectDefinitions = getBooleanConfig(obj, mUseCatalogsInSelectDefinitions);
                     break;
                 case USE_SCHEMA_IN_SELECT:
-                    useSchemaInSelect = (Boolean) obj;
+                    mUseSchemasInSelectDefinitions = getBooleanConfig(obj, mUseSchemasInSelectDefinitions);
                     break;
                 case USE_CATALOG_IN_VIEW:
-                    useCatalogInView = (Boolean) obj;
+                    mUseCatalogsInViewDefinitions = getBooleanConfig(obj, mUseCatalogsInViewDefinitions);
+                    break;
+                case USE_SCHEMA_IN_VIEW:
+                    mUseSchemasInViewDefinitions = getBooleanConfig(obj, mUseSchemasInViewDefinitions);
                     break;
             }
         }
     }
 
-    private RowSetData parseRowsetData(Object[] data) throws java.sql.SQLException {
+    private Short getShortConfig(Object obj, Short value) {
+        if (obj != null && AnyConverter.isShort(obj)) {
+            value = AnyConverter.toShort(obj);
+        }
+        return value;
+    }
+
+    private Boolean getBooleanConfig(Object obj, Boolean value) {
+        if (obj != null && AnyConverter.isBoolean(obj)) {
+            value = AnyConverter.toBoolean(obj);
+        }
+        return value;
+    }
+
+    private String getStringConfig(Object obj, String value) {
+        if (obj != null && AnyConverter.isString(obj)) {
+            value = AnyConverter.toString(obj);
+        }
+        return value;
+    }
+
+    private RowSetData parseRowsetData(Object[] data) throws SQLException {
         Map<Integer, List<String>> keys = new HashMap<>();
         Map<String, List<SimpleImmutableEntry<Integer, String>>> values = new HashMap<>();
         Pattern idxPattern = Pattern.compile(INDEX_PATTERN);
@@ -612,7 +669,7 @@ public abstract class ConfigBase extends ParameterBase {
         return types;
     }
 
-    private String[] getMetaDataTableTypes(java.sql.DatabaseMetaData metadata) throws java.sql.SQLException {
+    private String[] getMetaDataTableTypes(java.sql.DatabaseMetaData metadata) throws SQLException {
         List<String> types = new ArrayList<>();
         try (ResultSet rs = metadata.getTableTypes()) {
             int count = rs.getMetaData().getColumnCount();
@@ -629,7 +686,7 @@ public abstract class ConfigBase extends ParameterBase {
     }
 
     private RowSetData getRewriteTableData(final String[] tableTypes)
-        throws java.sql.SQLException {
+        throws SQLException {
         final Integer TABLE_TYPE = 4;
         Map<Integer, List<String>> keys = new HashMap<>();
         Map<String, List<SimpleImmutableEntry<Integer, String>>> values = new HashMap<>();
@@ -665,6 +722,31 @@ public abstract class ConfigBase extends ParameterBase {
                 values.get(key).add(value);
             }
         }
+    }
+ 
+    private void setSystemProperties(final XHierarchicalNameAccess config, final String subProtocol) {
+        System.out.println("ConfigBase.setSystemProperties() 1");
+        Object[] properties = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                              SYSTEM_PROPERTIES);
+        if (properties != null) {
+            System.out.println("ConfigBase.setSystemProperties() 2");
+            StringJoiner buffer = new StringJoiner("\\n");
+            for (Object property : properties) {
+                buffer.add(property.toString());
+            }
+            if (buffer.length() > 0) {
+                System.out.println("ConfigBase.setSystemProperties() 3 Buffer: " + buffer.toString());
+                try {
+                    Properties p = new Properties(System.getProperties());
+                    p.load(new StringReader(buffer.toString()));
+                    // Set the system properties
+                    System.setProperties(p);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        System.out.println("ConfigBase.setSystemProperties() 4");
     }
 
 }

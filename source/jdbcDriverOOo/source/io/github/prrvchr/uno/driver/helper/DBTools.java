@@ -127,14 +127,16 @@ public class DBTools {
      * @return
      *   The CREATE VIEW statement.
      */
-    public static String getCreateViewCommand(ConfigDDL config,
-                                              NamedSupport support,
-                                              XPropertySet descriptor,
-                                              boolean sensitive)
+    public static String getCreateViewQuery(ConfigDDL config,
+                                            NamedSupport support,
+                                            XPropertySet descriptor,
+                                            boolean sensitive)
         throws java.sql.SQLException {
         String view = ComponentHelper.composeTableName(support, descriptor, sensitive);
         String command = getDescriptorStringValue(descriptor, PropertyIds.COMMAND);
-        return config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
+        String query = config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
+        System.out.println("DBTools.getCreateViewQuery() Query: " + query);
+        return query;
     }
 
     /** creates a SQL CREATE VIEW statement.
@@ -151,14 +153,16 @@ public class DBTools {
      *    Is the name case sensitive.
      * @return The CREATE VIEW statement.
      */
-    public static String getCreateViewCommand(ConfigDDL config,
-                                              NamedSupport support,
-                                              NamedComponent component,
-                                              String command,
-                                              boolean sensitive)
+    public static String getCreateViewQuery(ConfigDDL config,
+                                            NamedSupport support,
+                                            NamedComponent component,
+                                            String command,
+                                            boolean sensitive)
         throws java.sql.SQLException {
         String view = ComponentHelper.composeTableName(support, component, sensitive);
-        return config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
+        String query = config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
+        System.out.println("DBTools.getViewCommand() Query: " + query);
+        return query;
     }
 
     public static void cloneDescriptorColumns(XPropertySet source,

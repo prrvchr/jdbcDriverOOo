@@ -169,9 +169,8 @@ public abstract class ContainerBase<T extends Descriptor>
             }
 
             broadcastElementInserted(element, name);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new SQLException(e.getMessage());
+        } catch (java.sql.SQLException e) {
+            throw DBTools.getSQLException(e, this);
         }
     }
 

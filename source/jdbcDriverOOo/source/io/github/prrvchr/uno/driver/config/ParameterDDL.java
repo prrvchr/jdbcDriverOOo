@@ -25,13 +25,14 @@
 */
 package io.github.prrvchr.uno.driver.config;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.KeyRule;
-import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
@@ -47,7 +48,7 @@ public class ParameterDDL extends ParameterBase {
                                         final String type,
                                         final Collection<String> columns,
                                         final boolean sensitive)
-        throws java.sql.SQLException {
+        throws SQLException {
         // XXX: ${TableType} table type
         arguments.put("TableType", type);
         // XXX: ${TableName} unquoted / quoted full table name
@@ -60,6 +61,11 @@ public class ParameterDDL extends ParameterBase {
         return versioning;
     }
 
+    public static Map<String, Object> getSystemVersioningColumnParameter(final NamedSupport support,
+                                                                         final List<String> columns) {
+        return Map.of("ColumnNames", getIdentifiersAsString(support, columns));
+    }
+
     public static Map<String, Object> getTableDescription(String table, String description) {
         return Map.of("TableName", table, "Description", description);
     }
@@ -69,7 +75,7 @@ public class ParameterDDL extends ParameterBase {
                                                            final String column,
                                                            final String description,
                                                            final boolean sensitive)
-        throws java.sql.SQLException {
+        throws SQLException {
         Map<String, Object> arguments = new HashMap<>();
         arguments.put("RawSchema", component.getSchemaName());
         arguments.put("RawTable", component.getTableName());
@@ -84,7 +90,7 @@ public class ParameterDDL extends ParameterBase {
                                                            final NamedComponent component,
                                                            final String column,
                                                            final boolean sensitive)
-        throws java.sql.SQLException {
+        throws SQLException {
         Map<String, Object> arguments = new HashMap<>();
         arguments.put("RawSchema", component.getSchemaName());
         arguments.put("RawTable", component.getTableName());
@@ -112,7 +118,7 @@ public class ParameterDDL extends ParameterBase {
                                                    final ColumnProperties column,
                                                    final boolean sensitive) {
         return Map.of("TableName", ComponentHelper.composeTableName(support, component, sensitive),
-                      "ColumnDescription", getColumnDescription(column));
+                      "ColumnDescription", getColumnDescription(support, column));
     }
 
     public static Map<String, Object> getDropColumn(String table, String column) {
@@ -190,8 +196,7 @@ public class ParameterDDL extends ParameterBase {
                                                      NamedComponent oldtable,
                                                      String fullname,
                                                      boolean reversed,
-                                                     boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+                                                     boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${TableName} quoted / unquoted full old table name
         arguments.put("TableName", ComponentHelper.quoteTableName(support, fullname, sensitive));
@@ -237,8 +242,7 @@ public class ParameterDDL extends ParameterBase {
     public static Map<String, Object> getAlterView(NamedSupport support,
                                                    NamedComponent view,
                                                    String command,
-                                                   boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+                                                   boolean sensitive) {
         Map<String, Object> arguments = getViewDefinition(support, view, sensitive);
         arguments.put("SelectCommand", command);
         return arguments;
@@ -246,8 +250,7 @@ public class ParameterDDL extends ParameterBase {
 
     public static Map<String, Object> getViewDefinition(NamedSupport support,
                                                         NamedComponent view,
-                                                        boolean sensitive)
-        throws java.sql.SQLException {
+                                                        boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${ViewName} quoted / unquoted  full view name
         arguments.put("ViewName", ComponentHelper.buildName(support, view, sensitive));
@@ -293,13 +296,14 @@ public class ParameterDDL extends ParameterBase {
         } else {
             arguments.put("Autoincrement", "");
         }
-        arguments.put("ColumnDescription", getColumnDescription(column));
+        arguments.put("ColumnDescription", getColumnDescription(support, column));
         return arguments;
     }
 
-    public static String getColumnDescription(final ColumnProperties column) {
+    public static String getColumnDescription(final NamedSupport support,
+                                              final ColumnProperties column) {
         // XXX: We try to construct the Column part needed for Table creation
-        StringBuilder builder = new StringBuilder(column.getNewName());
+        StringBuilder builder = new StringBuilder(support.enquoteIdentifier(column.getNewName()));
         builder.append(" ");
         builder.append(column.getType());
         if (!column.getDefaultValue().isBlank()) {

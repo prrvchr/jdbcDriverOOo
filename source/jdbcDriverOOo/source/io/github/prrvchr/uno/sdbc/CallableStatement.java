@@ -46,7 +46,7 @@ public final class CallableStatement
     // The constructor method:
     public CallableStatement(Connection connection,
                              String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         super(SERVICE, SERVICES, connection, sql);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbc.CallableStatement() 1");

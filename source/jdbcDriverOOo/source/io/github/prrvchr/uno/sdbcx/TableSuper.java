@@ -270,8 +270,10 @@ public abstract class TableSuper
             boolean alterpk = isPrimaryKeyColumn(oldname);
             boolean alterfk = isForeignKeyColumn(oldname);
             boolean alterkey = alterpk || alterfk;
-            result = TableHelper.getAlterColumnQueries(queries, provider, component, rule, oldname, oldcolumn,
-                                                       newcolumn, flags, alterkey, isCaseSensitive());
+            DatabaseMetaData metadata = provider.getConnection().getMetaData();
+            result = TableHelper.getAlterColumnQueries(queries, provider.getConfigDDL(), metadata,
+                                                       support, component, oldname, oldcolumn, newcolumn,
+                                                       flags, alterkey, isCaseSensitive());
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
@@ -455,9 +457,9 @@ public abstract class TableSuper
                 renamed = true;
             } else {
                 getConnection().getViewsInternal().removeView(view);
-                query = DBTools.getCreateViewCommand(provider.getConfigDDL(),
-                                                     provider.getNamedSupport(rule),
-                                                     component, view.mCommand, isCaseSensitive());
+                query = DBTools.getCreateViewQuery(provider.getConfigDDL(),
+                                                   provider.getNamedSupport(rule),
+                                                   component, view.mCommand, isCaseSensitive());
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_RENAME_QUERY, name, query);
                 if (DBTools.executeSQLQuery(provider, query)) {
                     views.rename(table, name);

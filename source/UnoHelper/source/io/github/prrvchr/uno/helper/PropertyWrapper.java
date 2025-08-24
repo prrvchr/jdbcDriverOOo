@@ -33,10 +33,10 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 public class PropertyWrapper {
 
-    private final Type m_type;
-    private final short m_attributes;
-    private final PropertyGetter m_getter;
-    private final PropertySetter m_setter;
+    private final Type mType;
+    private final short mAttributes;
+    private final PropertyGetter mGetter;
+    private final PropertySetter mSetter;
 
     // The constructor method:
     public PropertyWrapper(Type type,
@@ -49,25 +49,25 @@ public class PropertyWrapper {
                            short attributes,
                            PropertyGetter getter,
                            PropertySetter setter) {
-        m_type = type;
-        m_attributes = attributes;
-        m_getter = getter;
-        m_setter = setter;
+        mType = type;
+        mAttributes = attributes;
+        mGetter = getter;
+        mSetter = setter;
     }
 
     public Type getType() {
-        return m_type;
+        return mType;
     }
 
     public short getAttribute() {
-        return m_attributes;
+        return mAttributes;
     }
 
     public PropertyGetter getGetter() {
-        return m_getter;
+        return mGetter;
     }
 
     public PropertySetter getSetter() {
-        return m_setter;
+        return mSetter;
     }
 }

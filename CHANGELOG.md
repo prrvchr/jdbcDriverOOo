@@ -419,12 +419,20 @@ If you use multiple accounts to connect to a database, you will not be able to r
 
 ### What has been done for version 1.5.7:
 
-Integration of the [SQL Server JDBC driver][126] `mssql-jdbc-13.2.0.jre11.jar`. This integration required the following modifications to the underlying code:
-- Using `UseCatalog` and `UseCatalogInSelect` parameters in `Drivers.xcu` file with false values.
-- Added a new `InViewDefinitions` element to the [ComposeRule][127] enum. This new naming rule allows the catalog name to be omitted when constructing an identifier if the `UseCatalog` parameter is set to `false`, otherwise it will follow the value of the `InTableDefinitions` element.
-- Use this new naming rule for constructing SQL queries for creating and deleting a view.
+The naming logic for elements requiring compound names, such as tables, views, and columns, has been modified:
+- The naming rules [ComposeRule][126] have been extended with two new rules:
+  - `InSelectDefinitions` defines the naming rule when composing SQL queries. Two parameters from the configuration file, `UseCatalogInSelect` and `UseSchemaInSelect`, allow you to influence the behavior of this rule.
+  - `InViewDefinitions` defines the naming rule when composing a view. Two new parameters from the configuration file, `UseCatalogInView` and `UseSchemaInView`, allow you to influence the behavior of this rule.
+- In the absence of parameters in the configuration file, these two new rules will follow the `InTableDefinitions` rule.
+- The `InViewDefinitions` rule has been added to allow the creation of views in SQL Server.
+- A `ComposeRule` rule allows for [NamedSupport][127] naming support, which can provide a unique name following this rule from a [NamedComponent][128] name composition, and vice versa. All this logic is now grouped into the [ComponentHelper][129] file.
 
-With these changes, the catalog, which is actually the name of the database under SQL Server, will not be used to name the identifiers of the SQL queries managing the creation and deletion of views, as required by the SQL Server JDBC driver.
+Integration of the [SQL Server JDBC driver][130] `mssql-jdbc-13.2.0.jre11.jar`. This integration required the following modifications to the underlying code:
+- Using `UseCatalogInView` parameters in `Drivers.xcu` file with false value.
+- Use of the new `InViewDefinitions` naming rule when creating a view to exclude the catalog name from the view name.
+- With these changes, the catalog, which is actually the database name in SQL Server, will not be used to name the identifiers of SQL queries managing view creation, as required by the SQL Server JDBC driver.
+
+Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. A fix [fix#189732][131] will be available with LibreOffice 26.2.x and will make Base truly multi-user.
 
 ### What remains to be done for version 1.5.7:
 
@@ -557,4 +565,9 @@ With these changes, the catalog, which is actually the name of the database unde
 [123]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167920>
 [124]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>
 [125]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167960>
-[126]: <https://github.com/microsoft/mssql-jdbc>
+[126]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/provider/ComposeRule.java>
+[127]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#176>
+[128]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#218>
+[129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java>
+[130]: <https://github.com/microsoft/mssql-jdbc>
+[131]: <https://gerrit.libreoffice.org/c/core/+/189732>

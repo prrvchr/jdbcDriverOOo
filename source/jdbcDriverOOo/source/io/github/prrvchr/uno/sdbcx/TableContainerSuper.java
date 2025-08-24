@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,9 +107,12 @@ public abstract class TableContainerSuper<T extends TableSuper>
             if (DBTools.hasDescriptorProperty(descriptor, PropertyIds.TYPE)) {
                 type = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TYPE);
             }
-            ComposeRule rule = ComposeRule.InTableDefinitions;
             Provider provider = mConnection.getProvider();
-            queries = TableHelper.getCreateTableQueries(provider, descriptor, rule, type, isCaseSensitive());
+            ComposeRule rule = ComposeRule.InTableDefinitions;
+            NamedSupport support = provider.getNamedSupport(rule);
+            DatabaseMetaData metadata = provider.getConnection().getMetaData();
+            queries = TableHelper.getCreateTableQueries(provider.getConfigDDL(), metadata,
+                                                        support, descriptor, type, isCaseSensitive());
             String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
             if (!description.isEmpty() && provider.getConfigDDL().supportsTableDescription()) {
                 String table = ComponentHelper.composeTableName(provider.getNamedSupport(rule),

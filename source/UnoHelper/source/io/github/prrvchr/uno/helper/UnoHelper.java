@@ -127,8 +127,7 @@ public class UnoHelper {
                             dst.setPropertyValue(srcProperty.Name, value);
                         }
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     String error = "Could not copy property '" + srcProperty.Name + "' to the destination set";
                     XServiceInfo serviceInfo = UnoRuntime.queryInterface(XServiceInfo.class, dst);
                     if (serviceInfo != null) {
@@ -152,8 +151,7 @@ public class UnoHelper {
         try {
             XMultiComponentFactory manager = context.getServiceManager();
             service = manager.createInstanceWithContext(name, context);
-        }
-        catch (java.lang.Exception e) {
+        } catch (java.lang.Exception e) {
             e.printStackTrace();
         }
         return service;
@@ -166,8 +164,7 @@ public class UnoHelper {
         try {
             XMultiComponentFactory manager = context.getServiceManager();
             service = manager.createInstanceWithArgumentsAndContext(name, arguments, context);
-        }
-        catch (java.lang.Exception e) {
+        } catch (java.lang.Exception e) {
             e.printStackTrace();
         }
         return service;
@@ -242,8 +239,7 @@ public class UnoHelper {
         Locale locale = new Locale(parts[0], "", "");
         if (parts.length > 1) {
             locale.Country = parts[1];
-        }
-        else {
+        } else {
             Object service = createService(context, "com.sun.star.i18n.LocaleData");
             XLocaleData data = UnoRuntime.queryInterface(XLocaleData.class, service);
             locale.Country = data.getLanguageCountryInfo(locale).Country;
@@ -276,8 +272,7 @@ public class UnoHelper {
         URL url = null;
         try {
             url = new URL("jar:" + location + "!/");
-        }
-        catch (java.lang.Exception e) {
+        } catch (java.lang.Exception e) {
             e.printStackTrace();
         }
         return url;
@@ -295,7 +290,8 @@ public class UnoHelper {
         throws IllegalArgumentException {
         for (PropertyValue property : properties) {
             if (property.Name.equals(name)) {
-                return AnyConverter.toString(property.Value);
+                value = AnyConverter.toString(property.Value);
+                break;
             }
         }
         return value;
@@ -305,7 +301,8 @@ public class UnoHelper {
         throws IllegalArgumentException {
         for (PropertyValue property : properties) {
             if (property.Name.equals(name)) {
-                return AnyConverter.toBoolean(property.Value);
+                value = AnyConverter.toBoolean(property.Value);
+                break;
             }
         }
         return value;
@@ -315,7 +312,8 @@ public class UnoHelper {
         throws IllegalArgumentException {
         for (PropertyValue property : properties) {
             if (property.Name.equals(name)) {
-                return property.Value;
+                value = property.Value;
+                break;
             }
         }
         return value;
@@ -404,7 +402,13 @@ public class UnoHelper {
     }
 
     public static SQLException getUnoSQLException(String msg) {
-        return msg != null ? new SQLException(msg) : new SQLException();
+        SQLException e;
+        if (msg != null) {
+            e = new SQLException(msg);
+        } else {
+            e = new SQLException();
+        }
+        return e;
     }
 
     public static SQLException getSQLException(java.lang.Exception e,
@@ -539,7 +543,8 @@ public class UnoHelper {
     }
 
     public static short getUnoTimezone(java.time.ZoneOffset offset) {
-        return (short) (offset.getTotalSeconds() / 60);
+        final int SECOND = 60;
+        return (short) (offset.getTotalSeconds() / SECOND);
     }
 
     public static java.time.LocalDate getJavaLocalDate(Date date) {
@@ -551,11 +556,13 @@ public class UnoHelper {
     }
 
     public static java.time.LocalDateTime getJavaLocalDateTime(DateTime timestamp) {
-        return java.time.LocalDateTime.of(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hours, timestamp.Minutes, timestamp.Seconds, timestamp.NanoSeconds);
+        return java.time.LocalDateTime.of(timestamp.Year, timestamp.Month, timestamp.Day,
+                                          timestamp.Hours, timestamp.Minutes, timestamp.Seconds, timestamp.NanoSeconds);
     }
 
     public static java.time.ZoneOffset getJavaZoneOffset(int offset) {
-        return java.time.ZoneOffset.ofTotalSeconds(offset * 60);
+        final int SECOND = 60;
+        return java.time.ZoneOffset.ofTotalSeconds(offset * SECOND);
     }
 
     public static java.time.OffsetTime getJavaOffsetTime(TimeWithTimezone time) {
@@ -570,8 +577,7 @@ public class UnoHelper {
         Object value = null;
         try {
             value = result.getObject(index);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             e.getStackTrace();
         }
         return value;
@@ -581,8 +587,7 @@ public class UnoHelper {
         String value = null;
         try {
             value = result.getString(index);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             e.getStackTrace();
         }
         return value;
@@ -593,60 +598,61 @@ public class UnoHelper {
         Object value = null;
         try {
             switch (result.getMetaData().getColumnType(index)) {
-            case java.sql.Types.CHAR:
-            case java.sql.Types.VARCHAR:
-                value = result.getString(index);
-                break;
-            case java.sql.Types.BOOLEAN:
-                value = result.getBoolean(index);
-                break;
-            case java.sql.Types.TINYINT:
-                value = result.getByte(index);
-                break;
-            case java.sql.Types.SMALLINT:
-                value = result.getShort(index);
-                break;
-            case java.sql.Types.INTEGER:
-                value = result.getInt(index);
-                break;
-            case java.sql.Types.BIGINT:
-                value = result.getLong(index);
-                break;
-            case java.sql.Types.FLOAT:
-                value = result.getFloat(index);
-                break;
-            case java.sql.Types.DOUBLE:
-                value = result.getDouble(index);
-                break;
-            case java.sql.Types.TIMESTAMP:
-                value = result.getTimestamp(index);
-                break;
-            case java.sql.Types.TIME:
-                value = result.getTime(index);
-                break;
-            case java.sql.Types.DATE:
-                value = result.getDate(index);
-                break;
-            case java.sql.Types.BINARY:
-                value = result.getBytes(index);
-                break;
-            case java.sql.Types.TIME_WITH_TIMEZONE:
-            case java.sql.Types.TIMESTAMP_WITH_TIMEZONE:
-                value = result.getObject(index);
-                break;
-            default:
-                retrieved = false;
+                case java.sql.Types.CHAR:
+                case java.sql.Types.VARCHAR:
+                    value = result.getString(index);
+                    break;
+                case java.sql.Types.BOOLEAN:
+                    value = result.getBoolean(index);
+                    break;
+                case java.sql.Types.TINYINT:
+                    value = result.getByte(index);
+                    break;
+                case java.sql.Types.SMALLINT:
+                    value = result.getShort(index);
+                    break;
+                case java.sql.Types.INTEGER:
+                    value = result.getInt(index);
+                    break;
+                case java.sql.Types.BIGINT:
+                    value = result.getLong(index);
+                    break;
+                case java.sql.Types.FLOAT:
+                    value = result.getFloat(index);
+                    break;
+                case java.sql.Types.DOUBLE:
+                    value = result.getDouble(index);
+                    break;
+                case java.sql.Types.TIMESTAMP:
+                    value = result.getTimestamp(index);
+                    break;
+                case java.sql.Types.TIME:
+                    value = result.getTime(index);
+                    break;
+                case java.sql.Types.DATE:
+                    value = result.getDate(index);
+                    break;
+                case java.sql.Types.BINARY:
+                    value = result.getBytes(index);
+                    break;
+                case java.sql.Types.TIME_WITH_TIMEZONE:
+                case java.sql.Types.TIMESTAMP_WITH_TIMEZONE:
+                    value = result.getObject(index);
+                    break;
+                default:
+                    retrieved = false;
             }
-            if(retrieved && result.wasNull()) value = null;
-        }
-        catch (java.sql.SQLException e) {
+            if (retrieved && result.wasNull()) {
+                value = null;
+            }
+        } catch (java.sql.SQLException e) {
             e.getStackTrace();
         }
         return value;
     }
 
     public static Object getRowValue(XRow row, int dbtype, int index)
-       throws SQLException {
+        throws SQLException {
         return getRowValue(row, dbtype, index, null);
     }
 
@@ -654,54 +660,56 @@ public class UnoHelper {
         throws SQLException {
         boolean retrieved = true;
         switch (dbtype) {
-        case java.sql.Types.CHAR:
-        case java.sql.Types.VARCHAR:
-            value = row.getString(index);
-            break;
-        case java.sql.Types.BOOLEAN:
-            value = row.getBoolean(index);
-            break;
-        case java.sql.Types.TINYINT:
-            value = row.getByte(index);
-            break;
-        case java.sql.Types.SMALLINT:
-            value = row.getShort(index);
-            break;
-        case java.sql.Types.INTEGER:
-            value = row.getInt(index);
-            break;
-        case java.sql.Types.BIGINT:
-            value = row.getLong(index);
-            break;
-        case java.sql.Types.FLOAT:
-            value = row.getFloat(index);
-            break;
-        case java.sql.Types.DOUBLE:
-            value = row.getDouble(index);
-            break;
-        case java.sql.Types.TIMESTAMP:
-            value = row.getTimestamp(index);
-            break;
-        case java.sql.Types.TIME:
-            value = row.getTime(index);
-            break;
-        case java.sql.Types.DATE:
-            value = row.getDate(index);
-            break;
-        case java.sql.Types.BINARY:
-            value = row.getBytes(index);
-            break;
-        case java.sql.Types.ARRAY:
-            value = row.getArray(index);
-            break;
-        case java.sql.Types.TIME_WITH_TIMEZONE:
-        case java.sql.Types.TIMESTAMP_WITH_TIMEZONE:
-            value = row.getObject(index, null);
-            break;
-        default:
-            retrieved = false;
+            case java.sql.Types.CHAR:
+            case java.sql.Types.VARCHAR:
+                value = row.getString(index);
+                break;
+            case java.sql.Types.BOOLEAN:
+                value = row.getBoolean(index);
+                break;
+            case java.sql.Types.TINYINT:
+                value = row.getByte(index);
+                break;
+            case java.sql.Types.SMALLINT:
+                value = row.getShort(index);
+                break;
+            case java.sql.Types.INTEGER:
+                value = row.getInt(index);
+                break;
+            case java.sql.Types.BIGINT:
+                value = row.getLong(index);
+                break;
+            case java.sql.Types.FLOAT:
+                value = row.getFloat(index);
+                break;
+            case java.sql.Types.DOUBLE:
+                value = row.getDouble(index);
+                break;
+            case java.sql.Types.TIMESTAMP:
+                value = row.getTimestamp(index);
+                break;
+            case java.sql.Types.TIME:
+                value = row.getTime(index);
+                break;
+            case java.sql.Types.DATE:
+                value = row.getDate(index);
+                break;
+            case java.sql.Types.BINARY:
+                value = row.getBytes(index);
+                break;
+            case java.sql.Types.ARRAY:
+                value = row.getArray(index);
+                break;
+            case java.sql.Types.TIME_WITH_TIMEZONE:
+            case java.sql.Types.TIMESTAMP_WITH_TIMEZONE:
+                value = row.getObject(index, null);
+                break;
+            default:
+                retrieved = false;
         }
-        if(retrieved && row.wasNull()) value = null;
+        if (retrieved && row.wasNull()) {
+            value = null;
+        }
         return value;
     }
 
@@ -710,10 +718,17 @@ public class UnoHelper {
     }
 
     public static DateTimeWithTimezone currentDateTimeInTZ(boolean utc)  {
+        final int SECOND = 60;
         DateTimeWithTimezone dtz = new DateTimeWithTimezone();
-        OffsetDateTime now = utc ? OffsetDateTime.now(java.time.ZoneOffset.UTC) : OffsetDateTime.now();
+        OffsetDateTime now;
+        if (utc) {
+            now = OffsetDateTime.now(java.time.ZoneOffset.UTC);
+            dtz.Timezone = 0;
+        } else {
+            now = OffsetDateTime.now();
+            dtz.Timezone = (short) (now.getOffset().getTotalSeconds() / SECOND);
+        }
         dtz.DateTimeInTZ = _currentDateTime(now, utc);
-        dtz.Timezone =  utc ? 0 : (short) (now.getOffset().getTotalSeconds() / 60);
         return dtz;
     }
 
@@ -730,7 +745,12 @@ public class UnoHelper {
     }
 
     public static DateTime currentDateTime(boolean utc) {
-        OffsetDateTime now = utc ? OffsetDateTime.now(java.time.ZoneOffset.UTC) : OffsetDateTime.now();
+        OffsetDateTime now;
+        if (utc) {
+            now = OffsetDateTime.now(java.time.ZoneOffset.UTC);
+        } else {
+            now = OffsetDateTime.now();
+        }
         return _currentDateTime(now, utc);
     }
 
@@ -749,13 +769,12 @@ public class UnoHelper {
     }
 
     public static Integer getConstantValue(Class<?> clazz, String name)
-    throws java.sql.SQLException {
+        throws java.sql.SQLException {
         int value = 0;
         if (name != null && !name.isBlank()) {
             try {
                 value = (int) clazz.getDeclaredField(name).get(null);
-            }
-            catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+            } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
                 e.printStackTrace(System.out);
             }
         }
@@ -788,8 +807,7 @@ public class UnoHelper {
             if (config.hasByHierarchicalName(property)) {
                 option = AnyConverter.toString(config.getByHierarchicalName(property));
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return option;
@@ -803,32 +821,34 @@ public class UnoHelper {
             if (config.hasByHierarchicalName(property)) {
                 option = AnyConverter.toBoolean(config.getByHierarchicalName(property));
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return option;
     }
 
     public static String getCaller() {
+        String value;
         StackWalker stackWalker = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
         StackWalker.StackFrame frame = stackWalker.walk(stream1 -> stream1.skip(2)
                                                                           .findFirst()
                                                                           .orElse(null));
         if (frame == null) {
-            return "caller: null";
+            value = "caller: null";
+        } else {
+            value = String.format("caller: %s#%s, %s", frame.getClassName(),
+                                  frame.getMethodName(), frame.getLineNumber());
         }
-        return String.format("caller: %s#%s, %s",
-                             frame.getClassName(),
-                             frame.getMethodName(),
-                             frame.getLineNumber());
+        return value;
     }
 
     public static void printStackTrace() {
         Thread thread = Thread.currentThread();
         StackTraceElement[] stackTrace = thread.getStackTrace();
         for (int i = 1; i < stackTrace.length; i++) {
-             System.out.println(stackTrace[i].getClassName() + " " + stackTrace[i].getMethodName() + " " + stackTrace[i].getLineNumber());
+            System.out.println(stackTrace[i].getClassName() + " " +
+                               stackTrace[i].getMethodName() + " " +
+                               stackTrace[i].getLineNumber());
         }
     }
 

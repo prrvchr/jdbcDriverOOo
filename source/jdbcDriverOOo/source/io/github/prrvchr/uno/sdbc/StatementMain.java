@@ -42,6 +42,7 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
+import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
@@ -484,7 +485,7 @@ public abstract class StatementMain
         try {
             return getJdbcStatement().getMoreResults();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 

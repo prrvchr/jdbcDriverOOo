@@ -361,7 +361,11 @@ public abstract class ConnectionBase
     public XPreparedStatement prepareStatement(String sql)
         throws SQLException {
         checkDisposed();
-        return getPreparedStatement(sql);
+        try {
+            return getPreparedStatement(sql);
+        } catch (java.sql.SQLException e) {
+            throw DBTools.getSQLException(e, this);
+        }
 
     }
 
@@ -369,8 +373,11 @@ public abstract class ConnectionBase
     public XPreparedStatement prepareCall(String sql)
         throws SQLException {
         checkDisposed();
-        return getCallableStatement(sql);
-
+        try {
+            return getCallableStatement(sql);
+        } catch (java.sql.SQLException e) {
+            throw DBTools.getSQLException(e, this);
+        }
     }
 
     protected XComponentContext getComponentContext() {
@@ -378,8 +385,8 @@ public abstract class ConnectionBase
     }
 
     protected abstract XStatement getStatement();
-    protected abstract XPreparedStatement getPreparedStatement(String sql) throws SQLException;
-    protected abstract XPreparedStatement getCallableStatement(String sql) throws SQLException;
+    protected abstract XPreparedStatement getPreparedStatement(String sql) throws java.sql.SQLException;
+    protected abstract XPreparedStatement getCallableStatement(String sql) throws java.sql.SQLException;
 
     @SuppressWarnings("unused")
     private String _substituteVariables(String sql)

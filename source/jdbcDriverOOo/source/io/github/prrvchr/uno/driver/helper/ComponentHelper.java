@@ -40,8 +40,9 @@ public class ComponentHelper {
     public static class NamedComponentSupport {
 
         private boolean mCatalogsInTableDefinitions;
-        private boolean mCatalogsInViewDefinitions;
         private boolean mSchemasInTableDefinitions;
+        private boolean mCatalogsInViewDefinitions;
+        private boolean mSchemasInViewDefinitions;
         private boolean mCatalogsInSelectDefinitions;
         private boolean mSchemasInSelectDefinitions;
         private boolean mCatalogsInIndexDefinitions;
@@ -61,22 +62,25 @@ public class ComponentHelper {
         public NamedComponentSupport(final java.sql.DatabaseMetaData metadata,
                                      final ConfigSQL config)
             throws SQLException {
-            this(metadata, config.useCatalogsInViewDefinitions(),
+            this(metadata, config.useCatalogsInSelectDefinitions(),
+                           config.useSchemasInSelectDefinitions(),
                            config.useCatalogsInViewDefinitions(),
-                           config.useCatalogsInViewDefinitions());
+                           config.useSchemasInViewDefinitions());
         }
 
         private NamedComponentSupport(final java.sql.DatabaseMetaData metadata,
-                                      final boolean useCatalogInViewDefinitions,
-                                      final boolean useCatalogInSelectDefinitions,
-                                      final boolean useSchemaInSelectDefinitions)
+                                      final boolean useCatalogInSelect,
+                                      final boolean useSchemaInSelect,
+                                      final boolean useCatalogInView,
+                                      final boolean useSchemaInView)
             throws SQLException {
 
             mCatalogsInTableDefinitions = metadata.supportsCatalogsInTableDefinitions();
-            mCatalogsInViewDefinitions = useCatalogInViewDefinitions && metadata.supportsCatalogsInTableDefinitions();
             mSchemasInTableDefinitions = metadata.supportsSchemasInTableDefinitions();
-            mCatalogsInSelectDefinitions = useCatalogInSelectDefinitions;
-            mSchemasInSelectDefinitions = useSchemaInSelectDefinitions;
+            mCatalogsInViewDefinitions = useCatalogInView && metadata.supportsCatalogsInTableDefinitions();
+            mSchemasInViewDefinitions = useSchemaInView && metadata.supportsSchemasInTableDefinitions();
+            mCatalogsInSelectDefinitions = useCatalogInSelect && metadata.supportsCatalogsInTableDefinitions();
+            mSchemasInSelectDefinitions = useSchemaInSelect && metadata.supportsSchemasInTableDefinitions();
             mCatalogsInIndexDefinitions = metadata.supportsCatalogsInIndexDefinitions();
             mSchemasInIndexDefinitions = metadata.supportsSchemasInIndexDefinitions();
             mCatalogsInDataManipulation = metadata.supportsCatalogsInDataManipulation();
@@ -105,7 +109,7 @@ public class ComponentHelper {
                     break;
                 case InViewDefinitions:
                     support = new NamedSupport(mCatalogsInViewDefinitions,
-                                               mSchemasInTableDefinitions,
+                                               mSchemasInViewDefinitions,
                                                mCatalogAtStart,
                                                mCatalogSeparator,
                                                mIdentifierQuoteString,
@@ -122,14 +126,6 @@ public class ComponentHelper {
                 case InIndexDefinitions:
                     support = new NamedSupport(mCatalogsInIndexDefinitions,
                                                mSchemasInIndexDefinitions,
-                                               mCatalogAtStart,
-                                               mCatalogSeparator,
-                                               mIdentifierQuoteString,
-                                               mIsCaseSensitive);
-                    break;
-                case InDataManipulation:
-                    support = new NamedSupport(mCatalogsInDataManipulation,
-                                               mSchemasInDataManipulation,
                                                mCatalogAtStart,
                                                mCatalogSeparator,
                                                mIdentifierQuoteString,
@@ -152,9 +148,17 @@ public class ComponentHelper {
                                                mIsCaseSensitive);
                     break;
                 case Complete:
-                default:
                     support = new NamedSupport(true,
                                                true,
+                                               mCatalogAtStart,
+                                               mCatalogSeparator,
+                                               mIdentifierQuoteString,
+                                               mIsCaseSensitive);
+                    break;
+                case InDataManipulation:
+                default:
+                    support = new NamedSupport(mCatalogsInDataManipulation,
+                                               mSchemasInDataManipulation,
                                                mCatalogAtStart,
                                                mCatalogSeparator,
                                                mIdentifierQuoteString,
@@ -207,6 +211,10 @@ public class ComponentHelper {
 
         public String enquoteLiteral(String literal) {
             return mLiteralQuote + literal + mLiteralQuote;
+        }
+
+        public boolean isCaseSensitive() {
+            return mCaseSensitive;
         }
 
     }
@@ -285,8 +293,9 @@ public class ComponentHelper {
 
     public static NamedComponent getNamedComponents(ResultSetMetaData metadata, int index)
         throws SQLException {
-        return new NamedComponent(metadata.getCatalogName(index), metadata.getSchemaName(index),
-                                   metadata.getTableName(index));
+        return new NamedComponent(metadata.getCatalogName(index),
+                                  metadata.getSchemaName(index),
+                                  metadata.getTableName(index));
     }
 
     /** compose a complete column name from it's up to two parts, regarding to the database meta data composing rules.
@@ -426,22 +435,16 @@ public class ComponentHelper {
         return buffer.toString();
     }
 
-    public static String buildName(NamedSupport support,
-                                   NamedComponent component) {
+    public static String buildName(NamedSupport support, NamedComponent component) {
         return buildName(support, component, false);
     }
 
-    public static String buildName(NamedSupport support,
-                                   NamedComponent table,
-                                   boolean sensitive) {
+    public static String buildName(NamedSupport support, NamedComponent table, boolean sensitive) {
         return buildName(support, table.getCatalogName(), table.getSchemaName(), table.getTableName(), sensitive);
     }
 
-    public static String buildName(NamedSupport support,
-                                   String catalog,
-                                   String schema,
-                                   String table,
-                                   boolean sensitive) {
+    public static String buildName(NamedSupport support, String catalog,
+                                   String schema, String table, boolean sensitive) {
         return doComposeTableName(support, catalog, schema, table, sensitive);
     }
 
@@ -551,12 +554,10 @@ public class ComponentHelper {
      *    Is the name case sensitive.
      *
      * @return the full quoted table name (ie: with the catalog, schema and table name)
-     * @throws java.sql.SQLException 
      */
     public static String quoteTableName(NamedSupport support,
                                         String name,
-                                        boolean sensitive)
-        throws SQLException {
+                                        boolean sensitive) {
         if (sensitive) {
             NamedComponent table = qualifiedNameComponents(support, name, sensitive);
             name = composeTableName(support, table.getCatalogName(),
@@ -572,10 +573,8 @@ public class ComponentHelper {
      *    The table name.
      *
      * @return the NameComponents object with the catalog, schema and table
-     * @throws java.sql.SQLException 
      */
-    public static NamedComponent qualifiedNameComponents(NamedSupport support,
-                                                          String name) throws SQLException {
+    public static NamedComponent qualifiedNameComponents(NamedSupport support, String name) {
         return qualifiedNameComponents(support, name, false);
     }
 
@@ -589,12 +588,10 @@ public class ComponentHelper {
      *    need to unquote the name before.
      *
      * @return the NameComponents object with the catalog, schema and table
-     * @throws java.sql.SQLException 
      */
     public static NamedComponent qualifiedNameComponents(NamedSupport support,
-                                                          String name,
-                                                          boolean unquote)
-        throws SQLException {
+                                                         String name,
+                                                         boolean unquote) {
         NamedComponent component = new NamedComponent();
         String buffer;
         if (unquote) {
@@ -625,9 +622,6 @@ public class ComponentHelper {
             if (index != -1) {
                 component.setSchema(buffer.substring(0, index));
                 buffer = buffer.substring(index + 1);
-            } else {
-                String msg = "ComponentHelper::qualifiedNameComponents: ERROR: no schema separator!";
-                throw new SQLException(msg);
             }
         }
         component.setTable(buffer);
@@ -642,8 +636,7 @@ public class ComponentHelper {
      *    The table name.
      * @return the unquoted full table name.
      */
-    public static String unQuoteTableName(NamedSupport support,
-                                          String name) {
+    public static String unQuoteTableName(NamedSupport support, String name) {
         return name.replace(support.mIdentifierQuote, "");
     }
 

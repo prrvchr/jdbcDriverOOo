@@ -28,8 +28,6 @@ package io.github.prrvchr.uno.driver.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.star.sdbc.SQLException;
-
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
@@ -40,8 +38,7 @@ public class ParameterDCL extends ParameterBase {
     public static Map<String, Object> getUserArguments(NamedSupport support,
                                                        String user,
                                                        String password,
-                                                       boolean sensitive)
-        throws java.sql.SQLException {
+                                                       boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${User} quoted / unquoted user name
         arguments.put("User", support.enquoteIdentifier(user, sensitive));
@@ -55,8 +52,7 @@ public class ParameterDCL extends ParameterBase {
 
     public static Map<String, Object> getGroupArguments(NamedSupport support,
                                                         String group,
-                                                        boolean sensitive)
-        throws java.sql.SQLException {
+                                                        boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${Role} quoted / unquoted user name
         arguments.put("Role", support.enquoteIdentifier(group, sensitive));
@@ -66,8 +62,7 @@ public class ParameterDCL extends ParameterBase {
 
     public static Map<String, Object> getPrivilegesArguments(NamedSupport support,
                                                              NamedComponent table,
-                                                             String grantee)
-        throws java.sql.SQLException {
+                                                             String grantee) {
         // These parameters do not need to be quoted, it will be used with a PreparedStatement
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${Grantee} unquoted grantee name
@@ -88,8 +83,7 @@ public class ParameterDCL extends ParameterBase {
                                                                   String privileges,
                                                                   boolean isrole,
                                                                   String grantee,
-                                                                  boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+                                                                  boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${Privileges} the list of privileges to revoke
         arguments.put("Privileges", privileges);

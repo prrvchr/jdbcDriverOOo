@@ -56,16 +56,20 @@ import com.sun.star.uno.XComponentContext;
 public class OfficeResourceBundle
     implements AutoCloseable {
 
-    private XComponentContext m_xContext;
-    private String m_identifier;
-    private String m_path;
-    private String m_basename;
-    private boolean m_attempted;
-    private XStringResourceResolver m_xResolver;
+    private XComponentContext mContext;
+    private String mIdentifier;
+    private String mPath;
+    private String mBasename;
+    private boolean mAttempted;
+    private XStringResourceResolver mResolver;
 
-    /** constructs a resource bundle
+    /** constructs a resource bundle.
         @param  context
             the component context to operate in
+        @param  identifier
+            the identifier of the extension
+        @param  path
+            the path of resource file
         @param  basename
             the base name of the resource file which should be accessed
         @throws com.sun.star.lang.NullPointerException
@@ -79,61 +83,64 @@ public class OfficeResourceBundle
         if (context == null) {
             throw new NullPointerException();
         }
-        m_xContext = context;
-        m_identifier = identifier;
-        m_path = path;
-        m_basename = basename;
-        m_attempted = false;
+        mContext = context;
+        mIdentifier = identifier;
+        mPath = path;
+        mBasename = basename;
+        mAttempted = false;
     }
 
     @Override
     public void close() {
-        UnoHelper.disposeComponent(m_xResolver);
+        UnoHelper.disposeComponent(mResolver);
     }
 
     /**
      * Return the bundle's base name as passed to the constructor.
+     *
+     * @return the base name as String
      */
     public String getBaseName() {
-        return m_basename;
+        return mBasename;
     }
 
     /**
      * Return the extension identifier name as passed to the constructor.
+     *
+     * @return the identifier name as String
      */
     public String getIdentifier() {
-        return m_identifier;
+        return mIdentifier;
     }
 
-    /** loads the string with the given resource id from the resource bundle
-        @param  id
-            the id of the string to load
-        @return
-            the requested resource string. If no string with the given id exists in the resource bundle,
-            an empty string is returned.
+    /** loads the string with the given resource id from the resource bundle.
+     * @param id the id of the string to load
+     *
+     * @return
+     *       the requested resource string. If no string with the given id exists
+     *       in the resource bundle,an empty string is returned.
      * @throws Exception 
      * @throws NoSuchElementException 
      * @throws MissingResourceException 
-    */
-    public String loadString( int id )
+     */
+    public String loadString(int id)
         throws MissingResourceException,
                NoSuchElementException,
                Exception {
         synchronized (this) {
             String string = "";
             if (loadResolver()) {
-                string =  m_xResolver.resolveString(getStringResourceKey(id));
+                string =  mResolver.resolveString(getStringResourceKey(id));
             }
             return string;
         }
     }
 
-    /** determines whether the resource bundle has a string with the given id
-        @param  id
-            the id of the string whose existence is to be checked
-        @return
-            true if and only if a string with the given ID exists in the resource
-            bundle.
+    /** determines whether the resource bundle has a string with the given id.
+     * @param  id the id of the string whose existence is to be checked
+     * @return
+     *       true if and only if a string with the given ID exists in the resource
+     *       bundle.
      * @throws Exception 
      * @throws NoSuchElementException 
     */
@@ -143,7 +150,7 @@ public class OfficeResourceBundle
         synchronized (this) {
             boolean has = false;
             if (loadResolver()) {
-                has = m_xResolver.hasEntryForId(getStringResourceKey(id));
+                has = mResolver.hasEntryForId(getStringResourceKey(id));
             }
             return has;
         }
@@ -156,16 +163,16 @@ public class OfficeResourceBundle
     private boolean loadResolver()
         throws NoSuchElementException,
                Exception {
-        if (m_attempted) {
-            return m_xResolver != null;
+        boolean loaded = false;
+        if (!mAttempted) {
+            mAttempted = true;
+            XStringResourceResolver resolver = UnoHelper.getResourceResolver(mContext, mIdentifier, mPath, mBasename);
+            if (resolver != null) {
+                mResolver = resolver;
+            }
         }
-        m_attempted = true;
-        XStringResourceResolver resolver = UnoHelper.getResourceResolver(m_xContext, m_identifier, m_path, m_basename);
-        if (resolver != null) {
-            m_xResolver = resolver;
-            return true;
-        }
-        return false;
+        loaded = mResolver != null;
+        return loaded;
     }
 
 }

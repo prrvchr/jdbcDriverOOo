@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.driver.config;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +39,6 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
@@ -82,7 +82,7 @@ public class ConfigSQL extends ConfigBase {
                      final String url,
                      final DatabaseMetaData metadata,
                      final String subProtocol)
-        throws SQLException, java.sql.SQLException {
+        throws SQLException {
         this(config, opts, infos, url, metadata, subProtocol, true);
     }
     protected ConfigSQL(final XHierarchicalNameAccess config,
@@ -92,7 +92,7 @@ public class ConfigSQL extends ConfigBase {
                         final DatabaseMetaData metadata,
                         final String subProtocol,
                         final boolean rewriteTable)
-        throws SQLException, java.sql.SQLException {
+        throws SQLException {
         super(config, opts, infos, url, metadata, subProtocol, rewriteTable);
         mConfig = config;
         mSubProtocol = subProtocol;
@@ -106,17 +106,13 @@ public class ConfigSQL extends ConfigBase {
     public boolean useCachedRowSet(ResultSet rs, QueryHelper query)
         throws SQLException {
         boolean use = true;
-        try {
-            switch (mCachedRowSet) {
-                case 0:
-                    use = false;
-                    break;
-                case 1:
-                    use = hasRequiredMetaData(query) && isEditableResultSet(rs, query);
-                    break;
-            }
-        } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
+        switch (mCachedRowSet) {
+            case 0:
+                use = false;
+                break;
+            case 1:
+                use = hasRequiredMetaData(query) && isEditableResultSet(rs, query);
+                break;
         }
         return use;
     }
@@ -207,7 +203,7 @@ public class ConfigSQL extends ConfigBase {
     }
 
     protected String getIdentifiersAsString(final List<String> identifiers)
-        throws java.sql.SQLException {
+        throws SQLException {
         return String.join(getSeparator(), identifiers);
     }
 
@@ -239,7 +235,7 @@ public class ConfigSQL extends ConfigBase {
     }
 
     private boolean isEditableResultSet(ResultSet rs, QueryHelper query)
-        throws java.sql.SQLException {
+        throws SQLException {
         return rs.getType() == ResultSet.TYPE_FORWARD_ONLY ||
                rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY ||
                !query.hasPrimaryKeys();

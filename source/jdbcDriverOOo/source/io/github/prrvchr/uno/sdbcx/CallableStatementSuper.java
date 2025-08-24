@@ -52,7 +52,7 @@ public abstract class CallableStatementSuper
                                   String[] services,
                                   ConnectionSuper connection,
                                   String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         super(service, services, connection, sql);
     }
 

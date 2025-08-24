@@ -26,10 +26,10 @@
 package io.github.prrvchr.uno.sdbc;
 
 
+import java.sql.SQLException;
 import java.util.Set;
 
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;

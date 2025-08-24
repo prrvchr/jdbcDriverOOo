@@ -65,10 +65,10 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
-import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
@@ -117,17 +117,6 @@ public class TableHelper {
             return dfltName;
         }
 
-        public Map<String, Object> toArguments(Provider provider,
-                                               NamedComponent component,
-                                               ComposeRule rule,
-                                               boolean sensitive)
-            throws SQLException {
-            // XXX: We try to have arguments to be able to fill two query:
-            // XXX: - ALTER TABLE ${TableName} ALTER COLUMN ${Column} ${Type} ${Default} ${Nullable} ${Autoincrement}
-            // XXX: - ALTER TABLE ${TableName} ALTER COLUMN ${OldName} RENAME TO ${Column}
-            return ParameterDDL.getColumnProperties(provider.getNamedSupport(rule), component, this, sensitive);
-        }
-
         public boolean isRowVersion() {
             return mIsRowversion;
         }
@@ -164,12 +153,14 @@ public class TableHelper {
 
     /** creates a SQL CREATE TABLE statement.
      *
-     * @param provider
-     *      The driver provider.
+     * @param config
+     *      The DDL configuration.
+     * @param metadata
+     *      The DatabaseMetaData object.
+     * @param support
+     *      The named component support.
      * @param property
      *      The descriptor of the new table.
-     * @param rule
-     *      The rule for composing the table name.
      * @param type
      *      The type of the new table (ie: TABLE or TEXT TABLE).
      * @param sensitive
@@ -178,9 +169,10 @@ public class TableHelper {
      *   The CREATE TABLE statement.
      * @throws java.sql.SQLException
      */
-    public static List<String> getCreateTableQueries(Provider provider,
+    public static List<String> getCreateTableQueries(ConfigDDL config,
+                                                     DatabaseMetaData metadata,
+                                                     NamedSupport support,
                                                      XPropertySet property,
-                                                     ComposeRule rule,
                                                      String type,
                                                      boolean sensitive)
         throws SQLException {
@@ -191,18 +183,19 @@ public class TableHelper {
         }
         if (columns == null || columns.getCount() <= 0) {
             String template = "The '%s' table has no columns, it is not possible to create the table";
-            String table = ComponentHelper.composeTableName(provider.getNamedSupport(rule), property, sensitive);
+            String table = ComponentHelper.composeTableName(support, property, sensitive);
             String message = String.format(template, table);
             throw new SQLException(message);
         }
         // XXX: The first thing to do is to retrieve the columns
         // XXX: to find out if there are any auto-increment columns.
-        return getCreateTableQueries(provider, property, rule, columns, type, sensitive);
+        return getCreateTableQueries(config, metadata, support, property, columns, type, sensitive);
     }
 
-    private static List<String> getCreateTableQueries(Provider provider,
+    private static List<String> getCreateTableQueries(ConfigDDL config,
+                                                      DatabaseMetaData metadata,
+                                                      NamedSupport support,
                                                       XPropertySet property,
-                                                      ComposeRule rule,
                                                       XIndexAccess columns,
                                                       String type,
                                                       boolean sensitive)
@@ -210,32 +203,33 @@ public class TableHelper {
         List<String> queries = new ArrayList<>();
         List<String> parts = new ArrayList<>();
         List<String> versions = new ArrayList<>();
-        boolean hasAutoIncrement = setCreateTableColumn(provider, property, rule, columns,
+        boolean hasAutoIncrement = setCreateTableColumn(config, metadata, support, property, columns,
                                                         queries, parts, versions, sensitive);
-        boolean versioning = !versions.isEmpty() && provider.getConfigDDL().supportsSystemVersioning();
+        boolean versioning = !versions.isEmpty() && config.supportsSystemVersioning();
         if (versioning) {
-            parts.add(provider.getConfigDDL().getSystemVersioningColumnQuery(versions));
+            Map<String, Object> Arguments = ParameterDDL.getSystemVersioningColumnParameter(support, versions);
+            parts.add(config.getSystemVersioningColumnQuery(Arguments));
         }
         // XXX: If the underlying driver allows it, we create the primary key in a DDL command
         // XXX: separate from the one that creates the table. But there are specific cases!!!
-        boolean autopk = provider.getConfigDDL().isAutoIncrementIsPrimaryKey();
-        boolean alterpk = provider.getConfigDDL().supportsAlterPrimaryKey();
+        boolean autopk = config.isAutoIncrementIsPrimaryKey();
+        boolean alterpk = config.supportsAlterPrimaryKey();
         // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
         if (alterpk && !autopk || isCreationSupported(alterpk, autopk, !hasAutoIncrement)) {
-            queries.addAll(0, getCreateConstraintQueries(provider, property, property, "", rule, sensitive));
+            queries.addAll(0, getCreateConstraintQueries(config, support, property, property, "", sensitive));
         // XXX: SQLite only allows creating PK with table creation and if there is no auto increment column (first test)
         // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
         } else if (!alterpk && !hasAutoIncrement || isCreationSupported(alterpk, autopk, hasAutoIncrement)) {
-            parts.addAll(ConstraintHelper.getCreatePrimaryKeyParts(provider.getNamedSupport(rule),
-                                                                   property, sensitive));
+            parts.addAll(ConstraintHelper.getCreatePrimaryKeyParts(support, property, sensitive));
         }
-        addCreateTableCommand(provider, property, rule, queries, parts, type, versioning, sensitive);
+        addCreateTableCommand(config, support, property, queries, parts, type, versioning, sensitive);
         return queries;
     }
 
-    private static boolean setCreateTableColumn(final Provider provider,
+    private static boolean setCreateTableColumn(final ConfigDDL config,
+                                                final DatabaseMetaData metadata,
+                                                final NamedSupport support,
                                                 final XPropertySet property,
-                                                final ComposeRule rule,
                                                 final XIndexAccess columns,
                                                 final List<String> queries,
                                                 final List<String> parts,
@@ -249,8 +243,8 @@ public class TableHelper {
                 if (descriptor == null) {
                     continue;
                 }
-                hasAutoIncrement |= getCreateTableColumn(provider, property, rule, queries, parts, versions,
-                                                         descriptor, sensitive);
+                hasAutoIncrement |= getCreateTableColumn(config, metadata, support, property,
+                                                         queries, parts, versions, descriptor, sensitive);
             }
         } catch (IndexOutOfBoundsException | WrappedTargetException | IllegalArgumentException e) {
             throw new SQLException(e.getMessage());
@@ -258,9 +252,9 @@ public class TableHelper {
         return hasAutoIncrement;
     }
 
-    private static void addCreateTableCommand(final Provider provider,
+    private static void addCreateTableCommand(final ConfigDDL config,
+                                              final NamedSupport support,
                                               final XPropertySet property,
-                                              final ComposeRule rule,
                                               final List<String> queries,
                                               final List<String> parts,
                                               final String type,
@@ -268,14 +262,15 @@ public class TableHelper {
                                               final boolean sensitive)
         throws SQLException {
         Map<String, Object> arguments = new HashMap<>();
-        String key = ParameterDDL.setCreateTable(arguments, provider.getNamedSupport(rule),
-                                                 property, type, parts, sensitive);
-        queries.add(0, provider.getConfigDDL().getCreateTableCommand(arguments, versioning, key));
+        String key = ParameterDDL.setCreateTable(arguments, support, property,
+                                                 type, parts, sensitive);
+        queries.add(0, config.getCreateTableCommand(arguments, versioning, key));
     }
 
-    private static boolean getCreateTableColumn(final Provider provider,
+    private static boolean getCreateTableColumn(final ConfigDDL config,
+                                                final DatabaseMetaData metadata,
+                                                final NamedSupport support,
                                                 final XPropertySet property,
-                                                final ComposeRule rule,
                                                 final List<String> queries,
                                                 final List<String> parts,
                                                 final List<String> columnversion,
@@ -283,19 +278,20 @@ public class TableHelper {
                                                 boolean sensitive)
         throws SQLException {
         boolean hasAutoIncrement = false;
-        ColumnProperties column = getStandardColumnProperties(provider, descriptor);
-        if (provider.getConfigDDL().supportsColumnDescription()) {
+        ColumnProperties column = getStandardColumnProperties(config, metadata, descriptor);
+        if (config.supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
             if (!comment.isEmpty()) {
                 NamedComponent component = ComponentHelper.getTableNamedComponents(property);
-                queries.add(getColumnDescriptionQuery(provider, component, rule, column, comment, sensitive));
+                queries.add(getColumnDescriptionQuery(config, support, component,
+                                                      column, comment, sensitive));
             }
         }
         hasAutoIncrement |= column.isAutoIncrement();
         if (column.isRowVersion()) {
             columnversion.add(column.getNewName());
         }
-        parts.add(ParameterDDL.getColumnDescription(column));
+        parts.add(ParameterDDL.getColumnDescription(support, column));
         return hasAutoIncrement;
     }
 
@@ -305,105 +301,108 @@ public class TableHelper {
         return supportsAlterPk && isAutoIncrementPk && autoIncrement;
     }
 
-    private static String getColumnDescriptionQuery(final Provider provider,
+    private static String getColumnDescriptionQuery(final ConfigDDL config,
+                                                    final NamedSupport support,
                                                     final NamedComponent component,
-                                                    final ComposeRule rule,
                                                     final ColumnProperties column,
                                                     final String comment,
                                                     final boolean sensitive)
         throws SQLException {
-        Map<String, Object> arguments = ParameterDDL.getColumnDescription(provider.getNamedSupport(rule), component,
-                                                                          column.getNewName(), comment, sensitive);
-        String query = provider.getConfigDDL().getColumnDescriptionCommand(arguments);
+        Map<String, Object> arguments = ParameterDDL.getColumnDescription(support, component,
+                                                                          column.getNewName(),
+                                                                          comment, sensitive);
+        String query = config.getColumnDescriptionCommand(arguments);
         return query;
     }
 
     /** Creates a SQL Add Column DDL query.
-    *
-    * @param queries
-    *      The list of queries to fill.
-    * @param provider
-    *      The driver provider.
-    * @param component
-    *      The table NamedComponent.
-    * @param rule
-    *      The table name rule.
-    * @param descriptor
-    *      The descriptor of the new column.
-    * @param sensitive
-    *      Is identifier case sensitive.
-    * @throws java.sql.SQLException 
-    */
+     *
+     * @param queries
+     *      The list of queries to fill.
+     * @param config
+     *      The DDL configuration.
+     * @param metadata
+     *      The DatabaseMetaData object.
+     * @param support
+     *      The named component support.
+     * @param component
+     *      The table NamedComponent.
+     * @param descriptor
+     *      The descriptor of the new column.
+     * @param sensitive
+     *      Is identifier case sensitive.
+     * @throws java.sql.SQLException 
+     */
     // XXX: This method is called from:
     // XXX: - ColumnContainerBase.createColumn() for any new column.
     public static void getAddColumnQueries(List<String> queries,
-                                           Provider provider,
+                                           ConfigDDL config,
+                                           DatabaseMetaData metadata,
+                                           NamedSupport support,
                                            NamedComponent component,
-                                           ComposeRule rule,
                                            XPropertySet descriptor,
                                            boolean sensitive)
         throws SQLException {
         // XXX: Create a new column
-        ColumnProperties column = getStandardColumnProperties(provider, "", descriptor);
-        Map<String, Object> arguments = ParameterDDL.getAddColumn(provider.getNamedSupport(rule),
-                                                                  component, column, sensitive);
-        String query = provider.getConfigDDL().getAddColumnCommand(arguments);
+        ColumnProperties column = getStandardColumnProperties(config, metadata, "", descriptor);
+        Map<String, Object> arguments = ParameterDDL.getAddColumn(support, component, column, sensitive);
+        String query = config.getAddColumnCommand(arguments);
         queries.add(query);
-        if (provider.getConfigDDL().supportsColumnDescription()) {
+        if (config.supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
-            queries.add(getColumnDescriptionQuery(provider, component, rule, column, comment, sensitive));
+            queries.add(getColumnDescriptionQuery(config, support, component, column, comment, sensitive));
         }
     }
 
     /** Has the column identity changed.
-    *
-    * @param flags
-    *      The column change status.
-    * @param property
-    *      The property to check change.
-    * @return
-    *      The change status as boolean
-    */
+     *
+     * @param flags
+     *      The column change status.
+     * @param property
+     *      The property to check change.
+     * @return
+     *      The change status as boolean
+     */
     public static boolean hasPropertyChanged(int flags, int property) {
         return hasColumnProperty(flags, property);
     }
 
 
     /** Has the column identity changed.
-    *
-    * @param flags
-    *      The column change status.
-    * @return
-    *      The change status as boolean
-    */
+     *
+     * @param flags
+     *      The column change status.
+     * @return
+     *      The change status as boolean
+     */
     public static boolean hasColumnIdentityChanged(int flags) {
         return hasColumnProperty(flags, COLUMN_IDENTITY);
     }
 
     /** Has the column identity changed.
-    *
-    * @param flags
-    *      The column change status.
-    * @return
-    *      The change status as boolean
-    */
+     *
+     * @param flags
+     *      The column change status.
+     * @return
+     *      The change status as boolean
+     */
     public static boolean hasColumnTypeChanged(int flags) {
         return hasColumnProperty(flags, COLUMN_TYPE);
     }
 
     /** Get changes as byte.
-    *
-    * @param descriptor1
-    *      The old column descriptor.
-    * @param descriptor2
-    *      The new column descriptor.
-    * @param oldname
-    *      The old the column name.
-    * @param newname
-    *      The new the column name.
-    * @return
-    *      The binary status (ie: 1 -> renamed, 2 -> type changed ...) as int
-    */
+     *
+     * @param descriptor1
+     *      The old column descriptor.
+     * @param descriptor2
+     *      The new column descriptor.
+     * @param oldname
+     *      The old the column name.
+     * @param newname
+     *      The new the column name.
+     * @return
+     *      The binary status (ie: 1 -> renamed, 2 -> type changed ...) as int
+     */
     public static int getAlterColumnChanges(XPropertySet descriptor1,
                                             XPropertySet descriptor2,
                                             String oldname,
@@ -448,37 +447,40 @@ public class TableHelper {
 
 
     /** creates a SQL Column part statement.
-    *
-    * @param queries
-    *      The list of queries to fill.
-    * @param provider
-    *      The driver provider.
-    * @param component
-    *      The component of the table.
-    * @param rule
-    *      The rule of the component.
-    * @param oldname
-    *      The old column name.
-    * @param descriptor1
-    *      The descriptor of the old column.
-    * @param descriptor2
-    *      The descriptor of the new column.
-    * @param flags
-    *      The column changed properties flags.
-    * @param alterkey
-    *      Is the modified column primary or foreign key.
-    * @param sensitive
-    *      Is identifier case sensitive.
-    * @return
-    *      The binary result (ie: 1 -> renamed, 2 -> type changed ...)
-    * @throws java.sql.SQLException
-    */
+     *
+     * @param queries
+     *      The list of queries to fill.
+     * @param config
+     *      The DDL configuration.
+     * @param metadata
+     *      The DatabaseMetaData object.
+     * @param support
+     *      The named component support.
+     * @param component
+     *      The component of the table.
+     * @param oldname
+     *      The old column name.
+     * @param descriptor1
+     *      The descriptor of the old column.
+     * @param descriptor2
+     *      The descriptor of the new column.
+     * @param flags
+     *      The column changed properties flags.
+     * @param alterkey
+     *      Is the modified column primary or foreign key.
+     * @param sensitive
+     *      Is identifier case sensitive.
+     * @return
+     *      The binary result (ie: 1 -> renamed, 2 -> type changed ...)
+     * @throws java.sql.SQLException
+     */
     // XXX: This method is called from:
     // XXX: - TableSuper.alterColumn() for already existing columns.
     public static Integer getAlterColumnQueries(List<String> queries,
-                                                Provider provider,
+                                                ConfigDDL config,
+                                                DatabaseMetaData metadata,
+                                                NamedSupport support,
                                                 NamedComponent component,
-                                                ComposeRule rule,
                                                 String oldname,
                                                 XPropertySet descriptor1,
                                                 XPropertySet descriptor2,
@@ -491,13 +493,13 @@ public class TableHelper {
         // XXX: Added the possibility of changing column type if the contained data can be cast
         // XXX: Added the possibility of renaming a primary key
         // XXX: Added the possibility of adding or removing Identity (auto increment on column) {
-        ColumnProperties column = getStandardColumnProperties(provider, oldname, descriptor2);
-        int result = setAlterColumnQueries(provider, component, rule, queries, column, descriptor2, flags,
+        ColumnProperties column = getStandardColumnProperties(config, metadata, oldname, descriptor2);
+        int result = setAlterColumnQueries(config, support, component, queries, column, descriptor2, flags,
                                            alterkey, sensitive);
         // XXX: Column description have been changed?
-        if (hasPropertyChanged(flags, COLUMN_DESCRIPTION) && provider.getConfigDDL().supportsColumnDescription()) {
+        if (hasPropertyChanged(flags, COLUMN_DESCRIPTION) && config.supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
-            queries.add(getColumnDescriptionQuery(provider, component, rule, column, comment, sensitive));
+            queries.add(getColumnDescriptionQuery(config, support, component, column, comment, sensitive));
             result |= COLUMN_DESCRIPTION;
         }
         return result;
@@ -507,9 +509,9 @@ public class TableHelper {
         return (flags & property) == property;
     }
 
-    private static int setAlterColumnQueries(Provider provider,
+    private static int setAlterColumnQueries(ConfigDDL config,
+                                             NamedSupport support,
                                              NamedComponent component,
-                                             ComposeRule rule,
                                              List<String> queries,
                                              ColumnProperties column,
                                              XPropertySet descriptor,
@@ -521,11 +523,11 @@ public class TableHelper {
         // XXX: Modify an existing column
         int results = 0;
         boolean autoincrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISAUTOINCREMENT);
-        Map<String, Object> arguments = column.toArguments(provider, component, rule, sensitive);
+        Map<String, Object> arguments = ParameterDDL.getColumnProperties(support, component, column, sensitive);
 
         // XXX: Column name have changed
         if (hasPropertyChanged(flags, COLUMN_NAME)) {
-            results |= setColumnName(provider, queries, arguments);
+            results |= setColumnName(config, queries, arguments);
         }
 
         List<String> parts = new ArrayList<>();
@@ -533,16 +535,16 @@ public class TableHelper {
         // XXX: same DDL command to change the type of a column or assign or remove an Identity constraint.
         // XXX: Identity have been changed
         if (hasPropertyChanged(flags, COLUMN_IDENTITY)) {
-            results |= setColumnIdentity(provider, queries, parts, arguments, autoincrement);
+            results |= setColumnIdentity(config, queries, parts, arguments, autoincrement);
         }
         // XXX: type have been changed 
         if (hasPropertyChanged(flags, COLUMN_TYPE)) {
-            results |= setColumnType(provider, parts, arguments, results, autoincrement);
+            results |= setColumnType(config, parts, arguments, results, autoincrement);
         }
         
         if (!isPropertiesSet(flags, results, COLUMN_IDENTITY, COLUMN_TYPE) &&
-            provider.getConfigDDL().hasAlterColumnCommand()) {
-            queries.add(provider.getConfigDDL().getAlterColumnCommand(arguments));
+            config.hasAlterColumnCommand()) {
+            queries.add(config.getAlterColumnCommand(arguments));
             results = updateResults(flags, results, COLUMN_IDENTITY, COLUMN_TYPE);
         } else if (!parts.isEmpty()) {
             queries.addAll(parts);
@@ -551,7 +553,7 @@ public class TableHelper {
         // XXX: Primary key & auto-increment column don't have to handle Default and Not Null property,
         // XXX: and some underlying driver doesn't support alteration of column.
         if (!alterkey && !autoincrement && !isAllPropertiesSet(flags, results, COLUMN_DESCRIPTION)) {
-            results |= setColumnProperties(provider, descriptor, queries, arguments, flags);
+            results |= setColumnProperties(config, descriptor, queries, arguments, flags);
         }
         return results;
     }
@@ -582,36 +584,36 @@ public class TableHelper {
         return results;
     }
 
-    private static int setColumnProperties(Provider provider,
+    private static int setColumnProperties(ConfigDDL config,
                                            XPropertySet descriptor,
                                            List<String> queries,
                                            Map<String, Object> arguments,
                                            int flags) {
         int result = 0;
         if (hasPropertyChanged(flags, COLUMN_DEFAULT_VALUE)) {
-            result |= setColumnDefaultValue(provider, descriptor, queries, arguments);
+            result |= setColumnDefaultValue(config, descriptor, queries, arguments);
         }
 
         if (hasPropertyChanged(flags, COLUMN_NULLABLE)) {
-            result |= setColumnNullable(provider, descriptor, queries, arguments);
+            result |= setColumnNullable(config, descriptor, queries, arguments);
         }
         return result;
     }
 
-    private static int setColumnName(Provider provider,
-                                      List<String> queries,
-                                      Map<String, Object> arguments) {
+    private static int setColumnName(ConfigDDL config,
+                                     List<String> queries,
+                                     Map<String, Object> arguments) {
         // Rename a column
         int result = 0;
-        if (provider.getConfigDDL().hasAlterColumnNameCommand()) {
-            queries.add(provider.getConfigDDL().getAlterColumnNameCommand(arguments));
+        if (config.hasAlterColumnNameCommand()) {
+            queries.add(config.getAlterColumnNameCommand(arguments));
             result = COLUMN_NAME;
         }
         return result;
     }
 
     @SuppressWarnings("unused")
-    private static int setColumnIdentity(Provider provider,
+    private static int setColumnIdentity(ConfigDDL config,
                                          List<String> queries,
                                          List<String> parts,
                                          Map<String, Object> arguments,
@@ -622,10 +624,10 @@ public class TableHelper {
         int result = 0;
         if (!autoincrement) {
             // XXX: An Identity column have been drop
-            query =  provider.getConfigDDL().getColumnDropIdentityCommand(arguments);
-        } else if (provider.getConfigDDL().hasColumnAddIdentityCommand()) {
+            query =  config.getColumnDropIdentityCommand(arguments);
+        } else if (config.hasColumnAddIdentityCommand()) {
             // XXX: Does the underlying driver have a specific command to set Identity?
-            query =  provider.getConfigDDL().getColumnAddIdentityCommand(arguments);
+            query =  config.getColumnAddIdentityCommand(arguments);
         }
         if (query != null) {
             parts.add(query);
@@ -634,7 +636,7 @@ public class TableHelper {
         return result;
     }
 
-    private static int setColumnType(Provider provider,
+    private static int setColumnType(ConfigDDL config,
                                      List<String> parts,
                                      Map<String, Object> arguments,
                                      int results,
@@ -642,10 +644,10 @@ public class TableHelper {
         // XXX: Does the underlying driver have a specific command to change the type?
         int result = 0;
         String query = null;
-        if (provider.getConfigDDL().hasAlterColumnTypeCommand()) {
-            query = provider.getConfigDDL().getAlterColumnTypeCommand(arguments);
-        } else if (provider.getConfigDDL().hasAlterColumnCommand()) {
-            query =  provider.getConfigDDL().getAlterColumnCommand(arguments);
+        if (config.hasAlterColumnTypeCommand()) {
+            query = config.getAlterColumnTypeCommand(arguments);
+        } else if (config.hasAlterColumnCommand()) {
+            query =  config.getAlterColumnCommand(arguments);
         }
         if (query != null) {
             // XXX: If an Identity have been added we must first change the type
@@ -659,7 +661,7 @@ public class TableHelper {
         return result;
     }
 
-    private static int setColumnDefaultValue(Provider provider,
+    private static int setColumnDefaultValue(ConfigDDL config,
                                              XPropertySet descriptor,
                                              List<String> queries,
                                              Map<String, Object> arguments) {
@@ -667,11 +669,11 @@ public class TableHelper {
         String query = null;
         String defaultValue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DEFAULTVALUE);
         if (defaultValue.isBlank()) {
-            if (provider.getConfigDDL().hasColumnDropDefaultCommand()) {
-                query = provider.getConfigDDL().getColumnDropDefaultCommand(arguments);
+            if (config.hasColumnDropDefaultCommand()) {
+                query = config.getColumnDropDefaultCommand(arguments);
             }
-        } else if (provider.getConfigDDL().hasColumnSetDefaultCommand()) {
-            query = provider.getConfigDDL().getColumnSetDefaultCommand(arguments);
+        } else if (config.hasColumnSetDefaultCommand()) {
+            query = config.getColumnSetDefaultCommand(arguments);
         }
         if (query != null) {
             queries.add(query);
@@ -680,7 +682,7 @@ public class TableHelper {
         return result;
     }
 
-    private static int setColumnNullable(Provider provider,
+    private static int setColumnNullable(ConfigDDL config,
                                          XPropertySet descriptor,
                                          List<String> queries,
                                          Map<String, Object> arguments) {
@@ -688,11 +690,11 @@ public class TableHelper {
         int result = 0;
         int nullable = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.ISNULLABLE);
         if (nullable == ColumnValue.NO_NULLS) {
-            if (provider.getConfigDDL().hasColumnSetNotNullCommand()) {
-                query = provider.getConfigDDL().getColumnSetNotNullCommand(arguments);
+            if (config.hasColumnSetNotNullCommand()) {
+                query = config.getColumnSetNotNullCommand(arguments);
             }
-        } else if (provider.getConfigDDL().hasColumnDropNotNullCommand()) {
-            query = provider.getConfigDDL().getColumnDropNotNullCommand(arguments);
+        } else if (config.hasColumnDropNotNullCommand()) {
+            query = config.getColumnDropNotNullCommand(arguments);
         }
         if (query != null) {
             queries.add(query);
@@ -701,26 +703,30 @@ public class TableHelper {
         return result;
     }
 
-    private static ColumnProperties getStandardColumnProperties(Provider provider,
+    private static ColumnProperties getStandardColumnProperties(ConfigDDL config,
+                                                                DatabaseMetaData metadata,
                                                                 XPropertySet descriptor)
         throws SQLException {
         String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
         ColumnProperties column = new ColumnProperties(newname);
-        return getStandardColumnProperties(provider, column, descriptor);
+        return getStandardColumnProperties(config, metadata, column, descriptor);
     }
 
-    private static ColumnProperties getStandardColumnProperties(Provider provider,
+    private static ColumnProperties getStandardColumnProperties(ConfigDDL config,
+                                                                DatabaseMetaData metadata,
                                                                 String oldname,
                                                                 XPropertySet descriptor)
         throws SQLException {
         String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
         ColumnProperties column = new ColumnProperties(oldname, newname);
-        return getStandardColumnProperties(provider, column, descriptor);
+        return getStandardColumnProperties(config, metadata, column, descriptor);
     }
 
     /** creates the standard SQL statement for the column part of statement.
-     * @param provider
-     *      The driver provider.
+     * @param config
+     *      The DDL configuration.
+     * @param metadata
+     *      The DatabaseMetaData object.
      * @param column
      *      Column properties.
      * @param descriptor
@@ -729,8 +735,8 @@ public class TableHelper {
      *      The column properties.
      * @throws java.sql.SQLException 
      */
-
-    private static ColumnProperties getStandardColumnProperties(Provider provider,
+    private static ColumnProperties getStandardColumnProperties(ConfigDDL config,
+                                                                DatabaseMetaData metadata,
                                                                 ColumnProperties column,
                                                                 XPropertySet descriptor)
         throws SQLException {
@@ -752,7 +758,7 @@ public class TableHelper {
         }
 
         // Look if we have to use precisions (ie: SCALE).
-        boolean useliteral = useLiteral(provider, typename, datatype);
+        boolean useliteral = useLiteral(config, metadata, typename, datatype);
 
         int index = typename.indexOf(autoIncrementValue);
         if (column.mIsAutoincrement && index != -1) {
@@ -779,15 +785,16 @@ public class TableHelper {
         return column;
     }
 
-    private static final boolean useLiteral(Provider provider, String typename, int datatype)
+    private static final boolean useLiteral(ConfigDDL config,
+                                            DatabaseMetaData metadata,
+                                            String typename, int datatype)
         throws SQLException {
         boolean useliteral = false;
         String createparams = "";
         final int TYPE_NAME = 1;
         final int DATA_TYPE = 2;
         final int CREATE_PARAMS = 6;
-        RowSetData data = provider.getConfigSQL().getTypeInfoData();
-        DatabaseMetaData metadata = provider.getConnection().getMetaData();
+        RowSetData data = config.getTypeInfoData();
         try (ResultSet result = ResultSetHelper.getCustomDataResultSet(metadata.getTypeInfo(), data)) {
             while (result.next()) {
                 String typename2cmp = result.getString(TYPE_NAME);
@@ -878,29 +885,28 @@ public class TableHelper {
     }
 
     /** creates the Primary or Foreign Key SQL ALTER TABLE statement.
-     * @param provider
-     *      The driver provider.
+     * @param config
+     *      The DDL configuration.
+     * @param support
+     *      The named component support.
      * @param descriptor
      *      The descriptor of the new table.
      * @param property
      *      The property of the new table.
      * @param name
      *      The name of the new table.
-     * @param rule
-     *      The naming rule for the new table.
      * @param sensitive
      *      Is identifier case sensitive.
      * @return
      *      The keys parts.
      * @throws java.sql.SQLException 
      */
-
-    private static List<String> getCreateConstraintQueries(Provider provider,
-                                                           XPropertySet descriptor,
-                                                           XPropertySet property,
-                                                           String name,
-                                                           ComposeRule rule,
-                                                           boolean sensitive)
+    private static List<String> getCreateConstraintQueries(final ConfigDDL config,
+                                                           final NamedSupport support,
+                                                           final XPropertySet descriptor,
+                                                           final XPropertySet property,
+                                                           final String name,
+                                                           final boolean sensitive)
         throws java.sql.SQLException {
         List<String> queries = new ArrayList<>();
         NamedComponent table = ComponentHelper.getTableNamedComponents(property);
@@ -912,9 +918,8 @@ public class TableHelper {
                 for (int i = 0; i < keys.getCount(); i++) {
                     XPropertySet key = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
                     if (key != null) {
-                        queries.add(ConstraintHelper.getCreateConstraintQuery(provider.getConfigDDL(),
-                                                                              provider.getNamedSupport(rule),
-                                                                              key, table, name, sensitive));
+                        queries.add(ConstraintHelper.getCreateConstraintQuery(config, support, key,
+                                                                              table, name, sensitive));
                     }
                 }
             }

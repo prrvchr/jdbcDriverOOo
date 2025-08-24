@@ -47,17 +47,15 @@
 package io.github.prrvchr.uno.driver.helper;
 
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class QueryHelper {
 
@@ -106,27 +104,24 @@ public final class QueryHelper {
      *                         - java.sql.PreparedStatement.executeQuery()
      * @param provider
      * @param query
-     * @throws com.sun.star.sdbc.SQLException 
+     * @throws java.sql.SQLException 
      */
     public QueryHelper(final Provider provider, final String query)
         throws SQLException {
+
         mQuery = query;
 
         String table = getTableName(query);
         if (table != null) {
-            try {
-                ComposeRule rule = ComposeRule.InDataManipulation;
-                NamedSupport support = provider.getNamedSupport(rule);
-                NamedComponent tablename = ComponentHelper.qualifiedNameComponents(support, table, true);
-                mCatalog = tablename.getCatalog();
-                mSchema = tablename.getSchema();
-                mTable = tablename.getTable();
-                mIdentifier = table;
-                mTableName = ComponentHelper.composeTableName(support, tablename, false);
-                mMetaData = provider.getConnection().getMetaData();
-            } catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e);
-            }
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            NamedSupport support = provider.getNamedSupport(rule);
+            NamedComponent tablename = ComponentHelper.qualifiedNameComponents(support, table, true);
+            mCatalog = tablename.getCatalog();
+            mSchema = tablename.getSchema();
+            mTable = tablename.getTable();
+            mIdentifier = table;
+            mTableName = ComponentHelper.composeTableName(support, tablename, false);
+            mMetaData = provider.getConnection().getMetaData();
         }
     }
 
@@ -359,7 +354,7 @@ public final class QueryHelper {
                     if (rs.next()) {
                         has = true;
                     }
-                } catch (java.sql.SQLException e) { }
+                } catch (SQLException e) { }
             }
             mPrimaryKey = has;
         }

@@ -26,28 +26,19 @@
 package io.github.prrvchr.uno.driver.logger;
 
 import java.io.Writer;
+import java.lang.System.Logger;
 
-import com.sun.star.logging.LogLevel;
-import com.sun.star.logging.XLogger;
-import com.sun.star.uno.Exception;
 
-import io.github.prrvchr.uno.helper.UnoLoggerPool;
+public abstract class SystemLogger {
 
-public final class DerbyLoggerBridge {
-
-    private static XLogger sLogger = null;
-
-    private DerbyLoggerBridge()
-        throws Exception {
-        sLogger = UnoLoggerPool.getNamedLogger("derby");
-    }
+    private static final Logger sLOGGER = null;
 
     public static final class LoggingWriter
         extends Writer {
         @Override
         public void write(final char[] cbuf, final int off, final int len) {
             if (len > 1) {
-                sLogger.log(LogLevel.INFO, new String(cbuf, off, len));
+                sLOGGER.log(Logger.Level.INFO, new String(cbuf, off, len));
             }
         }
 
@@ -62,9 +53,8 @@ public final class DerbyLoggerBridge {
         }
     }
 
-    public static Writer bridge() {
+    public static Writer getLogger() {
         return new LoggingWriter();
     }
-
 
 }

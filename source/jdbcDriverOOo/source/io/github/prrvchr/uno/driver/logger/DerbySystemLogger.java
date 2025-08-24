@@ -23,56 +23,14 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.driver.logger;
 
-import com.sun.star.logging.XLogger;
-import com.sun.star.logging.XLoggerPool;
-import com.sun.star.uno.DeploymentException;
-import com.sun.star.uno.Exception;
-import com.sun.star.uno.UnoRuntime;
-import com.sun.star.uno.XComponentContext;
+import java.lang.System.Logger;
 
 
-public final class UnoLoggerPool {
+public final class DerbySystemLogger
+    extends SystemLogger {
 
-    private static XComponentContext sCONTEXT;
-    private static String sROOT;
-    private static String sSERVICE = "io.github.prrvchr.jdbcDriverOOo.LoggerPool";
-
-    // The constructor method:
-    public UnoLoggerPool() {
-        System.out.println("logging.UnoLoggerPool()");
-    }
-
-    public static void initialize(XComponentContext context,
-                                  String root) {
-        sCONTEXT = context;
-        sROOT = root;
-    }
-
-    public static XLogger getNamedLogger(String name) {
-        return _getLoggerPool().getNamedLogger(getLoggerName(name));
-    }
-
-    public static XLogger getDefaultLogger() {
-        return _getLoggerPool().getDefaultLogger();
-    }
-
-    private static String getLoggerName(String name) {
-        return String.format("%s.%s", sROOT, name);
-    }
-
-    private static XLoggerPool _getLoggerPool() {
-        XLoggerPool pool = null;
-        try {
-            Object object = sCONTEXT.getServiceManager().createInstanceWithContext(sSERVICE, sCONTEXT);
-            pool = UnoRuntime.queryInterface(XLoggerPool.class, object);
-        } catch (Exception e) { }
-        if (pool == null) {
-            String msg = "component context fails to supply singleton css.logging.LoggerPool";
-            throw new DeploymentException(msg, sCONTEXT);
-        }
-        return pool;
-    }
+    protected static final Logger sLOGGER = System.getLogger("derby");
 
 }

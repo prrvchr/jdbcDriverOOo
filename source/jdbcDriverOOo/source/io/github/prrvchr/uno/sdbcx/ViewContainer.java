@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,9 +76,9 @@ public final class ViewContainer
         try {
             ComposeRule rule = ComposeRule.InViewDefinitions;
             Provider provider = getConnection().getProvider();
-            query = DBTools.getCreateViewCommand(provider.getConfigDDL(),
-                                                 provider.getNamedSupport(rule),
-                                                 descriptor, isCaseSensitive());
+            query = DBTools.getCreateViewQuery(provider.getConfigDDL(),
+                                               provider.getNamedSupport(rule),
+                                               descriptor, isCaseSensitive());
             System.out.println("sdbcx.ViewContainer.createDataBaseElement() SQL: '" + query + "'");
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
             if (DBTools.executeSQLQuery(provider, query)) {
@@ -88,7 +89,7 @@ public final class ViewContainer
         } catch (SQLException e) {
             int resource = Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
-            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
         }
         return created;
     }
@@ -97,29 +98,27 @@ public final class ViewContainer
     protected View createElement(String name)
         throws SQLException {
         try {
-            return createView(name, ComposeRule.InViewDefinitions);
-        } catch (SQLException e) {
-            throw new SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-        }
-    }
-
-    private View createView(String name, ComposeRule rule) throws SQLException {
-        int option = CheckOption.NONE;
-        String command = "";
-        NamedSupport support = getConnection().getProvider().getNamedSupport(rule);
-        Provider provider = getConnection().getProvider();
-        NamedComponent component = ComponentHelper.qualifiedNameComponents(support, name);
-        if (provider.getConfigDDL().supportsViewDefinition()) {
-            Map<String, Object> parameters = ParameterDDL.getViewDefinition(support, component, isCaseSensitive());
-            List<Object> values = new ArrayList<Object>();
-            String query = provider.getConfigDDL().getViewDefinitionQuery(parameters, values);
-            if (query != null && !query.isBlank() && !values.isEmpty()) {
-                try (java.sql.PreparedStatement smt = provider.getConnection().prepareStatement(query)) {
-                    for (int i = 0; i < values.size(); i++) {
-                        smt.setObject(i + 1, values.get(i));
-                    }
+            System.out.println("ViewContainer.createElement() 1 View name: " + name);
+            ComposeRule rule = ComposeRule.InTableDefinitions;
+            int option = CheckOption.NONE;
+            String command = "";
+            Provider provider = getConnection().getProvider();
+            NamedSupport support = provider.getNamedSupport(rule);
+            NamedComponent component = ComponentHelper.qualifiedNameComponents(support, name);
+            if (provider.getConfigDDL().supportsViewDefinition()) {
+                Map<String, Object> parameters = ParameterDDL.getViewDefinition(support, component, isCaseSensitive());
+                List<Object> values = new ArrayList<Object>();
+                String query = provider.getConfigDDL().getViewDefinitionQuery(parameters, values);
+                String[] options = new String[values.size()];
+                for (int i = 0; i < values.size(); i++) {
+                    options[i] = values.get(i).toString();
+                }
+                System.out.println("ViewContainer.createElement() 2 Query: " + query);
+                System.out.println("ViewContainer.createElement() 3 Options: " + String.join(", ", options));
+                if (query != null && !query.isBlank() && !values.isEmpty()) {
                     String value = "NONE";
-                    try (java.sql.ResultSet result = smt.executeQuery()) {
+                    try (PreparedStatement smt = getCreateViewStatement(provider.getConnection(), values, query);
+                         java.sql.ResultSet result = smt.executeQuery()) {
                         // FIXME: The query used comes from the Drivers.xcu file ViewDefinitionQuery property,
                         // FIXME: it must return at least one column for the view's SQL command.
                         // FIXME: If only one column is provided then the Check_Option value defaults to None.
@@ -131,12 +130,26 @@ public final class ViewContainer
                     option = getViewCheckOption(value);
                 }
             }
+            System.out.println("ViewContainer.createElement() 4 Command: " + command);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEW);
+            View view = new View(getConnection(), isCaseSensitive(), component.getCatalogName(),
+                                 component.getSchemaName(), component.getTableName(), command, option);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEW_ID, view.getLogger().getObjectId());
+            return view;
+        } catch (SQLException e) {
+            //int resource = Resources.STR_LOG_CREATED_VIEW_ERROR;
+            //String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
+            throw new SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEW);
-        View view = new View(getConnection(), isCaseSensitive(), component.getCatalogName(),
-                             component.getSchemaName(), component.getTableName(), command, option);
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEW_ID, view.getLogger().getObjectId());
-        return view;
+    }
+
+    private PreparedStatement getCreateViewStatement(java.sql.Connection connection, List<Object> values, String query)
+        throws SQLException {
+        PreparedStatement smt = connection.prepareStatement(query);
+        for (int i = 0; i < values.size(); i++) {
+            smt.setObject(i + 1, values.get(i));
+        }
+        return smt;
     }
 
     private String getViewCheckOption(java.sql.ResultSet result,
@@ -175,8 +188,8 @@ public final class ViewContainer
         String query = null;
         try {
             ComposeRule rule = ComposeRule.InViewDefinitions;
-            NamedSupport support = getConnection().getProvider().getNamedSupport(rule);
             Provider provider = getConnection().getProvider();
+            NamedSupport support = provider.getNamedSupport(rule);
             String table = ComponentHelper.buildName(support, view.getNamedComponents(), isCaseSensitive());
             query = provider.getConfigDDL().getDropViewCommand(ParameterDDL.getDropView(table));
             System.out.println("ViewContainer.removeView() Query: " + query);
@@ -185,7 +198,7 @@ public final class ViewContainer
         } catch (SQLException e) {
             int resource = Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, view.getName(), query);
-            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
         }
     }
 

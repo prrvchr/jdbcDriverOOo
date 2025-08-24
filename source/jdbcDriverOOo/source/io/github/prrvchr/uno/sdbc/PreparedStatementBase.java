@@ -26,10 +26,10 @@
 package io.github.prrvchr.uno.sdbc;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Map;
 
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
@@ -78,7 +78,7 @@ public abstract class PreparedStatementBase
 
     @Override
     protected PreparedStatement getJdbcStatement()
-        throws java.sql.SQLException {
+        throws SQLException {
         checkDisposed();
         if (mStatement == null) {
             PreparedStatement statement;

@@ -25,6 +25,9 @@
 */
 package io.github.prrvchr.uno.driver.config;
 
+import java.util.List;
+
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 
 public abstract class ParameterBase {
 
@@ -33,6 +36,17 @@ public abstract class ParameterBase {
 
     public static String getSeparator() {
         return mSeparator;
+    }
+
+    protected static String getIdentifiersAsString(final NamedSupport support,
+                                                   final List<String> identifiers) {
+        if (support.isCaseSensitive()) {
+            for (String identifier : identifiers) {
+                int index = identifiers.indexOf(identifier);
+                identifiers.set(index, support.enquoteIdentifier(identifier));
+            }
+        }
+        return String.join(mSeparator, identifiers);
     }
 
 }

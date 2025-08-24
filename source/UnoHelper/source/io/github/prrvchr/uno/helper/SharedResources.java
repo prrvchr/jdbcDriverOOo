@@ -53,9 +53,9 @@ import com.sun.star.uno.XComponentContext;
  * in the connectivity module.
  */
 public class SharedResources {
-    private static SharedResources m_instance;
-    private static OfficeResourceBundle m_bundle;
-    private static int m_refcount = 0;
+    private static SharedResources sINSTANCE;
+    private static OfficeResourceBundle sBUNDLE;
+    private static int sREFCOUNT = 0;
 
     // The private constructor method:
     private SharedResources(XComponentContext context,
@@ -63,53 +63,47 @@ public class SharedResources {
                             String path,
                             String basename) {
         try {
-            m_bundle = new OfficeResourceBundle(context, identifier, path, basename);
-        }
-        catch (NullPointerException nullPointerException) {
-        }
+            sBUNDLE = new OfficeResourceBundle(context, identifier, path, basename);
+        } catch (NullPointerException nullPointerException) { }
     }
 
-    // FIXME: the C++ implementation gets the XComponentContext using ::comphelper::getProcessServiceFactory(), we don't.
-    public synchronized static void registerClient(XComponentContext context,
+    // XXX: the C++ implementation gets the XComponentContext using
+    // XXX: ::comphelper::getProcessServiceFactory(), we don't.
+    public static synchronized void registerClient(XComponentContext context,
                                                    String identifier,
                                                    String path,
                                                    String basename) {
-        if (m_instance == null) {
-            m_instance = new SharedResources(context, identifier, path, basename);
+        if (sINSTANCE == null) {
+            sINSTANCE = new SharedResources(context, identifier, path, basename);
         }
-        ++m_refcount;
+        ++sREFCOUNT;
     }
 
-    public synchronized static void revokeClient() {
-        if (--m_refcount == 0) {
-            m_bundle.close();
-            m_instance = null;
+    public static synchronized void revokeClient() {
+        if (--sREFCOUNT == 0) {
+            sBUNDLE.close();
+            sINSTANCE = null;
         }
     }
 
-    public synchronized static SharedResources getInstance() {
-        return m_instance;
+    public static synchronized SharedResources getInstance() {
+        return sINSTANCE;
     }
 
-    /** loads a string from the shared resource file
-        @param  id
-            the resource ID of the string
-        @return
-            the string from the resource file
+    /** loads a string from the shared resource file.
+     * @param  id the resource ID of the string
+     * @return
+     *       the string from the resource file
      */
     public String getResource(int id) {
         return loadStringMessage(id);
     }
 
-    /** loads a string from the shared resource file, and replaces all substitutes
-
-        @param  id
-            the resource ID of the string to load
-        @param  substitutes
-            A varargs String of substitutions.
-    
-        @return
-            the string from the resource file, with applied string substitution
+    /** loads a string from the shared resource file, and replaces all substitutes.
+     * @param  id the resource ID of the string to load
+     * @param  substitutes A varargs String of substitutions.
+     * @return
+     *       the string from the resource file, with applied string substitution
      */
     public String getResourceWithSubstitution(int id,
                                               Object... substitutes) {
@@ -120,13 +114,12 @@ public class SharedResources {
                                      Object... substitutes) {
         String message = "";
         try {
-            message = m_bundle.loadString(id);
+            message = sBUNDLE.loadString(id);
             if (substitutes.length > 0) {
                 message = String.format(message, substitutes);
             }
-        }
-        catch (java.lang.Exception e) {
-            message = String.format("<invalid event resource: '%s:%d'>", m_bundle.getBaseName(), id);
+        } catch (java.lang.Exception e) {
+            message = String.format("<invalid event resource: '%s:%d'>", sBUNDLE.getBaseName(), id);
         }
         return message;
     }

@@ -58,7 +58,7 @@ public abstract class CallableStatementBase
                                  String[] services,
                                  ConnectionBase connection,
                                  String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         super(service, services, connection);
         mQuery = new QueryHelper(connection.getProvider(), sql);
         System.out.println("sdbc.BaseCallableStatement() 1: '" + sql + "'");

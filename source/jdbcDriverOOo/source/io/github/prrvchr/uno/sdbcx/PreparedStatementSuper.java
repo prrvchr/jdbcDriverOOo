@@ -44,7 +44,7 @@ public abstract class PreparedStatementSuper
                                   String[] services,
                                   ConnectionSuper connection,
                                   String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         super(service, services, connection, sql);
         System.out.println("sdbc.PreparedStatementSuper() 1: '" + sql + "'");
     }

@@ -419,12 +419,20 @@ Si vous utilisez plusieurs comptes pour vous connecter à une base de données, 
 
 ### Ce qui a été fait pour la version 1.5.7:
 
-Intégration du [pilote JDBC SQL Server][126] `mssql-jdbc-13.2.0.jre11.jar`. Cette intégration a nécessité les modifications suivantes du code sous-jacent:
-- Utilisation des paramètres `UseCatalog` et `UseCatalogInSelect` dans le fichier `Drivers.xcu` avec des valeurs fausses.
-- Ajout d'un nouvel élément `InViewDefinitions` à l'énumération [ComposeRule][127]. Cette nouvelle règle de nommage permet de ne pas utiliser le nom du catalogue dans la construction d'un identifiant si le paramètre `UseCatalog` est défini sur `false`, sinon elle suivra la valeur de l'élément `InTableDefinitions`.
-- Utilisation de cette nouvelle règle de nommage pour la construction des requêtes SQL permettant la création et la suppression d'une vue.
+La logique de nommage des éléments nécessitant des noms composés, tels que les tables, les vues et les colonnes, a été modifiée:
+- Les règles de nommage [ComposeRule][126] ont été étendues avec deux nouvelles règles:
+  - `InSelectDefinitions` définit la règle de nommage lors de la composition des requêtes SQL. Deux paramètres, issus du fichier de configuration, `UseCatalogInSelect` et `UseSchemaInSelect`, permettent d'influencer le comportement de cette règle.
+  - `InViewDefinitions` définit la règle de nommage lors de la composition d'une vue. Deux nouveaux paramètres, issus du fichier de configuration, `UseCatalogInView` et `UseSchemaInView`, permettent d'influencer le comportement de cette règle.
+- En l'absence de paramètres dans le fichier de configuration, ces deux nouvelles règles suivront la règle `InTableDefinitions`.
+- La règle `InViewDefinitions` a été ajoutée pour permettre la création de vues dans SQL Server.
+- Une règle `ComposeRule` permet d'obtenir un support de nommage [NamedSupport][127], qui peut fournir un nom unique suivant cette règle à partir d'une composition de nom [NamedComponent][128] et inversement. Toute cette logique est désormais regroupée dans le fichier [ComponentHelper][129].
 
-Avec ces modifications, le catalogue, qui est en fait le nom de la base de données sous SQL Server, ne sera pas utilisé pour nommer les identifiants des requêtes SQL gérant la création et la supression des vues, comme l'exige le pilote JDBC de SQL Server.
+Intégration du [pilote JDBC SQL Server][130] `mssql-jdbc-13.2.0.jre11.jar`. Cette intégration a nécessité les modifications suivantes du code sous-jacent:
+- Utilisation du paramètre `UseCatalogInView` dans le fichier `Drivers.xcu` avec un valeur fausse.
+- Utilisation de la nouvelle règle de nommage `InViewDefinitions` lors de la création d'une vue afin d'exclure le nom du catalogue du le nom de la vue.
+- Avec ces modifications, le catalogue, qui est en fait le nom de la base de données sous SQL Server, ne sera pas utilisé pour nommer les identifiants des requêtes SQL gérant la création des vues, comme l'exige le pilote JDBC de SQL Server.
+
+Correction du problème d'utilisation de plusieurs comptes de connexion avec Base [tdf#167960][125]. Un correctif [fix#189732][131] sera disponible avec LibreOffice 26.2.x et rendra Base véritablement multi-utilisateur.
 
 ### Que reste-t-il à faire pour la version 1.5.7:
 
@@ -557,4 +565,9 @@ Avec ces modifications, le catalogue, qui est en fait le nom de la base de donn�
 [123]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167920>
 [124]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>
 [125]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167960>
-[126]: <https://github.com/microsoft/mssql-jdbc>
+[126]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/provider/ComposeRule.java>
+[127]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#176>
+[128]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#218>
+[129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java>
+[130]: <https://github.com/microsoft/mssql-jdbc>
+[131]: <https://gerrit.libreoffice.org/c/core/+/189732>

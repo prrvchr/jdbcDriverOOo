@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -111,10 +112,12 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
         List<String> queries = new ArrayList<>();
         Provider provider = getConnection().getProvider();
         ComposeRule rule = ComposeRule.InTableDefinitions;
-        String table = ComponentHelper.composeTableName(provider.getNamedSupport(rule), mTable, false);
+        NamedSupport support = provider.getNamedSupport(rule);
+        String table = ComponentHelper.composeTableName(support, mTable, false);
         try {
-            TableHelper.getAddColumnQueries(queries, provider, mTable.getNamedComponents(),
-                                            rule, descriptor, isCaseSensitive());
+            DatabaseMetaData metadata = provider.getConnection().getMetaData();
+            TableHelper.getAddColumnQueries(queries, provider.getConfigDDL(), metadata, support,
+                                            mTable.getNamedComponents(), descriptor, isCaseSensitive());
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 mTable.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table, query);

@@ -36,6 +36,7 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
@@ -180,9 +181,13 @@ public abstract class StatementBase
     @Override
     public XResultSet executeQuery(String sql)
         throws SQLException {
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_QUERY, sql);
-        mQuery = new QueryHelper(mConnection.getProvider(), sql);
-        return getResultSet();
+        try {
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_QUERY, sql);
+            mQuery = new QueryHelper(mConnection.getProvider(), sql);
+            return getResultSet();
+        } catch (java.sql.SQLException e) {
+            throw DBTools.getSQLException(e, this);
+        }
     }
 
     @Override

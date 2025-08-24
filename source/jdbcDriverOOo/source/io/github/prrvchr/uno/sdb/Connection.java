@@ -222,7 +222,7 @@ public final class Connection
 
     @Override
     protected XPreparedStatement getPreparedStatement(String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         getStatements().put(statement, statement);
@@ -234,7 +234,7 @@ public final class Connection
 
     @Override
     protected XPreparedStatement getCallableStatement(String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         getStatements().put(statement, statement);

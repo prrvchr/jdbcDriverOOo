@@ -46,7 +46,7 @@ public final class PreparedStatement
     // The constructor method:
     public PreparedStatement(Connection connection,
                              String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         super(SERVICE, SERVICES, connection, sql);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbc.PreparedStatement() 1: '" + sql + "'");

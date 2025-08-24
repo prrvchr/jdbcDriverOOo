@@ -103,27 +103,26 @@ public final class View
     public void alterCommand(String command)
         throws SQLException {
         if (!mCommand.equals(command)) {
-            String name = null;
             List<String> queries = new ArrayList<>();
+            Provider provider = getConnection().getProvider();
+            ComposeRule rule = ComposeRule.InViewDefinitions;
+            NamedSupport support = provider.getNamedSupport(rule);
+            NamedComponent component = getNamedComponents();
             try {
-                NamedComponent component = getNamedComponents();
-                ComposeRule rule = ComposeRule.InViewDefinitions;
-                NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
-                Provider provider = getConnection().getProvider();
-                name = ComponentHelper.buildName(support, component);
                 Map<String, Object> arguments = ParameterDDL.getAlterView(support, component,
                                                                           command, isCaseSensitive());
                 ConfigDDL config = mConnection.getProvider().getConfigDDL();
                 queries =  config.getAlterViewCommands(arguments);
                 if (!queries.isEmpty()) {
                     String query = String.join("> <", queries);
-                    name = ComponentHelper.buildName(support, component, false);
+                    String name = ComponentHelper.buildName(support, component, false);
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_ALTER_QUERY, name, query);
                     DBTools.executeSQLQueries(provider, queries);
                 }
             } catch (java.sql.SQLException e) {
                 int resource = Resources.STR_LOG_VIEW_ALTER_QUERY_ERROR;
                 String query = String.join("> <", queries);
+                String name = ComponentHelper.buildName(support, component, false);
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
                 throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
@@ -138,21 +137,15 @@ public final class View
         throws SQLException,
                ElementExistException {
         String oldname = null;
-        try {
-            ComposeRule rule = ComposeRule.InDataManipulation;
-            NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
-            oldname = ComponentHelper.buildName(support, getNamedComponents());
-            NamedComponent table = ComponentHelper.qualifiedNameComponents(support, newname);
-            if (rename(table, oldname, newname, true, rule)) {
-                mCatalogName = table.getCatalogName();
-                mSchemaName = table.getSchemaName();
-                setName(table.getTableName());
-                getConnection().getViewsInternal().rename(oldname, newname);
-            }
-        } catch (java.sql.SQLException e) {
-            int resource = Resources.STR_LOG_VIEW_RENAME_UNSPECIFIED_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+        ComposeRule rule = ComposeRule.InDataManipulation;
+        NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
+        oldname = ComponentHelper.buildName(support, getNamedComponents());
+        NamedComponent table = ComponentHelper.qualifiedNameComponents(support, newname);
+        if (rename(table, oldname, newname, true, rule)) {
+            mCatalogName = table.getCatalogName();
+            mSchemaName = table.getSchemaName();
+            setName(table.getTableName());
+            getConnection().getViewsInternal().rename(oldname, newname);
         }
     }
 

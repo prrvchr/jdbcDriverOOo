@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.driver.config;
 
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,7 +36,6 @@ import java.util.Map;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
@@ -92,7 +92,7 @@ public class ConfigDDL extends ConfigSQL {
                      final String url,
                      final DatabaseMetaData metadata,
                      final String subProtocol)
-        throws SQLException, java.sql.SQLException {
+        throws SQLException {
         super(config, opts, infos, url, metadata, subProtocol, false);
     }
 
@@ -379,7 +379,6 @@ public class ConfigDDL extends ConfigSQL {
         return query;
     }
 
-
     public String getAddIndexCommand(final Map<String, Object> keys,
                                      final boolean unique) {
         String command = null;
@@ -391,12 +390,22 @@ public class ConfigDDL extends ConfigSQL {
         return format(command, keys);
     }
 
-    public String getSystemVersioningColumnQuery(final List<String> columns)
-        throws java.sql.SQLException {
+    public String getDropIndexCommand(final Map<String, Object> keys,
+                                      final boolean unique) {
+        String command = null;
+        if (unique) {
+            command = getDropConstraintCommand();
+        } else {
+            command = getDropIndexCommand();
+        }
+        return format(command, keys);
+    }
+
+    public String getSystemVersioningColumnQuery(Map<String, Object> keys)
+        throws SQLException {
         String query = null;
         String command = getSystemVersioningColumnCommand();
         if (command != null) {
-            Map<String, Object> keys = Map.of("ColumnNames", getIdentifiersAsString(columns));
             query = format(command, keys);
         }
         return query;
