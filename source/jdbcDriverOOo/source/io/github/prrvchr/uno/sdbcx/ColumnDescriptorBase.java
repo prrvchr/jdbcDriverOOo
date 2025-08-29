@@ -29,8 +29,8 @@ import java.util.Map;
 
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 
 public abstract class ColumnDescriptorBase
@@ -56,9 +56,9 @@ public abstract class ColumnDescriptorBase
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
 
-        properties.put(PropertyIds.DEFAULTVALUE.getName(),
+        properties.put(PropertyID.DEFAULTVALUE,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mDefaultValue;
@@ -67,7 +67,7 @@ public abstract class ColumnDescriptorBase
                     mDefaultValue = (String) value;
                 }));
 
-        properties.put(PropertyIds.DESCRIPTION.getName(),
+        properties.put(PropertyID.DESCRIPTION,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mDescription;
@@ -76,7 +76,7 @@ public abstract class ColumnDescriptorBase
                     mDescription = (String) value;
                 }));
 
-        properties.put(PropertyIds.ISAUTOINCREMENT.getName(),
+        properties.put(PropertyID.ISAUTOINCREMENT,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mIsAutoIncrement;
@@ -85,7 +85,7 @@ public abstract class ColumnDescriptorBase
                     mIsAutoIncrement = (boolean) value;
                 }));
 
-        properties.put(PropertyIds.ISCURRENCY.getName(),
+        properties.put(PropertyID.ISCURRENCY,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mIsCurrency;
@@ -94,7 +94,7 @@ public abstract class ColumnDescriptorBase
                     mIsCurrency = (boolean) value;
                 }));
 
-        properties.put(PropertyIds.ISNULLABLE.getName(),
+        properties.put(PropertyID.ISNULLABLE,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mIsNullable;
@@ -106,10 +106,10 @@ public abstract class ColumnDescriptorBase
         registerProperties2(properties);
     }
 
-    private void registerProperties2(Map<String, PropertyWrapper> properties) {
+    private void registerProperties2(Map<PropertyID, PropertyWrapper> properties) {
 
 
-        properties.put(PropertyIds.ISROWVERSION.getName(),
+        properties.put(PropertyID.ISROWVERSION,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mIsRowVersion;
@@ -118,7 +118,7 @@ public abstract class ColumnDescriptorBase
                     mIsRowVersion = (boolean) value;
                 }));
 
-        properties.put(PropertyIds.PRECISION.getName(),
+        properties.put(PropertyID.PRECISION,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mPrecision;
@@ -127,7 +127,7 @@ public abstract class ColumnDescriptorBase
                     mPrecision = (int) value;
                 }));
 
-        properties.put(PropertyIds.SCALE.getName(),
+        properties.put(PropertyID.SCALE,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mScale;
@@ -136,7 +136,7 @@ public abstract class ColumnDescriptorBase
                     mScale = (int) value;
                 }));
 
-        properties.put(PropertyIds.TYPE.getName(),
+        properties.put(PropertyID.TYPE,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mType;
@@ -145,7 +145,7 @@ public abstract class ColumnDescriptorBase
                     mType = (int) value;
                 }));
 
-        properties.put(PropertyIds.TYPENAME.getName(),
+        properties.put(PropertyID.TYPENAME,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mTypeName;

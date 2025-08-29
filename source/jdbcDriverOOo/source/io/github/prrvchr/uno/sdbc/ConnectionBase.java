@@ -48,13 +48,12 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XStringSubstitution;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
+import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.driver.provider.Tools;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -117,7 +116,6 @@ public abstract class ConnectionBase
             System.out.println("Connection.dispose() No ResultSet Open...");
         }
 
-        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_SHUTDOWN);
         try {
             for (Iterator<StatementMain> it = mStatements.keySet().iterator(); it.hasNext();) {
                 StatementMain statement = it.next();
@@ -128,7 +126,6 @@ public abstract class ConnectionBase
             getProvider().closeConnection();
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
-            getLogger().logp(LogLevel.WARNING, e);
             System.out.println("Connection.dispose() ERROR:\n" + UnoHelper.getStackTrace(e));
         }
         super.dispose();
@@ -187,7 +184,7 @@ public abstract class ConnectionBase
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID,
                                metadata.getLogger().getObjectId());
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
         return metadata;
     }
@@ -195,6 +192,7 @@ public abstract class ConnectionBase
     @Override
     public synchronized void close()
         throws SQLException {
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_SHUTDOWN);
         dispose();
     }
 
@@ -204,7 +202,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().commit();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -214,7 +212,7 @@ public abstract class ConnectionBase
         try {
             return getProvider().getConnection().getAutoCommit();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -229,7 +227,7 @@ public abstract class ConnectionBase
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -240,7 +238,7 @@ public abstract class ConnectionBase
         try {
             return getProvider().getConnection().getTransactionIsolation();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -250,7 +248,7 @@ public abstract class ConnectionBase
         try {
             return getProvider().getConnection().isClosed() && bDisposed;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -261,7 +259,7 @@ public abstract class ConnectionBase
         try {
             return getProvider().getConnection().isReadOnly();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -276,7 +274,7 @@ public abstract class ConnectionBase
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -286,7 +284,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().rollback();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -296,7 +294,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().setAutoCommit(commit);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -306,7 +304,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().setCatalog(catalog);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -316,7 +314,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().setReadOnly(readonly);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -327,7 +325,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().setTransactionIsolation(isolation);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -402,7 +400,7 @@ public abstract class ConnectionBase
             XStringSubstitution substitution = UnoRuntime.queryInterface(XStringSubstitution.class, object);
             return substitution.substituteVariables(sql, true);
         } catch (com.sun.star.uno.Exception e) {
-            throw Tools.toUnoExceptionLogged(this, getLogger(), e);
+            throw DBTools.getLoggedSQLException(e, this, getLogger());
         }
     }
 

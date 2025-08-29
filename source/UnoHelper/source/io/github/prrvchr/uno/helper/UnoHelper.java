@@ -47,7 +47,6 @@ import com.sun.star.deployment.XPackageInformationProvider;
 import com.sun.star.i18n.XLocaleData;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.Locale;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lang.XMultiServiceFactory;
@@ -348,92 +347,6 @@ public class UnoHelper {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         return sw.toString();
-    }
-
-    public static WrappedTargetException getWrappedException(java.lang.Exception e) {
-        WrappedTargetException exception = null;
-        if (e != null) {
-            Exception ex = new Exception(e.getMessage());
-            exception = getWrappedException(ex);
-        }
-        return exception;
-    }
-
-    public static WrappedTargetException getWrappedException(Exception e) {
-        WrappedTargetException exception = null;
-        if (e != null) {
-            exception = new WrappedTargetException(e.getMessage());
-            exception.Context = e.Context;
-            exception.TargetException = e;
-        }
-        return exception;
-    }
-
-    public static java.sql.SQLException getSQLException(java.lang.Throwable e) {
-        return new java.sql.SQLException(e.getLocalizedMessage(), e);
-    }
-
-    public static SQLException getSQLException(java.sql.SQLException e) {
-        return getUnoSQLException(e.getLocalizedMessage());
-    }
-
-    public static SQLException getSQLException(Exception e, XInterface component) {
-        SQLException exception = getUnoSQLException(e.getMessage());
-        exception.Context = component;
-        return exception;
-    }
-
-    public static SQLException getSQLException(java.sql.SQLException e, XInterface component) {
-        SQLException exception = null;
-        if (e != null) {
-            exception = getUnoSQLException(e.getLocalizedMessage());
-            exception.Context = component;
-            String state = e.getSQLState();
-            if (state != null) {
-                exception.SQLState = state;
-            }
-            exception.ErrorCode = e.getErrorCode();
-            SQLException ex = getNextSQLException(e.getNextException(), component);
-            if (ex != null) {
-                exception.NextException = ex;
-            }
-        }
-        return exception;
-    }
-
-    public static SQLException getUnoSQLException(String msg) {
-        SQLException e;
-        if (msg != null) {
-            e = new SQLException(msg);
-        } else {
-            e = new SQLException();
-        }
-        return e;
-    }
-
-    public static SQLException getSQLException(java.lang.Exception e,
-                                               XInterface component) {
-        SQLException exception = getUnoSQLException(e.getMessage());
-        exception.Context = component;
-        return exception;
-    }
-
-    private static SQLException getNextSQLException(java.sql.SQLException e,
-                                                    XInterface component) {
-        SQLException exception = null;
-        if (e != null) {
-            exception = getSQLException(e, component);
-        }
-        return exception;
-    }
-
-    public static SQLException getLoggedSQLException(XInterface component,
-                                                     ResourceBasedEventLogger logger,
-                                                     java.sql.SQLException throwable) {
-        
-        SQLException exception = getSQLException(throwable, component);
-        logger.log(LogLevel.SEVERE, throwable);
-        return exception;
     }
 
     public static String getObjectString(Object object) {

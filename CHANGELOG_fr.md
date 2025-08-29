@@ -427,10 +427,11 @@ La logique de nommage des éléments nécessitant des noms composés, tels que l
 - La règle `InViewDefinitions` a été ajoutée pour permettre la création de vues dans SQL Server.
 - Une règle `ComposeRule` permet d'obtenir un support de nommage [NamedSupport][127], qui peut fournir un nom unique suivant cette règle à partir d'une composition de nom [NamedComponent][128] et inversement. Toute cette logique est désormais regroupée dans le fichier [ComponentHelper][129].
 
-Intégration du [pilote JDBC SQL Server][130] `mssql-jdbc-13.2.0.jre11.jar`. Cette intégration a nécessité les modifications suivantes du code sous-jacent:
+Intégration du [pilote JDBC SQL Server][130] `mssql-jdbc-13.2.0.jre17.jar`. Cette intégration a nécessité les modifications suivantes du code sous-jacent:
 - Utilisation du paramètre `UseCatalogInView` dans le fichier `Drivers.xcu` avec un valeur fausse.
 - Utilisation de la nouvelle règle de nommage `InViewDefinitions` lors de la création d'une vue afin d'exclure le nom du catalogue du le nom de la vue.
 - Avec ces modifications, le catalogue, qui est en fait le nom de la base de données sous SQL Server, ne sera pas utilisé pour nommer les identifiants des requêtes SQL gérant la création des vues, comme l'exige le pilote JDBC de SQL Server.
+- Recompilation du pilote SQL Server 13.2.0 sous Java 17 avec la correction du [dysfonctionnement#2745][131] pour permettre l'utilisation de la gestion des relations dans LibreOffice Base.
 
 Correction du problème d'utilisation de plusieurs comptes de connexion avec Base [tdf#167960][125]. Un correctif [fix#189732][131] sera disponible avec LibreOffice 26.2.x et rendra Base véritablement multi-utilisateur.
 
@@ -570,4 +571,5 @@ Correction du problème d'utilisation de plusieurs comptes de connexion avec Bas
 [128]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#218>
 [129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java>
 [130]: <https://github.com/microsoft/mssql-jdbc>
-[131]: <https://gerrit.libreoffice.org/c/core/+/189732>
+[131]: <https://github.com/microsoft/mssql-jdbc/issues/2745>
+[132]: <https://gerrit.libreoffice.org/c/core/+/189732>

@@ -33,8 +33,8 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -76,10 +76,10 @@ public final class IndexColumn
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.ISASCENDING.getName(),
+        properties.put(PropertyID.ISASCENDING,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsAscending;

@@ -30,8 +30,8 @@ import java.util.Map;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 
 public abstract class ColumnMain
@@ -87,73 +87,73 @@ public abstract class ColumnMain
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.DEFAULTVALUE.getName(),
+        properties.put(PropertyID.DEFAULTVALUE,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return getDefaultValue();
                 },
                 null));
 
-        properties.put(PropertyIds.DESCRIPTION.getName(),
+        properties.put(PropertyID.DESCRIPTION,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return getDescription();
                 },
                 null));
 
-        properties.put(PropertyIds.ISAUTOINCREMENT.getName(),
+        properties.put(PropertyID.ISAUTOINCREMENT,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return getIsAutoIncrement();
                 },
                 null));
 
-        properties.put(PropertyIds.ISCURRENCY.getName(),
+        properties.put(PropertyID.ISCURRENCY,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return getIsCurrency();
                 },
                 null));
 
-        properties.put(PropertyIds.ISNULLABLE.getName(),
+        properties.put(PropertyID.ISNULLABLE,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return getIsNullable();
                 },
                 null));
 
-        properties.put(PropertyIds.ISROWVERSION.getName(),
+        properties.put(PropertyID.ISROWVERSION,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return getIsRowVersion();
                 },
                 null));
 
-        properties.put(PropertyIds.PRECISION.getName(),
+        properties.put(PropertyID.PRECISION,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return getPrecision();
                 },
                 null));
 
-        properties.put(PropertyIds.SCALE.getName(),
+        properties.put(PropertyID.SCALE,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return getScale();
                 },
                 null));
 
-        properties.put(PropertyIds.TYPE.getName(),
+        properties.put(PropertyID.TYPE,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return getType();
                 },
                 null));
 
-        properties.put(PropertyIds.TYPENAME.getName(),
+        properties.put(PropertyID.TYPENAME,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return getTypeName();

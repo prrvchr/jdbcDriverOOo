@@ -40,16 +40,15 @@ import com.sun.star.uno.Type;
 import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComposeRule;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
@@ -77,17 +76,17 @@ public final class View
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.CHECKOPTION.getName(),
+        properties.put(PropertyID.CHECKOPTION,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mCheckOption;
                 },
                 null));
 
-        properties.put(PropertyIds.COMMAND.getName(),
+        properties.put(PropertyID.COMMAND,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mCommand;
@@ -124,7 +123,8 @@ public final class View
                 String query = String.join("> <", queries);
                 String name = ComponentHelper.buildName(support, component, false);
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
-                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+                java.sql.SQLException ex = new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
+                throw DBTools.getSQLException(ex, this);
             }
             mCommand = command;
         }

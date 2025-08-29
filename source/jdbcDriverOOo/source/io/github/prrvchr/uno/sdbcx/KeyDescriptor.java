@@ -32,8 +32,8 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 
 public final class KeyDescriptor
@@ -60,9 +60,9 @@ public final class KeyDescriptor
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
 
-        properties.put(PropertyIds.DELETERULE.getName(),
+        properties.put(PropertyID.DELETERULE,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mDeleteRule;
@@ -71,7 +71,7 @@ public final class KeyDescriptor
                     mDeleteRule = (int) value;
                 }));
 
-        properties.put(PropertyIds.REFERENCEDTABLE.getName(),
+        properties.put(PropertyID.REFERENCEDTABLE,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mReferencedTable;
@@ -80,7 +80,7 @@ public final class KeyDescriptor
                     mReferencedTable = (String) value;
                 }));
 
-        properties.put(PropertyIds.TYPE.getName(),
+        properties.put(PropertyID.TYPE,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mType;
@@ -89,7 +89,7 @@ public final class KeyDescriptor
                     mType = (int) value;
                 }));
 
-        properties.put(PropertyIds.UPDATERULE.getName(),
+        properties.put(PropertyID.UPDATERULE,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mUpdateRule;

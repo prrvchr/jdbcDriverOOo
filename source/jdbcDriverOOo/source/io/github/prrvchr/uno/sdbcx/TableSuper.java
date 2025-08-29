@@ -51,21 +51,21 @@ import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.uno.driver.helper.ColumnHelper;
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.IndexHelper;
 import io.github.prrvchr.uno.driver.helper.KeyHelper;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.TableHelper;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComposeRule;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -103,24 +103,24 @@ public abstract class TableSuper
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.DESCRIPTION.getName(),
+        properties.put(PropertyID.DESCRIPTION,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mDescription;
                 },
                 null));
 
-        properties.put(PropertyIds.TYPE.getName(),
+        properties.put(PropertyID.TYPE,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mType;
                 },
                 null));
 
-        properties.put(PropertyIds.PRIVILEGES.getName(),
+        properties.put(PropertyID.PRIVILEGES,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return getPrivileges();
@@ -224,7 +224,7 @@ public abstract class TableSuper
         Provider provider = getConnection().getProvider();
 
         String oldname = oldcolumn.getName();
-        String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
+        String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyID.NAME);
         int flags = TableHelper.getAlterColumnChanges(oldcolumn, newcolumn, oldname, newname);
 
         // XXX: Identity or Type have been changed?
@@ -300,29 +300,29 @@ public abstract class TableSuper
 
         // Column have changed its description value
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_DESCRIPTION)) {
-            oldcolumn.setDescriptionInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DESCRIPTION));
+            oldcolumn.setDescriptionInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyID.DESCRIPTION));
         }
         // Column have changed its not null constraint
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NULLABLE)) {
-            oldcolumn.setIsNullableInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.ISNULLABLE));
+            oldcolumn.setIsNullableInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyID.ISNULLABLE));
         }
         // Column have changed its default value
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_DEFAULT_VALUE)) {
-            oldcolumn.setDefaultValueInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DEFAULTVALUE));
+            oldcolumn.setDefaultValueInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyID.DEFAULTVALUE));
         }
         // Column have changed its type
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_TYPE)) {
-            oldcolumn.setTypeInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.TYPE));
-            oldcolumn.setTypeNameInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyIds.TYPENAME));
+            oldcolumn.setTypeInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyID.TYPE));
+            oldcolumn.setTypeNameInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyID.TYPENAME));
         }
         // Column have changed its identity (auto-increment)
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_IDENTITY)) {
             oldcolumn.setIsAutoIncrementInternal(DBTools.getDescriptorBooleanValue(newcolumn,
-                                                                                   PropertyIds.ISAUTOINCREMENT));
+                                                                                   PropertyID.ISAUTOINCREMENT));
         }
         // Column have changed its name
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NAME)) {
-            String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
+            String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyID.NAME);
             mColumns.replaceElement(oldname, newname);
         }
     }
@@ -371,13 +371,7 @@ public abstract class TableSuper
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor() {
-        TableDescriptor descriptor = new TableDescriptor(isCaseSensitive());
-        synchronized (this) {
-            UnoHelper.copyProperties(this, descriptor);
-        }
-        return descriptor;
-    }
+    public abstract XPropertySet createDataDescriptor();
 
     // com.sun.star.sdbcx.XRename
     // XXX: see: https://github.com/LibreOffice/core/blob/6361a9398584defe9ab8db1e3383e02912e3f24c/
@@ -431,7 +425,7 @@ public abstract class TableSuper
             e.printStackTrace();
             int resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw DBTools.getSQLException(new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e), this);
         }
     }
 
@@ -469,7 +463,8 @@ public abstract class TableSuper
         } catch (ElementExistException e) {
             int resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            java.sql.SQLException ex = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw DBTools.getSQLException(ex, this);
         }
         return renamed;
     }

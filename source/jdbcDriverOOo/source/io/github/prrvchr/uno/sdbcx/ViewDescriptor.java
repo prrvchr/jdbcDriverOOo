@@ -30,8 +30,8 @@ import java.util.Map;
 
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 public final class ViewDescriptor
     extends Descriptor {
@@ -52,9 +52,9 @@ public final class ViewDescriptor
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
 
-        properties.put(PropertyIds.CATALOGNAME.getName(),
+        properties.put(PropertyID.CATALOGNAME,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mCatalogName;
@@ -63,7 +63,7 @@ public final class ViewDescriptor
                     mCatalogName = (String) value;
                 }));
 
-        properties.put(PropertyIds.SCHEMANAME.getName(),
+        properties.put(PropertyID.SCHEMANAME,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mSchemaName;
@@ -72,7 +72,7 @@ public final class ViewDescriptor
                     mSchemaName = (String) value;
                 }));
 
-        properties.put(PropertyIds.CHECKOPTION.getName(),
+        properties.put(PropertyID.CHECKOPTION,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mCheckOption;
@@ -81,7 +81,7 @@ public final class ViewDescriptor
                     mCheckOption = (int) value;
                 }));
 
-        properties.put(PropertyIds.COMMAND.getName(),
+        properties.put(PropertyID.COMMAND,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mCommand;

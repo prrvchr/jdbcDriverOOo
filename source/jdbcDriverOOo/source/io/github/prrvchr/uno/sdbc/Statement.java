@@ -33,8 +33,9 @@ import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
 public final class Statement
@@ -45,7 +46,7 @@ public final class Statement
     // The constructor method:
     public Statement(ConnectionBase connection) {
         super(SERVICE, SERVICES, connection);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
         System.out.println("sdbc.Statement() 1");
     }
 

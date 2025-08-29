@@ -29,7 +29,7 @@ import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSetMetaData;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public final class ResultSetMetaData
@@ -59,7 +59,7 @@ public final class ResultSetMetaData
             }
             return mCount;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -73,7 +73,7 @@ public final class ResultSetMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -83,7 +83,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.getColumnDisplaySize(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -97,7 +97,7 @@ public final class ResultSetMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -111,7 +111,7 @@ public final class ResultSetMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -125,7 +125,7 @@ public final class ResultSetMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -135,7 +135,7 @@ public final class ResultSetMetaData
         try {
             return mConnection.getProvider().getDataType(mMetadata.getColumnType(index));
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -149,7 +149,7 @@ public final class ResultSetMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -163,7 +163,7 @@ public final class ResultSetMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -177,7 +177,7 @@ public final class ResultSetMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -187,7 +187,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.isCaseSensitive(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -201,7 +201,7 @@ public final class ResultSetMetaData
             }
             return currency;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -212,7 +212,7 @@ public final class ResultSetMetaData
         try {
             auto =  mMetadata.isAutoIncrement(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
         return auto;
     }
@@ -223,7 +223,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.isSigned(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -233,7 +233,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.getPrecision(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -243,7 +243,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.getScale(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -253,7 +253,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.isNullable(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -263,7 +263,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.isSearchable(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -273,7 +273,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.isReadOnly(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -283,7 +283,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.isDefinitelyWritable(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -293,7 +293,7 @@ public final class ResultSetMetaData
         try {
             return mMetadata.isWritable(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 

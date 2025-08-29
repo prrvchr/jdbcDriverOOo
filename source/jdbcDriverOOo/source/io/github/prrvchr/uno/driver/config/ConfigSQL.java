@@ -40,8 +40,8 @@ import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
 
+import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
-import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
 
 
 public class ConfigSQL extends ConfigBase {

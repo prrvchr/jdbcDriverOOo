@@ -46,13 +46,12 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 import com.sun.star.lib.uno.helper.ComponentBase;
 
-import io.github.prrvchr.uno.driver.helper.DBException;
-import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.DriverManager;
-import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
@@ -177,7 +176,8 @@ public abstract class DriverBase
         if (!acceptsURL(url)) {
             final int resource = Resources.STR_URI_SYNTAX_ERROR;
             final String message = SharedResources.getInstance().getResourceWithSubstitution(resource, url);
-            throw DBException.getSQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR);
+            java.sql.SQLException e = new java.sql.SQLException(message, StandardSQLState.SQL_GENERAL_ERROR.text());
+            throw DBTools.getSQLException(e, this);
         }
         List<DriverPropertyInfo> properties = new ArrayList<DriverPropertyInfo>();
         try {
@@ -192,7 +192,9 @@ public abstract class DriverBase
                 }
             }
         } catch (NoSuchElementException e) {
-            throw DBException.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR);
+            String state = StandardSQLState.SQL_GENERAL_ERROR.text();
+            java.sql.SQLException ex = new java.sql.SQLException(e.getMessage(), state, e);
+            throw DBTools.getSQLException(ex, this);
         }
         return properties.toArray(new DriverPropertyInfo[0]);
     }
@@ -356,21 +358,23 @@ public abstract class DriverBase
         } catch (Exception e) {
             int resource = Resources.STR_LOG_CONFIGURATION_LOADING_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, path);
-            throw DBException.getSQLException(msg, source, StandardSQLState.SQL_GENERAL_ERROR);
+            java.sql.SQLException ex = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
+            throw DBTools.getSQLException(ex, source);
         }
     }
 
 
     private static XHierarchicalNameAccess getDriverConfig(final XComponentContext context,
-                                                                  final String path,
-                                                                  final XInterface source)
+                                                           final String path,
+                                                           final XInterface source)
         throws SQLException {
         try {
             return UnoHelper.getTreeConfig(context, path);
         } catch (Exception e) {
             int resource = Resources.STR_LOG_CONFIGURATION_LOADING_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, path);
-            throw DBException.getSQLException(msg, source, StandardSQLState.SQL_GENERAL_ERROR);
+            java.sql.SQLException ex = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
+            throw DBTools.getSQLException(ex, source);
         }
     }
 

@@ -69,7 +69,8 @@ import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
@@ -280,7 +281,7 @@ public class TableHelper {
         boolean hasAutoIncrement = false;
         ColumnProperties column = getStandardColumnProperties(config, metadata, descriptor);
         if (config.supportsColumnDescription()) {
-            String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
+            String comment = DBTools.getDescriptorStringValue(descriptor, PropertyID.DESCRIPTION);
             if (!comment.isEmpty()) {
                 NamedComponent component = ComponentHelper.getTableNamedComponents(property);
                 queries.add(getColumnDescriptionQuery(config, support, component,
@@ -349,7 +350,7 @@ public class TableHelper {
         String query = config.getAddColumnCommand(arguments);
         queries.add(query);
         if (config.supportsColumnDescription()) {
-            String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
+            String comment = DBTools.getDescriptorStringValue(descriptor, PropertyID.DESCRIPTION);
             queries.add(getColumnDescriptionQuery(config, support, component, column, comment, sensitive));
         }
     }
@@ -413,32 +414,32 @@ public class TableHelper {
             changes |= COLUMN_NAME;
         }
         // XXX: Identity have been changed?
-        boolean auto1 = DBTools.getDescriptorBooleanValue(descriptor1, PropertyIds.ISAUTOINCREMENT);
-        boolean auto2 = DBTools.getDescriptorBooleanValue(descriptor2, PropertyIds.ISAUTOINCREMENT);
+        boolean auto1 = DBTools.getDescriptorBooleanValue(descriptor1, PropertyID.ISAUTOINCREMENT);
+        boolean auto2 = DBTools.getDescriptorBooleanValue(descriptor2, PropertyID.ISAUTOINCREMENT);
         if (auto1 != auto2) {
             changes |= COLUMN_IDENTITY;
         }
         // XXX: Type have been changed?
-        String type1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.TYPENAME);
-        String type2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.TYPENAME);
+        String type1 = DBTools.getDescriptorStringValue(descriptor1, PropertyID.TYPENAME);
+        String type2 = DBTools.getDescriptorStringValue(descriptor2, PropertyID.TYPENAME);
         if (!type2.equals(type1)) {
             changes |= COLUMN_TYPE;
         }
         // XXX: Column default value have been changed?
-        String default1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DEFAULTVALUE);
-        String default2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DEFAULTVALUE);
+        String default1 = DBTools.getDescriptorStringValue(descriptor1, PropertyID.DEFAULTVALUE);
+        String default2 = DBTools.getDescriptorStringValue(descriptor2, PropertyID.DEFAULTVALUE);
         if (!default2.equals(default1)) {
             changes |= COLUMN_DEFAULT_VALUE;
         }
         // XXX: Column nullable constraint have been changed?
-        int nullable1 = DBTools.getDescriptorIntegerValue(descriptor1, PropertyIds.ISNULLABLE);
-        int nullable2 = DBTools.getDescriptorIntegerValue(descriptor2, PropertyIds.ISNULLABLE);
+        int nullable1 = DBTools.getDescriptorIntegerValue(descriptor1, PropertyID.ISNULLABLE);
+        int nullable2 = DBTools.getDescriptorIntegerValue(descriptor2, PropertyID.ISNULLABLE);
         if (nullable2 != nullable1) {
             changes |= COLUMN_NULLABLE;
         }
         // XXX: Column description have been changed?
-        String comment1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DESCRIPTION);
-        String comment2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
+        String comment1 = DBTools.getDescriptorStringValue(descriptor1, PropertyID.DESCRIPTION);
+        String comment2 = DBTools.getDescriptorStringValue(descriptor2, PropertyID.DESCRIPTION);
         if (!comment2.equals(comment1)) {
             changes |= COLUMN_DESCRIPTION;
         }
@@ -498,7 +499,7 @@ public class TableHelper {
                                            alterkey, sensitive);
         // XXX: Column description have been changed?
         if (hasPropertyChanged(flags, COLUMN_DESCRIPTION) && config.supportsColumnDescription()) {
-            String comment = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
+            String comment = DBTools.getDescriptorStringValue(descriptor2, PropertyID.DESCRIPTION);
             queries.add(getColumnDescriptionQuery(config, support, component, column, comment, sensitive));
             result |= COLUMN_DESCRIPTION;
         }
@@ -522,7 +523,7 @@ public class TableHelper {
 
         // XXX: Modify an existing column
         int results = 0;
-        boolean autoincrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISAUTOINCREMENT);
+        boolean autoincrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyID.ISAUTOINCREMENT);
         Map<String, Object> arguments = ParameterDDL.getColumnProperties(support, component, column, sensitive);
 
         // XXX: Column name have changed
@@ -667,7 +668,7 @@ public class TableHelper {
                                              Map<String, Object> arguments) {
         int result = 0;
         String query = null;
-        String defaultValue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DEFAULTVALUE);
+        String defaultValue = DBTools.getDescriptorStringValue(descriptor, PropertyID.DEFAULTVALUE);
         if (defaultValue.isBlank()) {
             if (config.hasColumnDropDefaultCommand()) {
                 query = config.getColumnDropDefaultCommand(arguments);
@@ -688,7 +689,7 @@ public class TableHelper {
                                          Map<String, Object> arguments) {
         String query = null;
         int result = 0;
-        int nullable = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.ISNULLABLE);
+        int nullable = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.ISNULLABLE);
         if (nullable == ColumnValue.NO_NULLS) {
             if (config.hasColumnSetNotNullCommand()) {
                 query = config.getColumnSetNotNullCommand(arguments);
@@ -707,7 +708,7 @@ public class TableHelper {
                                                                 DatabaseMetaData metadata,
                                                                 XPropertySet descriptor)
         throws SQLException {
-        String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        String newname = DBTools.getDescriptorStringValue(descriptor, PropertyID.NAME);
         ColumnProperties column = new ColumnProperties(newname);
         return getStandardColumnProperties(config, metadata, column, descriptor);
     }
@@ -717,7 +718,7 @@ public class TableHelper {
                                                                 String oldname,
                                                                 XPropertySet descriptor)
         throws SQLException {
-        String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        String newname = DBTools.getDescriptorStringValue(descriptor, PropertyID.NAME);
         ColumnProperties column = new ColumnProperties(oldname, newname);
         return getStandardColumnProperties(config, metadata, column, descriptor);
     }
@@ -740,21 +741,21 @@ public class TableHelper {
                                                                 ColumnProperties column,
                                                                 XPropertySet descriptor)
         throws SQLException {
-        boolean isAutoIncrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISAUTOINCREMENT);
-        String typename = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TYPENAME);
-        int datatype = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
-        int precision = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.PRECISION);
-        int scale = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.SCALE);
+        boolean isAutoIncrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyID.ISAUTOINCREMENT);
+        String typename = DBTools.getDescriptorStringValue(descriptor, PropertyID.TYPENAME);
+        int datatype = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.TYPE);
+        int precision = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.PRECISION);
+        int scale = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.SCALE);
         String autoIncrementValue = "";
         
         // Check if the user enter a specific string to create auto increment values
-        if (DBTools.hasDescriptorProperty(descriptor, PropertyIds.AUTOINCREMENTCREATION)) {
-            autoIncrementValue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.AUTOINCREMENTCREATION);
+        if (DBTools.hasDescriptorProperty(descriptor, PropertyID.AUTOINCREMENTCREATION)) {
+            autoIncrementValue = DBTools.getDescriptorStringValue(descriptor, PropertyID.AUTOINCREMENTCREATION);
             column.mIsAutoincrement = !autoIncrementValue.isEmpty();
         }
         // Check if the column is a row version (ie: column of system-versioned temporal tables)
-        if (DBTools.hasDescriptorProperty(descriptor, PropertyIds.ISROWVERSION)) {
-            column.mIsRowversion = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISROWVERSION);
+        if (DBTools.hasDescriptorProperty(descriptor, PropertyID.ISROWVERSION)) {
+            column.mIsRowversion = DBTools.getDescriptorBooleanValue(descriptor, PropertyID.ISROWVERSION);
         }
 
         // Look if we have to use precisions (ie: SCALE).
@@ -775,8 +776,8 @@ public class TableHelper {
         }
 
         // XXX: Auto-increment take precedence on Default Value and Not Null property
-        String defaultvalue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DEFAULTVALUE);
-        int isnullable = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.ISNULLABLE);
+        String defaultvalue = DBTools.getDescriptorStringValue(descriptor, PropertyID.DEFAULTVALUE);
+        int isnullable = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.ISNULLABLE);
         if (isAutoIncrement && column.mIsAutoincrement) {
             column.mAutoincrement = autoIncrementValue;
         } else {

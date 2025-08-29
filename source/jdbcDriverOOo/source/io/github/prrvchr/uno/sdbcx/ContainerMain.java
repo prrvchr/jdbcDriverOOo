@@ -48,8 +48,8 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.container.BiMapMain;
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 
 
@@ -203,7 +203,7 @@ public abstract class ContainerMain<T extends Descriptor>
 
     // XXX: For all container but TableContainerMain has its own method
     protected String getElementName(XPropertySet descriptor) throws SQLException {
-        return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        return DBTools.getDescriptorStringValue(descriptor, PropertyID.NAME);
     }
 
 

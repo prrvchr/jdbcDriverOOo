@@ -43,71 +43,15 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.uno.driver.provider;
+package io.github.prrvchr.uno.driver.helper;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
-
-
-public class ConnectionLog
-    extends ResourceBasedEventLogger {
-
-    private static final AtomicInteger[] UNIQUE_IDS;
-
-    static {
-        UNIQUE_IDS = new AtomicInteger[LoggerObjectType.values().length];
-        for (int i = 0; i < UNIQUE_IDS.length; i++) {
-            UNIQUE_IDS[i] = new AtomicInteger(1);
-        }
-    }
-
-    private final String mId;
-
-    public ConnectionLog(ResourceBasedEventLogger logger,
-                         LoggerObjectType type) {
-        super(logger);
-        mId = String.format("<%s #%s>", type.getName(), UNIQUE_IDS[type.ordinal()].getAndIncrement());
-    }
-
-    public String getObjectId() {
-        return mId;
-    }
-
-    @Override
-    public boolean logrb(int level,
-                         int id,
-                         Object... arguments) {
-        return super.logrb(level, id, _getArgs(arguments));
-    }
-
-    @Override
-    public boolean logprb(int level,
-                          int id,
-                          Object... arguments) {
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
-        return super.logprb(level, caller, id, _getArgs(arguments));
-    }
-
-    @Override
-    public boolean logprb(int level,
-                          String cls,
-                          String method,
-                          int id,
-                          Object... arguments) {
-        return super.logprb(level, cls, method, id, _getArgs(arguments));
-    }
-
-    @Override
-    public String getStringResource(int id, Object... arguments) {
-        return super.getStringResource(id, _getArgs(arguments));
-    }
-
-    private Object[] _getArgs(Object[] arguments) {
-        Object[] args = new Object[arguments.length + 1];
-        args[0] = mId;
-        System.arraycopy(arguments, 0, args, 1, arguments.length);
-        return args;
-    }
-
+public enum ComposeRule {
+    InTableDefinitions,
+    InViewDefinitions,
+    InSelectDefinitions,
+    InIndexDefinitions,
+    InDataManipulation,
+    InProcedureCalls,
+    InPrivilegeDefinitions,
+    Complete
 }

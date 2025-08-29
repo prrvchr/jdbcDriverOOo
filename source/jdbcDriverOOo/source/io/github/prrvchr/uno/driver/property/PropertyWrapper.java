@@ -23,12 +23,12 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.driver.property;
 
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.driver.property.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.driver.property.PropertySetAdapter.PropertySetter;
 
 
 public class PropertyWrapper {

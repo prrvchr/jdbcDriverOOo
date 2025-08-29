@@ -40,8 +40,8 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -88,7 +88,7 @@ public abstract class CallableStatementBase
         try {
             getJdbcStatement().registerOutParameter(index, type, scale);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -97,7 +97,7 @@ public abstract class CallableStatementBase
         try {
             getJdbcStatement().registerOutParameter(index, type, name);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -113,7 +113,7 @@ public abstract class CallableStatementBase
             }
             return xArray;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -137,7 +137,7 @@ public abstract class CallableStatementBase
             }
             return xBlob;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -146,7 +146,7 @@ public abstract class CallableStatementBase
         try {
             return getJdbcStatement().getBoolean(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -155,7 +155,7 @@ public abstract class CallableStatementBase
         try {
             return getJdbcStatement().getByte(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -164,7 +164,7 @@ public abstract class CallableStatementBase
         try {
             return getJdbcStatement().getBytes(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -188,7 +188,7 @@ public abstract class CallableStatementBase
             }
             return xClob;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -202,7 +202,7 @@ public abstract class CallableStatementBase
             }
             return date;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -211,7 +211,7 @@ public abstract class CallableStatementBase
         try {
             return getJdbcStatement().getDouble(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -220,7 +220,7 @@ public abstract class CallableStatementBase
         try {
             return getJdbcStatement().getFloat(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -229,7 +229,7 @@ public abstract class CallableStatementBase
         try {
             return getJdbcStatement().getInt(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -238,7 +238,7 @@ public abstract class CallableStatementBase
         try {
             return getJdbcStatement().getLong(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -247,7 +247,7 @@ public abstract class CallableStatementBase
         try {
             return DBTools.getObject(getJdbcStatement().getObject(index));
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getLoggedSQLException(this, getLogger(), e);
+            throw DBTools.getLoggedSQLException(e, this, getLogger());
         }
     }
 
@@ -261,7 +261,7 @@ public abstract class CallableStatementBase
             }
             return xRef;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -270,7 +270,7 @@ public abstract class CallableStatementBase
         try {
             return getJdbcStatement().getShort(index);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -283,7 +283,7 @@ public abstract class CallableStatementBase
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -297,7 +297,7 @@ public abstract class CallableStatementBase
             }
             return time;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -311,7 +311,7 @@ public abstract class CallableStatementBase
             }
             return datetime;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -320,7 +320,7 @@ public abstract class CallableStatementBase
         try {
             return getJdbcStatement().wasNull();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 

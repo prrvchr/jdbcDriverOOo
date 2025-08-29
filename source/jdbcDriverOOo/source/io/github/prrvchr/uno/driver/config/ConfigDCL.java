@@ -36,7 +36,7 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbcx.Privilege;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public class ConfigDCL extends ConfigDDL {

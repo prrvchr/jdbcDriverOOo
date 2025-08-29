@@ -36,13 +36,12 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class StatementBase
@@ -66,20 +65,20 @@ public abstract class StatementBase
             mParsed = false;
             return getJdbcStatement().executeQuery(mQuery.getQuery());
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
 
-        properties.put(PropertyIds.ESCAPEPROCESSING.getName(),
+        properties.put(PropertyID.ESCAPEPROCESSING,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
-                    return _getEscapeProcessing();
+                    return getEscapeProcessing();
                 },
                 value -> {
-                    _setEscapeProcessing((boolean) value);
+                    setEscapeProcessing((boolean) value);
                 }));
 
         super.registerProperties(properties);
@@ -90,21 +89,6 @@ public abstract class StatementBase
         throws java.sql.SQLException {
         statement.setEscapeProcessing(mEscapeProcessing);
         return super.setStatement(statement);
-    }
-
-    protected synchronized void _setEscapeProcessing(boolean value) {
-        mEscapeProcessing = value;
-        if (mStatement != null) {
-            try {
-                mStatement.setEscapeProcessing(value);
-            } catch (java.sql.SQLException e) {
-                // XXX Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-    }
-    protected boolean _getEscapeProcessing() {
-        return mEscapeProcessing;
     }
 
     @Override
@@ -208,5 +192,19 @@ public abstract class StatementBase
         return mConnection;
     }
 
+    private synchronized void setEscapeProcessing(boolean value) {
+        mEscapeProcessing = value;
+        if (mStatement != null) {
+            try {
+                mStatement.setEscapeProcessing(value);
+            } catch (java.sql.SQLException e) {
+                // XXX Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+    private boolean getEscapeProcessing() {
+        return mEscapeProcessing;
+    }
 
 }

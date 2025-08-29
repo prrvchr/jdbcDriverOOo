@@ -30,8 +30,8 @@ import java.util.Map;
 
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 
 public final class IndexColumnDescriptor
@@ -51,9 +51,9 @@ public final class IndexColumnDescriptor
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
 
-        properties.put(PropertyIds.ISASCENDING.getName(),
+        properties.put(PropertyID.ISASCENDING,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mIsAscending;

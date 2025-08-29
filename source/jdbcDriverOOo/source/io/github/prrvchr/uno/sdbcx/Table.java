@@ -33,7 +33,8 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -53,7 +54,7 @@ public final class Table
                  String type,
                  String remarks) {
         super(SERVICE, SERVICES, connection, sensitive, catalog, schema, name, type, remarks);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
     }
 
     protected Connection getConnection() {

@@ -43,7 +43,7 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.uno.driver.helper;
+package io.github.prrvchr.uno.driver.provider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,12 +72,13 @@ import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAppend;
 import com.sun.star.sdbcx.XColumnsSupplier;
-import com.sun.star.uno.XInterface;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
+import com.sun.star.uno.Exception;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.TypeClass;
 import com.sun.star.uno.UnoRuntime;
+import com.sun.star.uno.XInterface;
 import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.DateTimeWithTimezone;
@@ -87,12 +88,12 @@ import com.sun.star.util.TimeWithTimezone;
 
 import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
-import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -133,7 +134,7 @@ public class DBTools {
                                             boolean sensitive)
         throws java.sql.SQLException {
         String view = ComponentHelper.composeTableName(support, descriptor, sensitive);
-        String command = getDescriptorStringValue(descriptor, PropertyIds.COMMAND);
+        String command = getDescriptorStringValue(descriptor, PropertyID.COMMAND);
         String query = config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
         System.out.println("DBTools.getCreateViewQuery() Query: " + query);
         return query;
@@ -500,12 +501,12 @@ public class DBTools {
     }
 
     public static boolean hasDescriptorProperty(XPropertySet descriptor,
-                                                PropertyIds pid) {
+                                                PropertyID pid) {
         return descriptor.getPropertySetInfo().hasPropertyByName(pid.getName());
     }
 
     public static String getDescriptorStringValue(XPropertySet descriptor,
-                                                  PropertyIds pid) {
+                                                  PropertyID pid) {
         String value;
         try {
             value = getDescriptorStrValue(descriptor, pid);
@@ -516,7 +517,7 @@ public class DBTools {
     }
 
     public static String getDescriptorStrValue(XPropertySet descriptor,
-                                               PropertyIds pid)
+                                               PropertyID pid)
         throws java.sql.SQLException {
         try {
             return AnyConverter.toString(descriptor.getPropertyValue(pid.getName()));
@@ -526,7 +527,7 @@ public class DBTools {
     }
 
     public static boolean getDescriptorBooleanValue(XPropertySet descriptor,
-                                                    PropertyIds pid) {
+                                                    PropertyID pid) {
         boolean value;
         try {
             value = getDescriptorBoolValue(descriptor, pid);
@@ -537,7 +538,7 @@ public class DBTools {
     }
 
     public static boolean getDescriptorBoolValue(XPropertySet descriptor,
-                                                 PropertyIds pid)
+                                                 PropertyID pid)
         throws java.sql.SQLException {
         try {
             return AnyConverter.toBoolean(descriptor.getPropertyValue(pid.getName()));
@@ -547,7 +548,7 @@ public class DBTools {
     }
 
     public static int getDescriptorIntegerValue(XPropertySet descriptor,
-                                                PropertyIds pid) {
+                                                PropertyID pid) {
         int value;
         try {
             value = getDescriptorIntValue(descriptor, pid);
@@ -558,7 +559,7 @@ public class DBTools {
     }
 
     public static int getDescriptorIntValue(XPropertySet descriptor,
-                                            PropertyIds pid)
+                                            PropertyID pid)
         throws java.sql.SQLException {
         try {
             return AnyConverter.toInt(descriptor.getPropertyValue(pid.getName()));
@@ -739,122 +740,6 @@ public class DBTools {
         }
     }
 
-    public static SQLException getSQLException(String msg,
-                                               XInterface context,
-                                               String state) {
-        return new SQLException(msg, context, state, 0, null);
-    }
-
-    public static SQLException getSQLException(String msg,
-                                               XInterface context,
-                                               String state,
-                                               int code,
-                                               com.sun.star.uno.Exception  e) {
-        return new SQLException(msg, context, state, code, e);
-    }
-
-    public static SQLException getSQLException(String msg,
-                                               XInterface context,
-                                               String state,
-                                               int code,
-                                               com.sun.star.lang.IndexOutOfBoundsException e) {
-        return new SQLException(msg, context, state, code, e);
-    }
-
-    public static SQLException getSQLException(String msg,
-                                               XInterface context,
-                                               String state,
-                                               int code,
-                                               com.sun.star.lang.IllegalArgumentException e) {
-        return new SQLException(msg, context, state, code, e);
-    }
-
-    public static SQLException getSQLException(String msg,
-                                               XInterface context,
-                                               String state,
-                                               int code,
-                                               com.sun.star.lang.WrappedTargetException e) {
-        return new SQLException(msg, context, state, code, e);
-    }
-
-    public static SQLException getSQLException(String msg,
-                                               XInterface context,
-                                               String state,
-                                               int code,
-                                               java.sql.SQLException e) {
-        SQLException exception = new SQLException(msg, context, state, code, Any.VOID);
-        setNextSQLException(e, exception, context);
-        return exception;
-    }
-
-    public static SQLException getSQLException(java.sql.SQLException e) {
-        SQLException exception = new SQLException(e.getMessage());
-        exception.ErrorCode = e.getErrorCode();
-        exception.SQLState = e.getSQLState();
-        setNextSQLException(e, exception, null);
-        return exception;
-    }
-
-    public static SQLException getSQLException(Throwable e,
-                                               XInterface context) {
-        SQLException ex = getUnoSQLException(e, context);
-        if (e instanceof java.sql.SQLException) {
-            SQLException prev = ex;
-            java.sql.SQLException e1 = (java.sql.SQLException) e;
-            Iterator<Throwable> it = e1.iterator();
-            while (it.hasNext()) {
-                prev = getUnoSQLException(prev, it.next(), context);
-            }
-        }
-        return ex;
-    }
-
-    private static SQLException getUnoSQLException(Throwable e,
-                                                   XInterface context) {
-        SQLException ex = new SQLException(e.getMessage());
-        ex.Context = context;
-        if (e instanceof java.sql.SQLException) {
-            java.sql.SQLException e1 = (java.sql.SQLException) e;
-            ex.ErrorCode = e1.getErrorCode();
-            ex.SQLState = e1.getSQLState();
-        }
-        return ex;
-    }
-
-    private static SQLException getUnoSQLException(SQLException ex,
-                                                   Throwable e,
-                                                   XInterface context) {
-        SQLException exception = getUnoSQLException(e, context);
-        ex.NextException = exception;
-        return exception;
-    }
-
-    private static void setNextSQLException(java.sql.SQLException e,
-                                            SQLException next,
-                                            XInterface context) {
-        Iterator<Throwable> it = e.iterator();
-        while (next != null && it.hasNext()) {
-            next = getNextSQLException(it, next, context);
-        }
-    }
-
-    private static SQLException getNextSQLException(Iterator<Throwable> it,
-                                                    SQLException exception,
-                                                    XInterface context) {
-        SQLException next = null;
-        try {
-            java.sql.SQLException e = (java.sql.SQLException) it.next();
-            next = new SQLException(e.getMessage());
-            next.ErrorCode = e.getErrorCode();
-            next.SQLState = e.getSQLState();
-            if (context != null) {
-                next.Context = context;
-            }
-            exception.NextException = next;
-        } catch (java.lang.Exception e) { }
-        return next;
-    }
-
     // XXX: MessageFormat don't like simple quote!!!
     public static String formatSQLQuery(String query,
                                         Object... arguments) {
@@ -871,6 +756,93 @@ public class DBTools {
             len = length - 1;
         }
         return len;
+    }
+
+    public static WrappedTargetException getWrappedException(java.lang.Exception e) {
+        WrappedTargetException exception = null;
+        if (e != null) {
+            Exception ex = new Exception(e.getMessage());
+            exception = getWrappedException(ex);
+        }
+        return exception;
+    }
+
+    public static WrappedTargetException getWrappedException(Exception e) {
+        WrappedTargetException exception = null;
+        if (e != null) {
+            exception = new WrappedTargetException(e.getMessage());
+            exception.Context = e.Context;
+            exception.TargetException = e;
+        }
+        return exception;
+    }
+
+    public static SQLException getSQLException(Throwable e) {
+        return getSQLException(e, null);
+    }
+
+    public static SQLException getSQLException(Throwable e,
+                                               XInterface context) {
+        SQLException ex = getUnoSQLException(e, context);
+        if (e instanceof java.sql.SQLException) {
+            SQLException prev = ex;
+            java.sql.SQLException e1 = (java.sql.SQLException) e;
+            Iterator<Throwable> it = e1.iterator();
+            while (it.hasNext()) {
+                prev = getUnoSQLException(prev, it.next(), context);
+            }
+        }
+        return ex;
+    }
+
+    public static SQLException getSQLException(String msg) {
+        SQLException e;
+        if (msg != null) {
+            e = new SQLException(msg);
+        } else {
+            e = new SQLException();
+        }
+        return e;
+    }
+
+    public static SQLException getLoggedSQLException(Throwable e,
+                                                     XInterface component,
+                                                     ResourceBasedEventLogger logger) {
+        
+        SQLException ex = getSQLException(e, component);
+        logger.log(LogLevel.SEVERE, e);
+        return ex;
+    }
+
+    private static SQLException getUnoSQLException(Throwable e,
+                                                   XInterface context) {
+        SQLException ex;
+        String msg = e.getLocalizedMessage();
+        if (msg != null) {
+            ex = new SQLException(msg);
+        } else {
+            ex = new SQLException();
+        }
+        if (context != null) {
+            ex.Context = context;
+        }
+        if (e instanceof java.sql.SQLException) {
+            java.sql.SQLException e1 = (java.sql.SQLException) e;
+            ex.ErrorCode = e1.getErrorCode();
+            String state = e1.getSQLState();
+            if (state != null) {
+                ex.SQLState = e1.getSQLState();
+            }
+        }
+        return ex;
+    }
+
+    private static SQLException getUnoSQLException(SQLException ex,
+                                                   Throwable e,
+                                                   XInterface context) {
+        SQLException exception = getUnoSQLException(e, context);
+        ex.NextException = exception;
+        return exception;
     }
 
 }

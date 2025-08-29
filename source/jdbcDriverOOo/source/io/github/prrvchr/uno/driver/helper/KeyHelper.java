@@ -42,9 +42,9 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 
 
 public class KeyHelper {
@@ -162,7 +162,7 @@ public class KeyHelper {
     public static String getKeyFromDescriptor(XPropertySet descriptor,
                                               Map<String, String> ref)
         throws java.sql.SQLException {
-        String table = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
+        String table = DBTools.getDescriptorStringValue(descriptor, PropertyID.REFERENCEDTABLE);
         XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
         if (supplier != null) {
             XNameAccess columns = UnoRuntime.queryInterface(XNameAccess.class, supplier.getColumns());
@@ -172,7 +172,7 @@ public class KeyHelper {
                         XPropertySet column;
                         column = UnoRuntime.queryInterface(XPropertySet.class, columns.getByName(foreign));
                         if (column != null) {
-                            String primay = DBTools.getDescriptorStringValue(column, PropertyIds.RELATEDCOLUMN);
+                            String primay = DBTools.getDescriptorStringValue(column, PropertyID.RELATEDCOLUMN);
                             ref.put(foreign, primay);
                         }
                     }

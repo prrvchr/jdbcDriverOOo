@@ -41,10 +41,10 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.util.XCancellable;
 
-import io.github.prrvchr.uno.driver.helper.DBException;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
 
 public abstract class RowSetBase
@@ -52,6 +52,11 @@ public abstract class RowSetBase
     implements XRowLocate,
                XDeleteRows,
                XCancellable {
+
+    // XXX: We need to know if a row has been inserted and after this insertion
+    // XXX: when moveToCurrentRow is called then acceptChange will be triggered
+    // XXX: and the insertion will be performed in the database.
+    private boolean mRowInserted = false;
 
     // The constructor method:
     protected RowSetBase(String service,
@@ -103,6 +108,15 @@ public abstract class RowSetBase
     public Object getBookmark()
         throws SQLException {
         try {
+            // XXX: Base can call getBookmark() while still on
+            // XXX: the insert row. See tdf#168145
+            if (mOnInsert) {
+                moveToCurrentRowInternal();
+            }
+            // XXX: If an insert was made, we need to validate that insert.
+            if (mRowInserted) {
+                acceptInsertInternal();
+            }
             Object bookmark = Any.VOID;
             boolean showdeleted = getRowSet().getShowDeleted();
             getRowSet().setShowDeleted(true);
@@ -114,7 +128,7 @@ public abstract class RowSetBase
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, bookmark.toString());
             return bookmark;
         } catch (java.sql.SQLException e) {
-            throw DBException.getSQLException(this, e);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -153,7 +167,7 @@ public abstract class RowSetBase
             }
             return moved;
         } catch (java.sql.SQLException e) {
-            throw DBException.getSQLException(this, e);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -169,7 +183,7 @@ public abstract class RowSetBase
             }
             return moved;
         } catch (java.sql.SQLException e) {
-            throw DBException.getSQLException(this, e);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -200,7 +214,7 @@ public abstract class RowSetBase
             }
             return rows.stream().mapToInt(Integer::intValue).toArray();
         } catch (java.sql.SQLException e) {
-            throw DBException.getSQLException(this, e);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -210,20 +224,38 @@ public abstract class RowSetBase
         // XXX: implement me
     }
 
-    // com.sun.star.sdbc.XResultSetUpdate:
+    // com.sun.star.sdbc.XResultSetUpdate
     // XXX: If we want to be able to use a CachedRowset instead
     // XXX: of a ResultSet we must overwrite these methods...
     @Override
     public void insertRow() throws SQLException {
+        if (!isOnInsertRow()) {
+            throw new SQLException("ERROR: insertRow cannot be called when moveToInsertRow has not been called !", this,
+                                   StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
+        }
         try {
-            // XXX: ResultSetBase.insertRow() take in account moveToCurrentRow() after insertion
-            super.insertRow();
-            // XXX: We must position the cursor on the new inserted row (ie last row)
-            mResult.last();
-            // XXX: The insert will be committed
-            acceptChanges();
+            insertRowInternal();
+            // XXX: We cannot commit this insert while we are on the insert row.
+            // XXX: So we keep the fact that we performed an insert.
+            mRowInserted = true;
         } catch (java.sql.SQLException e) {
-            throw DBException.getSQLException(this, e);
+            throw DBTools.getSQLException(e, this);
+        }
+    }
+
+    @Override
+    public void moveToCurrentRow()
+        throws SQLException {
+        try {
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENT_ROW);
+            moveToCurrentRowInternal();
+            // XXX: we need to check if an insertion has not taken
+            // XXX: place and in this case commit this insertion.
+            if (mRowInserted) {
+                acceptInsertInternal();
+            }
+        } catch (java.sql.SQLException e) {
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -234,7 +266,7 @@ public abstract class RowSetBase
             // XXX: the update will be committed
             acceptChanges();
         } catch (java.sql.SQLException e) {
-            throw DBException.getSQLException(this, e);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -245,21 +277,40 @@ public abstract class RowSetBase
             // XXX: the delete will be committed
             acceptChanges();
         } catch (java.sql.SQLException e) {
-            throw DBException.getSQLException(this, e);
+            throw DBTools.getSQLException(e, this);
         }
+    }
+
+    // com.sun.star.sdbc.XWarningsSupplier:
+    @Override
+    public void clearWarnings()
+        throws SQLException {
+        System.out.println("RowSetSuper.clearWarnings() 1");
+    }
+
+    @Override
+    public Object getWarnings()
+        throws SQLException {
+        return Any.VOID;
+    }
+
+    private void acceptInsertInternal() throws java.sql.SQLException {
+        // XXX: We must position the cursor on the new inserted row (ie: last row)
+        mResult.last();
+        acceptChanges();
+        mRowInserted = false;
     }
 
     private void acceptChanges() throws java.sql.SQLException {
         try {
             getRowSet().acceptChanges(mConnection.getProvider().getConnection());
-        } catch (SyncProviderException e) {
+        } catch (SyncProviderException spe) {
             // XXX: If conflicts occur then the current operation will be canceled
-
             // XXX: If we want to be able to undoDelete we need to show deleted row
             boolean showDel = getRowSet().getShowDeleted();
             getRowSet().setShowDeleted(true);
 
-            SyncResolver resolver = e.getSyncResolver();
+            SyncResolver resolver = spe.getSyncResolver();
             while (resolver.nextConflict()) {
                 switch (resolver.getStatus()) {
                     case SyncResolver.UPDATE_ROW_CONFLICT:
@@ -279,20 +330,9 @@ public abstract class RowSetBase
 
             // reset CachedRowSet
             getRowSet().setShowDeleted(showDel);
-            throw e;
+            // XXX: we throw the original SQLException
+            throw spe.getNextException();
         }
-    }
-
-    @Override
-    public void clearWarnings()
-        throws SQLException {
-        System.out.println("RowSetSuper.clearWarnings() 1");
-    }
-
-    @Override
-    public Object getWarnings()
-        throws SQLException {
-        return Any.VOID;
     }
 
 }

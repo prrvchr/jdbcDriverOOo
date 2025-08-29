@@ -1686,6 +1686,11 @@
             <value>DROP TABLE ${TableName} CASCADE CONSTRAINTS</value>
           </prop>
         </node>
+        <node oor:name="DropColumnCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER TABLE ${TableName} DROP ${Column} CASCADE CONSTRAINTS</value>
+          </prop>
+        </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} RENAME COLUMN ${Column} TO ${NewColumn}</value>

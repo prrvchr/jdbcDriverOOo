@@ -35,12 +35,13 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbcx.CallableStatementSuper;
 
 
@@ -61,7 +62,7 @@ public final class CallableStatement
                              String sql)
         throws java.sql.SQLException {
         super(SERVICE, SERVICES, connection, sql);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
         System.out.println("sdb.CallableStatement() 1");
     }
 

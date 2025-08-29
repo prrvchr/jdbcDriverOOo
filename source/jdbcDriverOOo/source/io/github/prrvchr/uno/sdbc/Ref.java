@@ -29,7 +29,7 @@ import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XRef;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public final class Ref
@@ -49,7 +49,7 @@ public final class Ref
         try {
             return mRef.getBaseTypeName();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 

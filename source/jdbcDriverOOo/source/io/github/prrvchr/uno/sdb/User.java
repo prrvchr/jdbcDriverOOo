@@ -32,13 +32,13 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
 
 import io.github.prrvchr.uno.driver.config.ConfigDCL;
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.RoleHelper;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
@@ -56,7 +56,7 @@ public final class User
                 String name,
                 boolean sensitive) {
         super(SERVICE, SERVICES, connection, groups, name, sensitive, LoggerObjectType.USER, false);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
     }
 
     // com.sun.star.sdbcx.XUser:
@@ -75,7 +75,7 @@ public final class User
         } catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USER_CHANGE_PASSWORD_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, getName());
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw DBTools.getSQLException(new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e), this);
         }
     }
 

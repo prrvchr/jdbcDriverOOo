@@ -29,7 +29,7 @@ import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.sdbc.PreparedStatementBase;
 
 

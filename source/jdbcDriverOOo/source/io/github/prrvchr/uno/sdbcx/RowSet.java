@@ -31,8 +31,9 @@ import javax.sql.rowset.CachedRowSet;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
@@ -48,7 +49,7 @@ public final class RowSet
                      StatementMain statement)
         throws SQLException {
         super(SERVICE, SERVICES, connection, rowset, statement);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
     }
 
     @Override

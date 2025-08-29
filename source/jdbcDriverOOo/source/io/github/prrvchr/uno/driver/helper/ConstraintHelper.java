@@ -43,7 +43,8 @@ import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 public class ConstraintHelper {
 
@@ -55,18 +56,18 @@ public class ConstraintHelper {
                                                   boolean sensitive)
         throws SQLException {
         try {
-            int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
+            int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.TYPE);
             String tablename = ComponentHelper.buildName(support, table, sensitive);
             String keyname = KeyHelper.getKeyName(name, table.getTableName(), type);
             keyname = support.enquoteIdentifier(keyname, sensitive);
-            String[] columns = getKeyColumns(support, descriptor, PropertyIds.NAME, sensitive);
+            String[] columns = getKeyColumns(support, descriptor, PropertyID.NAME, sensitive);
             Map<String, Object> arguments = ParameterDDL.getCreateConstraint(tablename, keyname, columns);
             if (type == KeyType.FOREIGN) {
-                String reftable = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
+                String reftable = DBTools.getDescriptorStringValue(descriptor, PropertyID.REFERENCEDTABLE);
                 reftable = ComponentHelper.quoteTableName(support, reftable, sensitive);
-                columns = getKeyColumns(support, descriptor, PropertyIds.RELATEDCOLUMN, sensitive);
-                int update = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.UPDATERULE);
-                int delete = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.DELETERULE);
+                columns = getKeyColumns(support, descriptor, PropertyID.RELATEDCOLUMN, sensitive);
+                int update = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.UPDATERULE);
+                int delete = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.DELETERULE);
                 ParameterDDL.setCreateConstraint(arguments, reftable, columns, update, delete);
             }
             return config.getAddConstraintCommand(arguments, type);
@@ -78,7 +79,7 @@ public class ConstraintHelper {
 
     public static String[] getKeyColumns(NamedSupport support,
                                          XPropertySet descriptor,
-                                         PropertyIds name,
+                                         PropertyID name,
                                          boolean sensitive)
         throws SQLException {
         XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
@@ -116,7 +117,7 @@ public class ConstraintHelper {
                                                   boolean hasPrimaryKey)
         throws SQLException {
         StringBuilder buffer = new StringBuilder();
-        int keyType = DBTools.getDescriptorIntegerValue(columnProperties, PropertyIds.TYPE);
+        int keyType = DBTools.getDescriptorIntegerValue(columnProperties, PropertyID.TYPE);
         XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, columnProperties);
         XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
         if (columns != null && columns.getCount() > 0) {
@@ -131,10 +132,10 @@ public class ConstraintHelper {
                 buffer.append("UNIQUE");
                 buffer.append(getKeyColumns(support, columns, sensitive));
             } else if (keyType == KeyType.FOREIGN) {
-                int deleteRule = DBTools.getDescriptorIntegerValue(columnProperties, PropertyIds.DELETERULE);
+                int deleteRule = DBTools.getDescriptorIntegerValue(columnProperties, PropertyID.DELETERULE);
                 buffer.append("FOREIGN KEY");
                 
-                String refTable = DBTools.getDescriptorStringValue(columnProperties, PropertyIds.REFERENCEDTABLE);
+                String refTable = DBTools.getDescriptorStringValue(columnProperties, PropertyID.REFERENCEDTABLE);
                 NamedComponent nameComponents = ComponentHelper.qualifiedNameComponents(support, refTable);
                 String composedName = ComponentHelper.buildName(support, nameComponents, true);
                 if (composedName.isEmpty()) {
@@ -156,7 +157,7 @@ public class ConstraintHelper {
         throws SQLException {
         String separator = ", ";
         StringBuilder buffer = new StringBuilder();
-        String[] names = getKeyColumns(support, columns, PropertyIds.NAME, sensitive);
+        String[] names = getKeyColumns(support, columns, PropertyID.NAME, sensitive);
         if (names.length > 0) {
             buffer.append(" (");
             buffer.append(String.join(separator, names));
@@ -167,7 +168,7 @@ public class ConstraintHelper {
 
     private static String[] getKeyColumns(NamedSupport support,
                                           XIndexAccess indexes,
-                                          PropertyIds name,
+                                          PropertyID name,
                                           boolean sensitive)
         throws SQLException {
         List<String> columns = new ArrayList<>();

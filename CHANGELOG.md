@@ -431,8 +431,9 @@ Integration of the [SQL Server JDBC driver][130] `mssql-jdbc-13.2.0.jre11.jar`. 
 - Using `UseCatalogInView` parameters in `Drivers.xcu` file with false value.
 - Use of the new `InViewDefinitions` naming rule when creating a view to exclude the catalog name from the view name.
 - With these changes, the catalog, which is actually the database name in SQL Server, will not be used to name the identifiers of SQL queries managing view creation, as required by the SQL Server JDBC driver.
+- Recompilation of SQL Server 13.2.0 driver under Java 17 with correction of [issue#2745][131] to allow the use of relationship management in LibreOffice Base.
 
-Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. A fix [fix#189732][131] will be available with LibreOffice 26.2.x and will make Base truly multi-user.
+Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. A fix [fix#189732][132] will be available with LibreOffice 26.2.x and will make Base truly multi-user.
 
 ### What remains to be done for version 1.5.7:
 
@@ -570,4 +571,5 @@ Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. 
 [128]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#218>
 [129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java>
 [130]: <https://github.com/microsoft/mssql-jdbc>
-[131]: <https://gerrit.libreoffice.org/c/core/+/189732>
+[131]: <https://github.com/microsoft/mssql-jdbc/issues/2745>
+[132]: <https://gerrit.libreoffice.org/c/core/+/189732>

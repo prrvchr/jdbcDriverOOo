@@ -32,7 +32,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XBlob;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public final class Blob
@@ -66,7 +66,7 @@ public final class Blob
         try {
             return new InputStreamToXInputStreamAdapter(mBlob.getBinaryStream());
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -76,7 +76,7 @@ public final class Blob
         try {
             return mBlob.getBytes(position, length);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -86,7 +86,7 @@ public final class Blob
         try {
             return mBlob.length();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -96,7 +96,7 @@ public final class Blob
         try {
             return mBlob.position(pattern, start);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 

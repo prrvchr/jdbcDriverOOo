@@ -51,6 +51,9 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XMacroExpander;
 
 import io.github.prrvchr.java.instrumentation.InstrumentationAgent;
+import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.logger.LoggerFinder;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.logger.UnoLoggerFinder;

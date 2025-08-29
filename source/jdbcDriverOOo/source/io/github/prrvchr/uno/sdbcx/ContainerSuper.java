@@ -31,7 +31,7 @@ import com.sun.star.container.XEnumeration;
 import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.container.BiMapBase;
 import io.github.prrvchr.uno.driver.container.BiMapSuper;
-import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public abstract class ContainerSuper<T extends Descriptor>

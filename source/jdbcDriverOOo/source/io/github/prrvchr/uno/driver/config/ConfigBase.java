@@ -49,8 +49,8 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.sdb.XOfficeDatabaseDocument;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
+import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
 public abstract class ConfigBase extends ParameterBase {

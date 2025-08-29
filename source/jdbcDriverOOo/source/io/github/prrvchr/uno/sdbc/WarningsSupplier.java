@@ -37,7 +37,7 @@ import com.sun.star.sdbc.SQLWarning;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public final class WarningsSupplier {
@@ -60,7 +60,7 @@ public final class WarningsSupplier {
                     wrapper.unwrap(Connection.class).clearWarnings();
                 }
             } catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, component);
+                throw DBTools.getSQLException(e, component);
             }
         }
     }
@@ -84,7 +84,7 @@ public final class WarningsSupplier {
                     warning = wrapper.unwrap(Connection.class).getWarnings();
                 }
             } catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, component);
+                throw DBTools.getSQLException(e, component);
             }
         }
         return _getWarning(warning, component);

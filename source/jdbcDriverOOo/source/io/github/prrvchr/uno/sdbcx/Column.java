@@ -29,7 +29,8 @@ import java.util.HashMap;
 
 import com.sun.star.beans.XPropertySet;
 
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class Column
@@ -54,7 +55,7 @@ public final class Column
                   final boolean currency) {
         super(SERVICE, SERVICES, connection, table, sensitive, name, typename, defaultvalue,
               description, nullable, precision, scale, type, autoincrement, rowversion, currency);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
     }
 
     // XDataDescriptorFactory

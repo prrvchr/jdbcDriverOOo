@@ -33,9 +33,9 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.RowSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
@@ -56,10 +56,10 @@ public abstract class RowSetSuper
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.CANUPDATEINSERTEDROWS.getName(),
+        properties.put(PropertyID.CANUPDATEINSERTEDROWS,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     System.out.println("RowSetSuper.CanUpdateInsertedRows() 1: " + mCanUpdateInsertedRows);

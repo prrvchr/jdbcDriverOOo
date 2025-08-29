@@ -413,9 +413,12 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 syncRes.setStatus((ArrayList<?>) status);
                 syncRes.setCachedRowSetWriter(this);
 
-                String msg = conflicts.remove(0).getMessage();
-                SyncProviderException spe = new SyncProviderException(msg);
-                setSyncProviderException(spe, conflicts);
+                SQLException e = conflicts.remove(0);
+                SyncProviderException spe = new SyncProviderException(e.getMessage());
+                spe.setNextException(e);
+                for (SQLException ex : conflicts) {
+                    e = setNextSQLException(e, ex);
+                }
                 spe.setSyncResolver(syncRes);
                 throw spe;
             }
@@ -439,11 +442,9 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         crsRes.setMetaData(md);
     }
 
-    private void setSyncProviderException(SQLException ex, List<SQLException> conflicts) {
-        for (SQLException e : conflicts) {
-            ex.setNextException(e);
-            ex = e;
-        }
+    private SQLException setNextSQLException(SQLException e, SQLException ex) {
+        e.setNextException(ex);
+        return ex;
     }
 
     private List<SQLException> writeData(CachedRowSetImpl crs, CachedRowSetImpl crsRes,
@@ -474,9 +475,6 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 status.add(row, SyncResolver.NO_ROW_CONFLICT);
 
             } catch (SQLException e) {
-                conflicts.add(e);
-            } catch (Throwable ex) {
-                SQLException e = new SQLException(ex.getMessage());
                 conflicts.add(e);
             }
             row++;
@@ -842,7 +840,6 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                         stmt.setNull(index, callerMd.getColumnType(j));
                         values.add("null");
                     }
-                    
                     index++;
                 }
             }

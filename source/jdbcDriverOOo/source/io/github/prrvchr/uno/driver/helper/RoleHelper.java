@@ -52,7 +52,8 @@ import com.sun.star.beans.XPropertySet;
 import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.config.ParameterDCL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public class RoleHelper {
@@ -80,7 +81,7 @@ public class RoleHelper {
                                               String user,
                                               boolean sensitive)
         throws java.sql.SQLException {
-        String password = DBTools.getDescriptorStringValue(descriptor, PropertyIds.PASSWORD);
+        String password = DBTools.getDescriptorStringValue(descriptor, PropertyID.PASSWORD);
         Map<String, Object> arguments = ParameterDCL.getUserArguments(support, user, password, sensitive);
         return config.getCreateUserCommand(arguments);
     }

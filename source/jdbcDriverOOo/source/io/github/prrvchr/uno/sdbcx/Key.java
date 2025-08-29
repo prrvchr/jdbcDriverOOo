@@ -37,10 +37,10 @@ import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.helper.KeyHelper;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
 public final class Key
@@ -83,31 +83,31 @@ public final class Key
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.DELETERULE.getName(),
+        properties.put(PropertyID.DELETERULE,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mDeleteRule;
                 },
                 null));
 
-        properties.put(PropertyIds.REFERENCEDTABLE.getName(),
+        properties.put(PropertyID.REFERENCEDTABLE,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return getReferencedTable();
                 },
                 null));
 
-        properties.put(PropertyIds.TYPE.getName(),
+        properties.put(PropertyID.TYPE,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mType;
                 },
                 null));
 
-        properties.put(PropertyIds.UPDATERULE.getName(),
+        properties.put(PropertyID.UPDATERULE,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mUpdateRule;

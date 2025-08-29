@@ -29,7 +29,8 @@ import java.util.HashMap;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
@@ -51,7 +52,7 @@ public final class ResultSet
                      StatementMain statement)
         throws SQLException {
         super(SERVICE, SERVICES, connection, result, statement, false, false);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
     }
 
     @Override

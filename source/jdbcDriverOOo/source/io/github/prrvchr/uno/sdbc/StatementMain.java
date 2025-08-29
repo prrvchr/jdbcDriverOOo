@@ -42,16 +42,15 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertySet;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.helper.PropertySet;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class StatementMain
@@ -106,78 +105,78 @@ public abstract class StatementMain
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
 
-        properties.put(PropertyIds.CURSORNAME.getName(),
+        properties.put(PropertyID.CURSORNAME,
             new PropertyWrapper(Type.STRING,
                 () -> {
-                    return _getCursorName();
+                    return getCursorName();
                 },
                 value -> {
-                    _setCursorName((String) value);
+                    setCursorName((String) value);
                 }));
 
-        properties.put(PropertyIds.FETCHDIRECTION.getName(),
+        properties.put(PropertyID.FETCHDIRECTION,
             new PropertyWrapper(Type.LONG,
                 () -> {
-                    return _getFetchDirection();
+                    return getFetchDirection();
                 },
                 value -> {
-                    _setFetchDirection((int) value);
+                    setFetchDirection((int) value);
                 }));
 
-        properties.put(PropertyIds.FETCHSIZE.getName(),
+        properties.put(PropertyID.FETCHSIZE,
             new PropertyWrapper(Type.LONG,
                 () -> {
-                    return _getFetchSize();
+                    return getFetchSize();
                 },
                 value -> {
-                    _setFetchSize((int) value);
+                    setFetchSize((int) value);
                 }));
 
-        properties.put(PropertyIds.MAXFIELDSIZE.getName(),
+        properties.put(PropertyID.MAXFIELDSIZE,
             new PropertyWrapper(Type.LONG,
                 () -> {
-                    return _getMaxFieldSize();
+                    return getMaxFieldSize();
                 },
                 value -> {
-                    _setMaxFieldSize((int) value);
+                    setMaxFieldSize((int) value);
                 }));
 
-        properties.put(PropertyIds.MAXROWS.getName(),
+        properties.put(PropertyID.MAXROWS,
             new PropertyWrapper(Type.LONG,
                 () -> {
-                    return _getMaxRows();
+                    return getMaxRows();
                 },
                 value -> {
-                    _setMaxRows((int) value);
+                    setMaxRows((int) value);
                 }));
 
-        properties.put(PropertyIds.QUERYTIMEOUT.getName(),
+        properties.put(PropertyID.QUERYTIMEOUT,
             new PropertyWrapper(Type.LONG,
                 () -> {
-                    return _getQueryTimeout();
+                    return getQueryTimeout();
                 },
                 value -> {
-                    _setQueryTimeout((int) value);
+                    setQueryTimeout((int) value);
                 }));
 
-        properties.put(PropertyIds.RESULTSETCONCURRENCY.getName(),
+        properties.put(PropertyID.RESULTSETCONCURRENCY,
             new PropertyWrapper(Type.LONG,
                 () -> {
-                    return _getResultSetConcurrency();
+                    return getResultSetConcurrency();
                 },
                 value -> {
-                    _setResultSetConcurrency((int) value);
+                    setResultSetConcurrency((int) value);
                 }));
 
-        properties.put(PropertyIds.RESULTSETTYPE.getName(),
+        properties.put(PropertyID.RESULTSETTYPE,
             new PropertyWrapper(Type.LONG,
                 () -> {
-                    return _getResultSetType();
+                    return getResultSetType();
                 },
                 value -> {
-                    _setResultSetType((int) value);
+                    setResultSetType((int) value);
                 }));
 
         super.registerProperties(properties);
@@ -199,7 +198,7 @@ public abstract class StatementMain
         return statement;
     }
 
-    private synchronized void _setCursorName(String cursor)
+    private synchronized void setCursorName(String cursor)
         throws WrappedTargetException {
         System.out.println("StatementMain._setCursorName() Value: " + cursor);
         mCursorName = cursor;
@@ -207,31 +206,31 @@ public abstract class StatementMain
             try {
                 mStatement.setCursorName(cursor);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
+                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
             }
         }
     }
 
-    private String _getCursorName() {
+    private String getCursorName() {
         return mCursorName;
     }
 
-    private synchronized void _setFetchDirection(int value)
+    private synchronized void setFetchDirection(int value)
         throws WrappedTargetException {
         mFetchDirection = value;
         if (mStatement != null) {
             try {
                 mStatement.setFetchDirection(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
+                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
             }
         }
     }
-    private int _getFetchDirection() {
+    private int getFetchDirection() {
         return mFetchDirection;
     }
 
-    private synchronized void _setFetchSize(int value)
+    private synchronized void setFetchSize(int value)
         throws WrappedTargetException {
         System.out.println("StatementMain._setFetchSize() FetchSize: " + value);
         mFetchSize = value;
@@ -239,31 +238,31 @@ public abstract class StatementMain
             try {
                 mStatement.setFetchSize(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
+                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
             }
         }
     }
-    private int _getFetchSize() {
+    private int getFetchSize() {
         System.out.println("StatementMain._getFetchSize() FetchSize: " + mFetchSize);
         return mFetchSize;
     }
 
-    private synchronized void _setMaxFieldSize(int value)
+    private synchronized void setMaxFieldSize(int value)
         throws WrappedTargetException {
         mMaxFieldSize = value;
         if (mStatement != null) {
             try {
                 mStatement.setMaxFieldSize(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
+                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
             }
         }
     }
-    private int _getMaxFieldSize() {
+    private int getMaxFieldSize() {
         return mMaxFieldSize;
     }
 
-    private synchronized void _setMaxRows(int value)
+    private synchronized void setMaxRows(int value)
         throws WrappedTargetException {
         System.out.println("StatementMain._setMaxRows() Value: " + value);
         mMaxRows = value;
@@ -271,30 +270,30 @@ public abstract class StatementMain
             try {
                 mStatement.setMaxRows(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
+                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
             }
         }
     }
-    private int _getMaxRows() {
+    private int getMaxRows() {
         return mMaxRows;
     }
 
-    private synchronized void _setQueryTimeout(int value)
+    private synchronized void setQueryTimeout(int value)
         throws WrappedTargetException {
         mQueryTimeout = value;
         if (mStatement != null) {
             try {
                 mStatement.setQueryTimeout(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
+                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
             }
         }
     }
-    private int _getQueryTimeout() {
+    private int getQueryTimeout() {
         return mQueryTimeout;
     }
 
-    private synchronized void _setResultSetConcurrency(int value) {
+    private synchronized void setResultSetConcurrency(int value) {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
         mResultSetConcurrency = value;
         if (mStatement != null) {
@@ -303,20 +302,20 @@ public abstract class StatementMain
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY, value);
         }
     }
-    private int _getResultSetConcurrency() {
+    private int getResultSetConcurrency() {
         int value = mResultSetConcurrency;
         if (mStatement != null) {
             try {
                 value = mStatement.getResultSetConcurrency();
             } catch (java.sql.SQLException e) {
-                UnoHelper.getSQLException(e, this);
+                DBTools.getSQLException(e, this);
             }
         }
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_CONCURRENCY, value);
         return value;
     }
 
-    private synchronized void _setResultSetType(int value) {
+    private synchronized void setResultSetType(int value) {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
         mResultSetType = value;
         if (mStatement != null) {
@@ -325,13 +324,13 @@ public abstract class StatementMain
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE, value);
         }
     }
-    private int _getResultSetType() {
+    private int getResultSetType() {
         int value = mResultSetType;
         if (mStatement != null) {
             try {
                 value = mStatement.getResultSetType();
             } catch (java.sql.SQLException e) {
-                UnoHelper.getSQLException(e, this);
+                DBTools.getSQLException(e, this);
             }
         }
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_TYPE, value);
@@ -374,11 +373,10 @@ public abstract class StatementMain
     @Override
     public synchronized void dispose() {
         if (mStatement != null) {
-            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
             try {
                 mStatement.close();
             } catch (java.sql.SQLException e) {
-                mLogger.logp(LogLevel.WARNING, e);
+                e.printStackTrace();
             }
             mStatement = null;
             super.dispose();
@@ -390,6 +388,7 @@ public abstract class StatementMain
     @Override
     public synchronized void close() throws SQLException {
         checkDisposed();
+        mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
         dispose();
     }
 
@@ -424,7 +423,7 @@ public abstract class StatementMain
                            count, getColumnNames(result, count));
             return resultset;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
     
@@ -459,7 +458,7 @@ public abstract class StatementMain
                            count, getColumnNames(result, count));
         } catch (java.sql.SQLException e) {
             mLogger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_ERROR, e.getMessage());
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
         return resultset;
     } */
@@ -498,13 +497,13 @@ public abstract class StatementMain
         try {
             return getJdbcStatement().getUpdateCount();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
     public void checkSqlCommand() throws SQLException {
         if (mQuery == null) {
-            throw UnoHelper.getUnoSQLException("ERROR: checkSqlCommand not set");
+            throw DBTools.getSQLException("ERROR: checkSqlCommand not set");
         }
     }
 

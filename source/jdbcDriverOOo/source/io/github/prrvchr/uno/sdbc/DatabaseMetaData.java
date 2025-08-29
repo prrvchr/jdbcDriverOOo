@@ -41,17 +41,15 @@ import com.sun.star.uno.AnyConverter;
 
 import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
-import io.github.prrvchr.uno.driver.helper.DBException;
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class DatabaseMetaData
@@ -102,7 +100,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.allProceduresAreCallable();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -111,7 +109,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.allTablesAreSelectable();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -120,7 +118,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.dataDefinitionCausesTransactionCommit();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -129,7 +127,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.dataDefinitionIgnoredInTransactions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -140,7 +138,7 @@ public class DatabaseMetaData
             System.out.println("DatabaseMetaData.deletesAreDetected() 1 detected: " + detected);
             return detected;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -149,7 +147,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.doesMaxRowSizeIncludeBlobs();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -160,7 +158,7 @@ public class DatabaseMetaData
             return getResultSet(mMetadata.getBestRowIdentifier(getPattern(catalog),
                                 getPattern(schema), table, scope, nullable), "getBestRowIdentifier");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -173,7 +171,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -186,7 +184,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -197,7 +195,7 @@ public class DatabaseMetaData
             java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getCatalogs(), filter);
             return getResultSet(rs, "getCatalogs");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -211,7 +209,7 @@ public class DatabaseMetaData
                                                                          getPattern(schema), table, column);
             return getResultSet(resultset, "getColumnPrivileges");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -222,7 +220,7 @@ public class DatabaseMetaData
                                                                 getPattern(schema), table, column);
             return getResultSet(resultset, "getColumns");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -248,7 +246,7 @@ public class DatabaseMetaData
                                                                        schema2, table2);
             return getResultSet(resultset, "getCrossReference");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -261,7 +259,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -274,7 +272,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -283,7 +281,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getDefaultTransactionIsolation();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -306,7 +304,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -320,7 +318,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -330,7 +328,7 @@ public class DatabaseMetaData
             java.sql.ResultSet resultset = mMetadata.getExportedKeys(getPattern(catalog), getPattern(schema), table);
             return getResultSet(resultset, "getExportedKeys");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -344,7 +342,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -358,7 +356,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
     
@@ -374,7 +372,7 @@ public class DatabaseMetaData
             return getResultSet(resultset, "getImportedKeys");
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -390,7 +388,7 @@ public class DatabaseMetaData
                                                                   unique, approximate);
             return getResultSet(resultset, "getIndexInfo");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -399,7 +397,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxBinaryLiteralLength();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -408,7 +406,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxCatalogNameLength();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -417,7 +415,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxCharLiteralLength();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -428,7 +426,7 @@ public class DatabaseMetaData
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_MAX_COLUMN_NAME_LENGTH, value);
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -437,7 +435,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxColumnsInGroupBy();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -446,7 +444,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxColumnsInIndex();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -455,7 +453,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxColumnsInOrderBy();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -464,7 +462,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxColumnsInSelect();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -473,7 +471,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxColumnsInTable();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -482,7 +480,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxConnections();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -491,7 +489,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxCursorNameLength();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -500,7 +498,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxIndexLength();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -509,7 +507,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxProcedureNameLength();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -518,7 +516,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxRowSize();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -527,7 +525,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxSchemaNameLength();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -536,7 +534,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxStatementLength();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -545,7 +543,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxStatements();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -556,7 +554,7 @@ public class DatabaseMetaData
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_MAX_TABLE_NAME_LENGTH, value);
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -565,7 +563,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxTablesInSelect();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -574,7 +572,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.getMaxUserNameLength();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -587,7 +585,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -598,7 +596,7 @@ public class DatabaseMetaData
             java.sql.ResultSet resultset = mMetadata.getPrimaryKeys(getPattern(catalog), getPattern(schema), table);
             return getResultSet(resultset, "getPrimaryKeys");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -612,7 +610,7 @@ public class DatabaseMetaData
                                                                          getPattern(schema), table, column);
             return getResultSet(resultset, "getProcedureColumns");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -625,7 +623,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -635,7 +633,7 @@ public class DatabaseMetaData
             java.sql.ResultSet resultset = mMetadata.getProcedures(getPattern(catalog), getPattern(schema), table);
             return getResultSet(resultset, "getProcedures");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -648,7 +646,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -661,7 +659,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -672,7 +670,7 @@ public class DatabaseMetaData
             java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getSchemas(), filter);
             return getResultSet(rs, "getSchemas");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -685,7 +683,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -698,7 +696,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -711,7 +709,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -739,7 +737,7 @@ public class DatabaseMetaData
             }
             return resultset;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -751,7 +749,7 @@ public class DatabaseMetaData
             java.sql.ResultSet resultset = ResultSetHelper.getCustomDataResultSet(mMetadata.getTableTypes(), data);
             return getResultSet(resultset, "getTableTypes");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -770,7 +768,7 @@ public class DatabaseMetaData
                                                                            data, filter, rewrite);
             return getResultSet(rs, "getTables");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -783,7 +781,7 @@ public class DatabaseMetaData
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -797,7 +795,7 @@ public class DatabaseMetaData
             java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getTypeInfo(), data);
             return getResultSet(rs, "getTypeInfo");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -807,7 +805,7 @@ public class DatabaseMetaData
             java.sql.ResultSet resultset = mMetadata.getUDTs(getPattern(catalog), getPattern(schema), type, types);
             return getResultSet(resultset, "getUDTs");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -820,7 +818,7 @@ public class DatabaseMetaData
             }
             return user;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -831,7 +829,7 @@ public class DatabaseMetaData
                                                                        getPattern(schema), table);
             return getResultSet(resultset, "getVersionColumns");
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -840,7 +838,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.insertsAreDetected(type);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -849,7 +847,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.isCatalogAtStart();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -858,7 +856,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.isReadOnly();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -867,7 +865,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.nullPlusNonNullIsNull();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -876,7 +874,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.nullsAreSortedAtEnd();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -885,7 +883,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.nullsAreSortedAtStart();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -894,7 +892,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.nullsAreSortedHigh();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -903,7 +901,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.nullsAreSortedLow();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -914,7 +912,7 @@ public class DatabaseMetaData
             System.out.println("DatabaseMetaData.othersDeletesAreVisible() 1 visible: " + visible);
             return visible;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -923,7 +921,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.othersInsertsAreVisible(type);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -932,7 +930,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.othersUpdatesAreVisible(type);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -943,7 +941,7 @@ public class DatabaseMetaData
             System.out.println("DatabaseMetaData.ownDeletesAreVisible() 1 visible: " + visible);
             return visible;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -952,7 +950,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.ownInsertsAreVisible(type);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -961,7 +959,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.ownUpdatesAreVisible(type);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -970,7 +968,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.storesLowerCaseIdentifiers();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -979,7 +977,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.storesLowerCaseQuotedIdentifiers();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -988,7 +986,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.storesMixedCaseIdentifiers();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -997,7 +995,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.storesMixedCaseQuotedIdentifiers();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1006,7 +1004,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.storesUpperCaseIdentifiers();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1015,7 +1013,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.storesUpperCaseQuotedIdentifiers();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1024,7 +1022,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsANSI92EntryLevelSQL();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1033,7 +1031,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsANSI92FullSQL();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1042,7 +1040,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsANSI92IntermediateSQL();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1054,7 +1052,7 @@ public class DatabaseMetaData
                            value);
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1066,7 +1064,7 @@ public class DatabaseMetaData
                            value);
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1075,7 +1073,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsBatchUpdates();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1084,7 +1082,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsCatalogsInDataManipulation();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1093,7 +1091,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsCatalogsInIndexDefinitions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1102,7 +1100,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsCatalogsInPrivilegeDefinitions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1111,7 +1109,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsCatalogsInProcedureCalls();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1120,7 +1118,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsCatalogsInTableDefinitions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1129,7 +1127,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsColumnAliasing();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1138,7 +1136,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsConvert();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1147,7 +1145,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsCoreSQLGrammar();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1156,7 +1154,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsCorrelatedSubqueries();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1165,7 +1163,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsDataDefinitionAndDataManipulationTransactions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1174,7 +1172,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsDataManipulationTransactionsOnly();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1183,7 +1181,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsDifferentTableCorrelationNames();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1192,7 +1190,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsExpressionsInOrderBy();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1201,7 +1199,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsExtendedSQLGrammar();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1210,7 +1208,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsFullOuterJoins();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1219,7 +1217,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsGroupBy();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1228,7 +1226,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsGroupByBeyondSelect();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1237,7 +1235,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsGroupByUnrelated();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1248,7 +1246,7 @@ public class DatabaseMetaData
             System.out.println("DatabaseMetaData.supportsIntegrityEnhancementFacility() 1 support: " + support);
             return support;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1257,7 +1255,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsLikeEscapeClause();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1266,7 +1264,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsLimitedOuterJoins();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1277,7 +1275,7 @@ public class DatabaseMetaData
             support = mMetadata.supportsMinimumSQLGrammar();
         } catch (java.sql.SQLException e) {
             // FIXME: SDBC bug. Must be able to throw exception.
-            // FIXME: throw UnoHelper.getSQLException(e, this);
+            // FIXME: throw DBTools.getSQLException(e, this);
         }
         return support;
     }
@@ -1289,7 +1287,7 @@ public class DatabaseMetaData
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_MIXED_CASE_ID, value);
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1300,7 +1298,7 @@ public class DatabaseMetaData
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_MIXED_CASE_QUOTED_ID, value);
             return value;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1309,7 +1307,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsMultipleResultSets();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1318,7 +1316,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsMultipleTransactions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1327,7 +1325,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsNonNullableColumns();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1336,7 +1334,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsOpenCursorsAcrossCommit();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1345,7 +1343,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsOpenCursorsAcrossRollback();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1354,7 +1352,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsOpenStatementsAcrossCommit();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1363,7 +1361,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsOpenStatementsAcrossRollback();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1372,7 +1370,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsOrderByUnrelated();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1381,7 +1379,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsOuterJoins();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1392,7 +1390,7 @@ public class DatabaseMetaData
             System.out.println("DatabaseMetaData.supportsPositionedDelete() 1 support: " + support);
             return support;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1401,7 +1399,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsPositionedUpdate();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1410,7 +1408,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsResultSetConcurrency (type, concurrency);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1419,7 +1417,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsResultSetType(arg0);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1428,7 +1426,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSchemasInDataManipulation();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1437,7 +1435,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSchemasInIndexDefinitions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1446,7 +1444,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSchemasInPrivilegeDefinitions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1455,7 +1453,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSchemasInProcedureCalls();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1464,7 +1462,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSchemasInTableDefinitions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1473,7 +1471,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSelectForUpdate();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1482,7 +1480,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsStoredProcedures();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1491,7 +1489,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSubqueriesInComparisons();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1500,7 +1498,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSubqueriesInExists();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1509,7 +1507,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSubqueriesInIns();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1518,7 +1516,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsSubqueriesInQuantifieds();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1527,7 +1525,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsTableCorrelationNames();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1536,7 +1534,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsTransactionIsolationLevel(arg0);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1545,7 +1543,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsTransactions();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1554,7 +1552,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsConvert();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1563,7 +1561,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsUnion();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1572,7 +1570,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.supportsUnionAll();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1581,7 +1579,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.updatesAreDetected(type);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1590,7 +1588,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.usesLocalFilePerTable();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1599,7 +1597,7 @@ public class DatabaseMetaData
         try {
             return mMetadata.usesLocalFiles();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -1609,10 +1607,11 @@ public class DatabaseMetaData
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET, method);
         if (result == null) {
             System.out.println("sdbc.DatabaseMetaData._getResultSet() ERROR method: " + method);
-            String message = mLogger.getStringResource(Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET_ERROR,
+            String msg = mLogger.getStringResource(Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET_ERROR,
                                                        method);
-            mLogger.logp(LogLevel.SEVERE, message);
-            throw DBException.getSQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR);
+            mLogger.logp(LogLevel.SEVERE, msg);
+            java.sql.SQLException e = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text());
+            throw DBTools.getSQLException(e, this);
         }
         ResultSet resultset = new ResultSet(mConnection, result, null, method);
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATED_RESULTSET_ID,

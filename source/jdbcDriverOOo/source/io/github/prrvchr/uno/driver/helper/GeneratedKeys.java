@@ -55,8 +55,8 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.resultset.ResultSetWrapper;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.Key;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
@@ -91,7 +91,7 @@ public class GeneratedKeys {
                 result = getDefaultGeneratedResult(config, statement.getConnection(), query);
             }
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e);
+            throw DBTools.getSQLException(e);
         }
         return result;
     }
@@ -122,7 +122,7 @@ public class GeneratedKeys {
                 result = getDefaultGeneratedResult(config, statement.getConnection(), query);
             }
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e);
+            throw DBTools.getSQLException(e, connection);
         }
         return result;
     }

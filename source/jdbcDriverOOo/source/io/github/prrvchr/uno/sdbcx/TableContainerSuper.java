@@ -41,15 +41,15 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.TableHelper;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComposeRule;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.SharedResources;
 
@@ -104,8 +104,8 @@ public abstract class TableContainerSuper<T extends TableSuper>
         List<String> queries = new ArrayList<>();
         try {
             String type = "TABLE";
-            if (DBTools.hasDescriptorProperty(descriptor, PropertyIds.TYPE)) {
-                type = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TYPE);
+            if (DBTools.hasDescriptorProperty(descriptor, PropertyID.TYPE)) {
+                type = DBTools.getDescriptorStringValue(descriptor, PropertyID.TYPE);
             }
             Provider provider = mConnection.getProvider();
             ComposeRule rule = ComposeRule.InTableDefinitions;
@@ -113,7 +113,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
             DatabaseMetaData metadata = provider.getConnection().getMetaData();
             queries = TableHelper.getCreateTableQueries(provider.getConfigDDL(), metadata,
                                                         support, descriptor, type, isCaseSensitive());
-            String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
+            String description = DBTools.getDescriptorStringValue(descriptor, PropertyID.DESCRIPTION);
             if (!description.isEmpty() && provider.getConfigDDL().supportsTableDescription()) {
                 String table = ComponentHelper.composeTableName(provider.getNamedSupport(rule),
                                                                 descriptor, isCaseSensitive());

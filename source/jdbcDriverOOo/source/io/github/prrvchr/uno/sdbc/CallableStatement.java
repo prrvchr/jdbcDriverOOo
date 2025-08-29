@@ -33,8 +33,9 @@ import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
 public final class CallableStatement
@@ -48,7 +49,7 @@ public final class CallableStatement
                              String sql)
         throws java.sql.SQLException {
         super(SERVICE, SERVICES, connection, sql);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
         System.out.println("sdbc.CallableStatement() 1");
     }
 

@@ -43,17 +43,14 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.driver.property;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map.Entry;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
@@ -78,6 +75,8 @@ import com.sun.star.uno.Type;
 import com.sun.star.uno.TypeClass;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.uno.helper.UnoHelper;
+
 
 public class PropertySetAdapter
     implements XPropertySet,
@@ -101,7 +100,6 @@ public class PropertySetAdapter
     // XXX: After registerListeners(), these are read-only:
     private final Map<String, PropertyData> mPropertiesByName = new HashMap<String, PropertyData>();
     private final Map<Integer, PropertyData> mPropertiesByHandle = new HashMap<Integer, PropertyData>();
-    private AtomicInteger mNextHandle = new AtomicInteger(1);
     // XXX: Interface containers are locked internally:
     private final PropertySetInfo mPropertySetInfo = new PropertySetInfo();
 
@@ -176,15 +174,13 @@ public class PropertySetAdapter
         mVetoableListeners.disposeAndClear(event);
     }
 
-    public void registerProperties(Map<String, PropertyWrapper> properties) {
-        List<String> names = new ArrayList<String>(properties.keySet());
-        Collections.sort(names);
-        for (String name: names) {
-            PropertyWrapper property = properties.get(name);
-            // XXX: registerProperty() should only be called from one thread, but just in case:
-            int handle = mNextHandle.getAndIncrement();
+    public void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
+        for (Entry<PropertyID, PropertyWrapper> entry : properties.entrySet()) {
+            String name = entry.getKey().getName();
+            int handle = entry.getKey().getId();
+            PropertyWrapper property = entry.getValue();
             registerProperty(name, handle, property.getType(), property.getAttribute(),
-                             property.getGetter(), property.getSetter());
+                    property.getGetter(), property.getSetter());
         }
     }
 

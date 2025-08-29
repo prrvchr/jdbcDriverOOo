@@ -32,7 +32,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XResultSet;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 public final class Array
     extends ComponentBase
@@ -66,7 +66,7 @@ public final class Array
         try {
             return (Object[]) mArray.getArray();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -76,7 +76,7 @@ public final class Array
         try {
             return (Object[]) mArray.getArray(index, count);
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -86,7 +86,7 @@ public final class Array
         try {
             return mConnection.getProvider().getDataType(mArray.getBaseType());
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -96,7 +96,7 @@ public final class Array
         try {
             return mArray.getBaseTypeName();
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -111,7 +111,7 @@ public final class Array
             }
             return resultset;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -126,7 +126,7 @@ public final class Array
             }
             return resultset;
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e, this);
         }
     }
 

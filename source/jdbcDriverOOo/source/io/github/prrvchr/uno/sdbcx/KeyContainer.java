@@ -41,19 +41,19 @@ import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComposeRule;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.helper.ConstraintHelper;
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.KeyHelper;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.KeyHelper.ForeignKeyProperties;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
@@ -183,7 +183,7 @@ public final class KeyContainer
         throws java.sql.SQLException {
         Key key = null;
         System.out.println("sdbcx.KeyContainer.appendElement() 1");
-        int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
+        int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.TYPE);
         // XXX: For foreign keys, we check if the type between the foreign key and the primary key is the same.
         if (type == KeyType.FOREIGN) {
             checkKeyAppendValid(descriptor);
@@ -241,7 +241,7 @@ public final class KeyContainer
     private boolean createNewKey(XPropertySet descriptor, String key)
         throws java.sql.SQLException {
         Provider provider = getConnection().getProvider();
-        int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
+        int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.TYPE);
         if (type == KeyType.PRIMARY && !provider.getConfigDDL().supportsAlterPrimaryKey()) {
             int resource = Resources.STR_LOG_PKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
@@ -295,12 +295,12 @@ public final class KeyContainer
             int update = 0;
             int delete = 0;
             TableSuper refTable = null;
-            int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
+            int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.TYPE);
             if (type == KeyType.FOREIGN) {
                 index = FK_NAME;
-                update = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.UPDATERULE);
-                delete = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.DELETERULE);
-                String tablename = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
+                update = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.UPDATERULE);
+                delete = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.DELETERULE);
+                String tablename = DBTools.getDescriptorStringValue(descriptor, PropertyID.REFERENCEDTABLE);
                 refTable = getConnection().getTablesInternal().getElementByName(tablename);
             }
             String newname = oldname;
@@ -313,7 +313,7 @@ public final class KeyContainer
                     if (!hasByName(name)) {
                         // XXX: Now that the key has been created we know its name and we need to update
                         // XXX: the descriptor name in order to be able to insert it into the key container.
-                        descriptor.setPropertyValue(PropertyIds.NAME.getName(), name);
+                        descriptor.setPropertyValue(PropertyID.NAME.getName(), name);
                         newname = name;
                         break;
                     }
@@ -321,7 +321,7 @@ public final class KeyContainer
             }
             ComposeRule rule = ComposeRule.InDataManipulation;
             String[] columns = ConstraintHelper.getKeyColumns(provider.getNamedSupport(rule),
-                                                              descriptor, PropertyIds.NAME, false);
+                                                              descriptor, PropertyID.NAME, false);
             return new Key(mTable, refTable, isCaseSensitive(), newname, type, update, delete, columns);
         } catch (java.sql.SQLException | UnknownPropertyException | PropertyVetoException | WrappedTargetException e) {
             throw new java.sql.SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);

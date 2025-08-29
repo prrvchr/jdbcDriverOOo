@@ -43,7 +43,7 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.driver.property;
 
 import java.util.Map;
 
@@ -74,7 +74,7 @@ public abstract class PropertySet
         mAdapter = new PropertySetAdapter(this, this);
     }
 
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
         mAdapter.registerProperties(properties);
     }
 

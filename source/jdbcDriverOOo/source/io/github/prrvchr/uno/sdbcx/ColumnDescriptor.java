@@ -27,7 +27,8 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.HashMap;
 
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 public final class ColumnDescriptor
     extends ColumnDescriptorSuper {
@@ -38,7 +39,7 @@ public final class ColumnDescriptor
     public ColumnDescriptor(final TableMain table,
                             final boolean sensitive) {
         super(SERVICE, SERVICES, table, sensitive);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
         System.out.println("sdbcx.descriptors.ColumnDescriptor()");
     }
 

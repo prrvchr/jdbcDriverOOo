@@ -31,8 +31,8 @@ import java.sql.SQLException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbcx.KeyType;
 
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
 public final class KeyColumns
     extends ContainerBase<KeyColumn> {

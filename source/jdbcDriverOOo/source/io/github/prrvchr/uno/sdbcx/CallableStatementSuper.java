@@ -32,9 +32,9 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.CallableStatementBase;
 
 
@@ -57,9 +57,9 @@ public abstract class CallableStatementSuper
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
 
-        properties.put(PropertyIds.USEBOOKMARKS.getName(),
+        properties.put(PropertyID.USEBOOKMARKS,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mUseBookmarks;

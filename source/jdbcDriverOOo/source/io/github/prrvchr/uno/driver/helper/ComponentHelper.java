@@ -31,8 +31,8 @@ import java.sql.SQLException;
 import com.sun.star.beans.XPropertySet;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public class ComponentHelper {
@@ -528,14 +528,14 @@ public class ComponentHelper {
     public static NamedComponent getTableNamedComponents(XPropertySet table)
         throws SQLException {
         NamedComponent component = new NamedComponent();
-        if (DBTools.hasDescriptorProperty(table, PropertyIds.NAME)) {
-            if (DBTools.hasDescriptorProperty(table, PropertyIds.CATALOGNAME)) {
-                component.setCatalog(DBTools.getDescriptorStringValue(table, PropertyIds.CATALOGNAME));
+        if (DBTools.hasDescriptorProperty(table, PropertyID.NAME)) {
+            if (DBTools.hasDescriptorProperty(table, PropertyID.CATALOGNAME)) {
+                component.setCatalog(DBTools.getDescriptorStringValue(table, PropertyID.CATALOGNAME));
             }
-            if (DBTools.hasDescriptorProperty(table, PropertyIds.SCHEMANAME)) {
-                component.setSchema(DBTools.getDescriptorStringValue(table, PropertyIds.SCHEMANAME));
+            if (DBTools.hasDescriptorProperty(table, PropertyID.SCHEMANAME)) {
+                component.setSchema(DBTools.getDescriptorStringValue(table, PropertyID.SCHEMANAME));
             }
-            component.setTable(DBTools.getDescriptorStringValue(table, PropertyIds.NAME));
+            component.setTable(DBTools.getDescriptorStringValue(table, PropertyID.NAME));
         } else {
             String msg = "ComponentHelper::getTableNamedComponents: ERROR: This is not a table object";
             throw new SQLException(msg);

@@ -31,8 +31,8 @@ import java.util.Map;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 
 public final class IndexDescriptor
@@ -57,9 +57,9 @@ public final class IndexDescriptor
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
 
-        properties.put(PropertyIds.CATALOG.getName(),
+        properties.put(PropertyID.CATALOG,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mCatalog;
@@ -68,7 +68,7 @@ public final class IndexDescriptor
                     mCatalog = (String) value;
                 }));
 
-        properties.put(PropertyIds.ISCLUSTERED.getName(),
+        properties.put(PropertyID.ISCLUSTERED,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mIsClustered;
@@ -77,7 +77,7 @@ public final class IndexDescriptor
                     mIsClustered = (boolean) value;
                 }));
 
-        properties.put(PropertyIds.ISUNIQUE.getName(),
+        properties.put(PropertyID.ISUNIQUE,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mIsUnique;

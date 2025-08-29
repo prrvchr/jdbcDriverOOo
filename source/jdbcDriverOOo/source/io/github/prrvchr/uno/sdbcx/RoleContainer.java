@@ -37,11 +37,11 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.uno.driver.config.ParameterDCL;
 import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.container.BiMapSuper;
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdb.Role;
@@ -143,7 +143,7 @@ public abstract class RoleContainer<T extends Role>
     @Override
     public void appendByDescriptor(XPropertySet descriptor)
         throws SQLException, ElementExistException {
-        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        String name = DBTools.getDescriptorStringValue(descriptor, PropertyID.NAME);
         if (hasByName(name)) {
             throw new ElementExistException();
         }

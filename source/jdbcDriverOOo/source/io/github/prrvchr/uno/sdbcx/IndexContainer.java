@@ -42,17 +42,17 @@ import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComposeRule;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
-import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.helper.IndexHelper;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
@@ -189,16 +189,16 @@ public final class IndexContainer
         ComposeRule rule = ComposeRule.InIndexDefinitions;
         NamedSupport support = provider.getNamedSupport(rule);
         try {
-            boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISUNIQUE);
+            boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyID.ISUNIQUE);
             XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
             XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
             List<String> indexes = new ArrayList<>();
             for (int i = 0; i < columns.getCount(); i++) {
                 XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
-                String column = DBTools.getDescriptorStringValue(property, PropertyIds.NAME);
+                String column = DBTools.getDescriptorStringValue(property, PropertyID.NAME);
                 String index = support.enquoteIdentifier(column, isCaseSensitive());
                 if (!unique && provider.getConfigSQL().addIndexAppendix()) {
-                    if (DBTools.getDescriptorBooleanValue(property, PropertyIds.ISASCENDING)) {
+                    if (DBTools.getDescriptorBooleanValue(property, PropertyID.ISASCENDING)) {
                         index += " ASC";
                     } else {
                         index += " DESC";

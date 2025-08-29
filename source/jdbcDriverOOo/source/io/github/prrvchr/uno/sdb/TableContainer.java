@@ -30,7 +30,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.TableContainerSuper;
 

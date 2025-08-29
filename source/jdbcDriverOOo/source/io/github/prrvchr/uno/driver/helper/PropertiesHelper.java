@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.driver.provider;
+package io.github.prrvchr.uno.driver.helper;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -33,9 +33,10 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbcx.XUsersSupplier;
 
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbcx.RoleListener;
 
 
@@ -57,7 +58,7 @@ public final class Group
                  boolean sensitive) {
         super(SERVICE, SERVICES, connection, groups, name, sensitive, LoggerObjectType.GROUP, true);
         mUserContainer = users;
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
     }
 
     // com.sun.star.lang.XComponent
