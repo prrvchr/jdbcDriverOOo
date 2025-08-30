@@ -268,24 +268,6 @@ public class UnoHelper {
         return UnoRuntime.queryInterface(XStringResourceResolver.class, service);
     }
 
-    public static URL getDriverURL(String location) {
-        URL url = null;
-        try {
-            url = new URL("jar:" + location + "!/");
-        } catch (java.lang.Exception e) {
-            e.printStackTrace();
-        }
-        return url;
-    }
-
-    public static URL getDriverURL(String location, String jar) {
-        return getDriverURL(location + jar);
-    }
-
-    public static URL getDriverURL(String location, String path, String jar) {
-        return getDriverURL(location + "/" + path + "/" + jar);
-    }
-
     public static String getDefaultPropertyValue(PropertyValue[] properties, String name, String value)
         throws IllegalArgumentException {
         for (PropertyValue property : properties) {
@@ -359,55 +341,12 @@ public class UnoHelper {
         return value;
     }
 
-    public static com.sun.star.util.Date getUnoDate(java.time.LocalDate date) {
-        com.sun.star.util.Date value = new com.sun.star.util.Date();
+    public static Date getDate(java.time.LocalDate date) {
+        Date value = new Date();
         if (date != null) {
             value.Year = (short) date.getYear();
             value.Month = (short) date.getMonthValue();
             value.Day = (short) date.getDayOfMonth();
-        }
-        return value;
-    }
-
-    public static com.sun.star.util.Time getUnoTime(java.time.LocalTime time) {
-        com.sun.star.util.Time value = new com.sun.star.util.Time();
-        if (time != null) {
-            value.Hours = (short) time.getHour();
-            value.Minutes = (short) time.getMinute();
-            value.Seconds = (short) time.getSecond();
-            value.NanoSeconds = time.getNano();
-        }
-        return value;
-    }
-
-    public static com.sun.star.util.DateTime getUnoDateTime(java.time.LocalDateTime datetime) {
-        com.sun.star.util.DateTime value = new com.sun.star.util.DateTime();
-        if (datetime != null) {
-            value.Year = (short) datetime.getYear();
-            value.Month = (short) datetime.getMonthValue();
-            value.Day = (short) datetime.getDayOfMonth();
-            value.Hours = (short) datetime.getHour();
-            value.Minutes = (short) datetime.getMinute();
-            value.Seconds = (short) datetime.getSecond();
-            value.NanoSeconds = datetime.getNano();
-        }
-        return value;
-    }
-
-    public static com.sun.star.util.TimeWithTimezone getUnoTimeWithTimezone(java.time.OffsetTime time) {
-        com.sun.star.util.TimeWithTimezone value = new com.sun.star.util.TimeWithTimezone();
-        if (time != null) {
-            value.TimeInTZ = getUnoTime(time.toLocalTime());
-            value.Timezone = getUnoTimezone(time.getOffset());
-        }
-        return value;
-    }
-
-    public static TimeWithTimezone getTimeWithTimezone(java.time.OffsetTime time) {
-        TimeWithTimezone value = new TimeWithTimezone();
-        if (time != null) {
-            value.TimeInTZ = getTime(time.toLocalTime());
-            value.Timezone = getUnoTimezone(time.getOffset());
         }
         return value;
     }
@@ -419,15 +358,6 @@ public class UnoHelper {
             value.Minutes = (short) time.getMinute();
             value.Seconds = (short) time.getSecond();
             value.NanoSeconds = time.getNano();
-        }
-        return value;
-    }
-
-    public static DateTimeWithTimezone getDateTimeWithTimezone(OffsetDateTime datetime) {
-        DateTimeWithTimezone value = new DateTimeWithTimezone();
-        if (datetime != null) {
-            value.DateTimeInTZ = getDateTime(datetime.toLocalDateTime());
-            value.Timezone = getUnoTimezone(datetime.getOffset());
         }
         return value;
     }
@@ -447,16 +377,25 @@ public class UnoHelper {
         return value;
     }
 
-    public static com.sun.star.util.DateTimeWithTimezone getUnoDateTimeWithTimezone(OffsetDateTime datetime) {
-        com.sun.star.util.DateTimeWithTimezone value = new com.sun.star.util.DateTimeWithTimezone();
-        if (datetime != null) {
-            value.DateTimeInTZ = getUnoDateTime(datetime.toLocalDateTime());
-            value.Timezone = getUnoTimezone(datetime.getOffset());
+    public static TimeWithTimezone getTimeWithTimezone(java.time.OffsetTime time) {
+        TimeWithTimezone value = new TimeWithTimezone();
+        if (time != null) {
+            value.TimeInTZ = getTime(time.toLocalTime());
+            value.Timezone = getTimezone(time.getOffset());
         }
         return value;
     }
 
-    public static short getUnoTimezone(java.time.ZoneOffset offset) {
+    public static DateTimeWithTimezone getDateTimeWithTimezone(OffsetDateTime datetime) {
+        DateTimeWithTimezone value = new DateTimeWithTimezone();
+        if (datetime != null) {
+            value.DateTimeInTZ = getDateTime(datetime.toLocalDateTime());
+            value.Timezone = getTimezone(datetime.getOffset());
+        }
+        return value;
+    }
+
+    public static short getTimezone(java.time.ZoneOffset offset) {
         final int SECOND = 60;
         return (short) (offset.getTotalSeconds() / SECOND);
     }
@@ -642,13 +581,13 @@ public class UnoHelper {
             now = OffsetDateTime.now();
             dtz.Timezone = (short) (now.getOffset().getTotalSeconds() / SECOND);
         }
-        dtz.DateTimeInTZ = _currentDateTime(now, utc);
+        dtz.DateTimeInTZ = currentDateTime(now, utc);
         return dtz;
     }
 
-    public static com.sun.star.util.DateTime currentUnoDateTime() {
+    public static DateTime currentDateTime() {
         OffsetDateTime now = OffsetDateTime.now(java.time.ZoneOffset.UTC);
-        com.sun.star.util.DateTime dt = new com.sun.star.util.DateTime();
+        DateTime dt = new DateTime();
         dt.Year = (short) now.getYear();
         dt.Month = (short) now.getMonthValue();
         dt.Day = (short) now.getDayOfMonth();
@@ -665,11 +604,11 @@ public class UnoHelper {
         } else {
             now = OffsetDateTime.now();
         }
-        return _currentDateTime(now, utc);
+        return currentDateTime(now, utc);
     }
 
-    private static DateTime _currentDateTime(OffsetDateTime now,
-                                             boolean utc) {
+    private static DateTime currentDateTime(OffsetDateTime now,
+                                            boolean utc) {
         DateTime dt = new DateTime();
         dt.Year = (short) now.getYear();
         dt.Month = (short) now.getMonthValue();

@@ -451,9 +451,9 @@ public class DBTools {
         } else if (object instanceof java.time.OffsetDateTime) {
             value = UnoHelper.getDateTimeWithTimezone((java.time.OffsetDateTime) object);
         } else if (object instanceof java.time.LocalDate) {
-            value = UnoHelper.getUnoDate((java.time.LocalDate) object);
+            value = UnoHelper.getDate((java.time.LocalDate) object);
         } else if (object instanceof java.time.LocalTime) {
-            value = UnoHelper.getUnoTime((java.time.LocalTime) object);
+            value = UnoHelper.getTime((java.time.LocalTime) object);
         } else if (object instanceof java.time.LocalDateTime) {
             value = UnoHelper.getDateTime((java.time.LocalDateTime) object);
         } else if (object instanceof java.sql.Date) {
@@ -468,17 +468,17 @@ public class DBTools {
 
     private static Date getDate(Object object) {
         java.sql.Date date = (java.sql.Date) object;
-        return UnoHelper.getUnoDate(date.toLocalDate());
+        return UnoHelper.getDate(date.toLocalDate());
     }
 
     private static Time getTime(Object object) {
         java.sql.Time time = (java.sql.Time) object;
-        return UnoHelper.getUnoTime(time.toLocalTime());
+        return UnoHelper.getTime(time.toLocalTime());
     }
 
     private static DateTime getTimestamp(Object object) {
         java.sql.Timestamp timestamp = (java.sql.Timestamp) object;
-        return UnoHelper.getUnoDateTime(timestamp.toLocalDateTime());
+        return UnoHelper.getDateTime(timestamp.toLocalDateTime());
     }
 
     public static boolean useBookmarks(Provider provider) {

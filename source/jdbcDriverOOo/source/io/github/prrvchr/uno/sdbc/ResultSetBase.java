@@ -771,7 +771,7 @@ public abstract class ResultSetBase
         try {
             java.sql.Date value = mResult.getDate(index);
             if (value != null) {
-                date = UnoHelper.getUnoDate(value.toLocalDate());
+                date = UnoHelper.getDate(value.toLocalDate());
             }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -878,7 +878,7 @@ public abstract class ResultSetBase
         try {
             java.sql.Time value = mResult.getTime(index);
             if (value != null) {
-                time = UnoHelper.getUnoTime(value.toLocalTime());
+                time = UnoHelper.getTime(value.toLocalTime());
             }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -893,7 +893,7 @@ public abstract class ResultSetBase
         try {
             java.sql.Timestamp value = mResult.getTimestamp(index);
             if (value != null) {
-                datetime = UnoHelper.getUnoDateTime(value.toLocalDateTime());
+                datetime = UnoHelper.getDateTime(value.toLocalDateTime());
             }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
