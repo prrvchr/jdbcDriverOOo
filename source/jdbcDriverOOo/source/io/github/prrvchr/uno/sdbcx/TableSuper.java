@@ -425,7 +425,7 @@ public abstract class TableSuper
             e.printStackTrace();
             int resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
-            throw DBTools.getSQLException(new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e), this);
+            throw UnoHelper.getSQLException(new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e), this);
         }
     }
 
@@ -464,7 +464,7 @@ public abstract class TableSuper
             int resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
             java.sql.SQLException ex = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-            throw DBTools.getSQLException(ex, this);
+            throw UnoHelper.getSQLException(ex, this);
         }
         return renamed;
     }

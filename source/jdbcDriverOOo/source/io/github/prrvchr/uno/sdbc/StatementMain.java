@@ -51,6 +51,7 @@ import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.ServiceInfo;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class StatementMain
@@ -206,7 +207,7 @@ public abstract class StatementMain
             try {
                 mStatement.setCursorName(cursor);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
+                throw DBTools.getWrappedException(e, this);
             }
         }
     }
@@ -222,7 +223,7 @@ public abstract class StatementMain
             try {
                 mStatement.setFetchDirection(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
+                throw DBTools.getWrappedException(e, this);
             }
         }
     }
@@ -238,7 +239,7 @@ public abstract class StatementMain
             try {
                 mStatement.setFetchSize(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
+                throw DBTools.getWrappedException(e, this);
             }
         }
     }
@@ -254,7 +255,7 @@ public abstract class StatementMain
             try {
                 mStatement.setMaxFieldSize(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
+                throw DBTools.getWrappedException(e, this);
             }
         }
     }
@@ -270,7 +271,7 @@ public abstract class StatementMain
             try {
                 mStatement.setMaxRows(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
+                throw DBTools.getWrappedException(e, this);
             }
         }
     }
@@ -285,7 +286,7 @@ public abstract class StatementMain
             try {
                 mStatement.setQueryTimeout(value);
             } catch (java.sql.SQLException e) {
-                throw new WrappedTargetException("SQL error", this, DBTools.getSQLException(e, this));
+                throw DBTools.getWrappedException(e, this);
             }
         }
     }
@@ -308,7 +309,7 @@ public abstract class StatementMain
             try {
                 value = mStatement.getResultSetConcurrency();
             } catch (java.sql.SQLException e) {
-                DBTools.getSQLException(e, this);
+                UnoHelper.getSQLException(e, this);
             }
         }
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_CONCURRENCY, value);
@@ -330,7 +331,7 @@ public abstract class StatementMain
             try {
                 value = mStatement.getResultSetType();
             } catch (java.sql.SQLException e) {
-                DBTools.getSQLException(e, this);
+                UnoHelper.getSQLException(e, this);
             }
         }
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_TYPE, value);
@@ -423,7 +424,7 @@ public abstract class StatementMain
                            count, getColumnNames(result, count));
             return resultset;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
     
@@ -458,7 +459,7 @@ public abstract class StatementMain
                            count, getColumnNames(result, count));
         } catch (java.sql.SQLException e) {
             mLogger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_ERROR, e.getMessage());
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return resultset;
     } */
@@ -484,7 +485,7 @@ public abstract class StatementMain
         try {
             return getJdbcStatement().getMoreResults();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -497,7 +498,7 @@ public abstract class StatementMain
         try {
             return getJdbcStatement().getUpdateCount();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

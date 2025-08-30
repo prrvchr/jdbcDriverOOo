@@ -78,7 +78,7 @@ public abstract class PreparedStatementMain
         try {
             return getJdbcStatement().executeQuery();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -90,7 +90,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().clearParameters();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -101,7 +101,7 @@ public abstract class PreparedStatementMain
                                                                                     value.getArray(null));
             getJdbcStatement().setArray(index, array);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -111,7 +111,7 @@ public abstract class PreparedStatementMain
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             getJdbcStatement().setBinaryStream(index, input, lenght);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -122,7 +122,7 @@ public abstract class PreparedStatementMain
             blob.setBytes(1, value.getBytes(1, (int) value.length()));
             getJdbcStatement().setBlob(index, blob);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -131,7 +131,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setBoolean(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -140,7 +140,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setByte(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -149,7 +149,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setBytes(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -159,7 +159,7 @@ public abstract class PreparedStatementMain
             getJdbcStatement().setCharacterStream(index,
                                 new java.io.InputStreamReader(new XInputStreamToInputStreamAdapter(value)), lenght);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -170,7 +170,7 @@ public abstract class PreparedStatementMain
             clob.setString(1, value.toString());
             getJdbcStatement().setClob(index, clob);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -180,7 +180,7 @@ public abstract class PreparedStatementMain
             java.sql.Date date = java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value));
             getJdbcStatement().setDate(index, date);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -189,7 +189,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setDouble(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -198,7 +198,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setFloat(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -207,7 +207,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setInt(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -216,7 +216,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setLong(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -225,7 +225,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setNull(index, type);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -239,7 +239,7 @@ public abstract class PreparedStatementMain
                 throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
 
     }
@@ -249,7 +249,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setObject(index, null);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -258,7 +258,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setObject(index, value, type, scale);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -272,7 +272,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setShort(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -281,7 +281,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().setString(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -291,7 +291,7 @@ public abstract class PreparedStatementMain
             java.sql.Time time = java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value));
             getJdbcStatement().setTime(index, time);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -301,7 +301,7 @@ public abstract class PreparedStatementMain
             java.sql.Timestamp timestamp = java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value));
             getJdbcStatement().setTimestamp(index, timestamp);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -312,7 +312,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().addBatch();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -321,7 +321,7 @@ public abstract class PreparedStatementMain
         try {
             getJdbcStatement().clearBatch();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -330,7 +330,7 @@ public abstract class PreparedStatementMain
         try {
             return getJdbcStatement().executeBatch();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -341,7 +341,7 @@ public abstract class PreparedStatementMain
         try {
             return getJdbcStatement().execute();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -355,7 +355,7 @@ public abstract class PreparedStatementMain
         try {
             return getJdbcStatement().executeUpdate();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -378,7 +378,7 @@ public abstract class PreparedStatementMain
                 System.out.println("PreparedStatementMain.getMetaData() ERROR ********************************");
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return metadata;
     }

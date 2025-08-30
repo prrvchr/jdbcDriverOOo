@@ -37,9 +37,9 @@ import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
-import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class User
@@ -75,7 +75,7 @@ public final class User
         } catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USER_CHANGE_PASSWORD_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, getName());
-            throw DBTools.getSQLException(new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e), this);
+            throw UnoHelper.getSQLException(new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e), this);
         }
     }
 

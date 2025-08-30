@@ -35,10 +35,10 @@ import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
-import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class PreparedStatement
@@ -86,7 +86,7 @@ public final class PreparedStatement
             }
             return resultset;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

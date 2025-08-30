@@ -32,6 +32,7 @@ import java.net.URLClassLoader;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.NamedValue;
@@ -763,6 +764,51 @@ public class UnoHelper {
                                stackTrace[i].getMethodName() + " " +
                                stackTrace[i].getLineNumber());
         }
+    }
+
+    public static SQLException getSQLException(Throwable e,
+                                               XInterface component) {
+        SQLException ex = getUnoSQLException(e, component);
+        if (e instanceof java.sql.SQLException) {
+            SQLException prev = ex;
+            java.sql.SQLException e1 = (java.sql.SQLException) e;
+            Iterator<Throwable> it = e1.iterator();
+            while (it.hasNext()) {
+                prev = getUnoSQLException(prev, it.next(), component);
+            }
+        }
+        return ex;
+    }
+
+    private static SQLException getUnoSQLException(Throwable e,
+                                                   XInterface component) {
+        SQLException ex;
+        String msg = e.getLocalizedMessage();
+        if (msg != null) {
+            ex = new SQLException(msg);
+        } else {
+            ex = new SQLException();
+        }
+        if (component != null) {
+            ex.Context = component;
+        }
+        if (e instanceof java.sql.SQLException) {
+            java.sql.SQLException e1 = (java.sql.SQLException) e;
+            ex.ErrorCode = e1.getErrorCode();
+            String state = e1.getSQLState();
+            if (state != null) {
+                ex.SQLState = e1.getSQLState();
+            }
+        }
+        return ex;
+    }
+
+    private static SQLException getUnoSQLException(SQLException ex,
+                                                   Throwable e,
+                                                   XInterface component) {
+        SQLException exception = getUnoSQLException(e, component);
+        ex.NextException = exception;
+        return exception;
     }
 
 }

@@ -23,76 +23,80 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbcx;
+package io.github.prrvchr.uno.helper;
 
-import java.util.HashMap;
+import java.util.Arrays;
 
-import javax.sql.rowset.CachedRowSet;
-
-import com.sun.star.logging.LogLevel;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XResultSet;
 
-import io.github.prrvchr.uno.driver.property.PropertyID;
-import io.github.prrvchr.uno.driver.property.PropertyWrapper;
-import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
+public class Array
+    extends WeakBase
+    implements XArray {
 
-public final class CallableStatement
-    extends CallableStatementSuper {
-    private static final String SERVICE = CallableStatement.class.getName();
-    private static final String[] SERVICES = {"com.sun.star.sdbc.CallableStatement",
-                                              "com.sun.star.sdbcx.CallableStatement"};
+    private Object[] mArray = null;
+    private String mType = null;
 
     // The constructor method:
-    public CallableStatement(Connection connection,
-                             String sql)
-        throws java.sql.SQLException {
-        super(SERVICE, SERVICES, connection, sql);
-        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
-        System.out.println("sdbcx.CallableStatement() 1");
+    public Array(java.sql.Array array)
+        throws SQLException {
+        try {
+            mArray = (Object[]) array.getArray();
+            mType = array.getBaseTypeName();
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+        
+    }
+    public Array(Object[] array,
+                 String type) {
+        mArray = array;
+        mType = type;
     }
 
     @Override
-    public XResultSet getResultSet()
+    public Object[] getArray(XNameAccess map)
+        throws SQLException {
+        return mArray;
+    }
+
+    @Override
+    public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
+        throws SQLException {
+        return Arrays.copyOfRange(mArray, index, index + count);
+    }
+
+    @Override
+    public int getBaseType()
         throws SQLException {
         try {
-            XResultSet resultset = null;
-            java.sql.ResultSet rs = getJdbcResultSet();
-            Provider provider = getConnectionInternal().getProvider();
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            if (mUseBookmarks && provider.getConfigSQL().useCachedRowSet(rs, mQuery)) {
-                CachedRowSet crs = ResultSetHelper.getCachedRowSet(provider, rs, mQuery);
-                if (!crs.isReadOnly()) {
-                    RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
-                    String services = String.join(", ", rowset.getSupportedServiceNames());
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
-                                       services, rowset.getLogger().getObjectId());
-                    resultset = rowset;
-                } else {
-                    rs = getJdbcResultSet();
-                }
-            }
-            if (resultset == null) {
-                ResultSet result =  new ResultSet(getConnectionInternal(), rs, this);
-                String services = String.join(", ", result.getSupportedServiceNames());
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
-                                   services, result.getLogger().getObjectId());
-                resultset = result;
-            }
-            return resultset;
+            return UnoHelper.getConstantValue(DataType.class, mType);
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    protected Connection getConnectionInternal() {
-        return (Connection) mConnection;
+    public String getBaseTypeName()
+        throws SQLException {
+        return mType;
     }
 
+    @Override
+    public XResultSet getResultSet(XNameAccess map)
+        throws SQLException {
+        return null;
+    }
+
+    @Override
+    public XResultSet getResultSetAtIndex(int index, int count, XNameAccess map)
+        throws SQLException {
+        return null;
+    }
 
 }

@@ -47,6 +47,7 @@ import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.RoleListener;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
 
@@ -128,7 +129,7 @@ public abstract class Role
                     privileges = mProvider.getConfigDCL().getMockPrivileges();
                 }
             } catch (java.sql.SQLException e) {
-                throw DBTools.getSQLException(e, this);
+                throw UnoHelper.getSQLException(e, this);
             }
         }
         return privileges;

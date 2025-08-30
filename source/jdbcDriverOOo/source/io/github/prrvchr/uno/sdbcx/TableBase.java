@@ -46,6 +46,7 @@ import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class TableBase
@@ -161,7 +162,7 @@ public abstract class TableBase
             int resource = getRenameTableResource(isview, true);
             String query = String.join("> <", queries);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, newname, query);
-            throw DBTools.getSQLException(new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e), this);
+            throw UnoHelper.getSQLException(new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e), this);
         }
         if (!changed) {
             int resource = getRenameTableCanceledResource(isview);

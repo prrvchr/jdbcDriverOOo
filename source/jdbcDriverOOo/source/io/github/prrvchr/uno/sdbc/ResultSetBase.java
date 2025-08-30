@@ -222,7 +222,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CURSORNAME, cursor);
             return cursor;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getWrappedException(DBTools.getSQLException(e, this));
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -233,7 +233,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_DIRECTION, Integer.toString(direction));
             return direction;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getWrappedException(DBTools.getSQLException(e, this));
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -243,7 +243,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_DIRECTION, Integer.toString(direction));
             mResult.setFetchDirection(direction);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getWrappedException(DBTools.getSQLException(e, this));
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -254,7 +254,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_SIZE, Integer.toString(size));
             return size;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getWrappedException(DBTools.getSQLException(e, this));
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -264,7 +264,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_SIZE, Integer.toString(size));
             mResult.setFetchSize(size);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getWrappedException(DBTools.getSQLException(e, this));
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -276,7 +276,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
             return concurrency;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getWrappedException(DBTools.getSQLException(e, this));
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -288,7 +288,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, type);
             return type;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getWrappedException(DBTools.getSQLException(e, this));
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -328,7 +328,7 @@ public abstract class ResultSetBase
         try {
             return mResult.findColumn(name);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -342,7 +342,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, row, moved);
             return moved;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -356,7 +356,7 @@ public abstract class ResultSetBase
                            Integer.toString(row), Boolean.toString(moved));
             return moved;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -367,7 +367,7 @@ public abstract class ResultSetBase
             resetOnInsertRow();
             mResult.afterLast();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -378,7 +378,7 @@ public abstract class ResultSetBase
             resetOnInsertRow();
             mResult.beforeFirst();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -389,7 +389,7 @@ public abstract class ResultSetBase
             resetOnInsertRow();
             return mResult.first();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -400,7 +400,7 @@ public abstract class ResultSetBase
             resetOnInsertRow();
             return mResult.last();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -410,7 +410,7 @@ public abstract class ResultSetBase
         try {
             return mResult.isAfterLast();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -420,7 +420,7 @@ public abstract class ResultSetBase
         try {
             return mResult.isBeforeFirst();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -430,7 +430,7 @@ public abstract class ResultSetBase
         try {
             return mResult.isFirst();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -440,7 +440,7 @@ public abstract class ResultSetBase
         try {
             return mResult.isLast();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -453,7 +453,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_NEXT, Boolean.toString(next));
             return next;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -465,7 +465,7 @@ public abstract class ResultSetBase
             boolean previous = mResult.previous();
             return previous;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -475,7 +475,7 @@ public abstract class ResultSetBase
         try {
             return mResult.getRow();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -486,7 +486,7 @@ public abstract class ResultSetBase
             System.out.println("ResultSetBase.refreshRow() *****************");
             mResult.refreshRow();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -498,7 +498,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_DELETED, Boolean.toString(deleted));
             return deleted;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -510,10 +510,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
             return inserted;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -525,7 +522,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_UPDATED, Boolean.toString(updated));
             return updated;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -575,7 +572,7 @@ public abstract class ResultSetBase
         try {
             insertRowInternal();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -596,7 +593,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_ROW);
             mResult.updateRow();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -611,7 +608,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_DELETE_ROW);
             mResult.deleteRow();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -634,7 +631,7 @@ public abstract class ResultSetBase
                 mResult.cancelRowUpdates();
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -648,7 +645,7 @@ public abstract class ResultSetBase
             mResult.moveToInsertRow();
             mOnInsert = true;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -659,7 +656,7 @@ public abstract class ResultSetBase
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENT_ROW);
             moveToCurrentRowInternal();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -680,7 +677,7 @@ public abstract class ResultSetBase
                 array = new Array(mConnection, value);
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return array;
     }
@@ -706,7 +703,7 @@ public abstract class ResultSetBase
                 blob = new Blob(mConnection, value);
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return blob;
     }
@@ -717,7 +714,7 @@ public abstract class ResultSetBase
         try {
             return mResult.getBoolean(index);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -727,7 +724,7 @@ public abstract class ResultSetBase
         try {
             return mResult.getByte(index);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -737,7 +734,7 @@ public abstract class ResultSetBase
         try {
             return mResult.getBytes(index);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -762,7 +759,7 @@ public abstract class ResultSetBase
                 clob = new Clob(mConnection, value);
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return clob;
     }
@@ -777,7 +774,7 @@ public abstract class ResultSetBase
                 date = UnoHelper.getUnoDate(value.toLocalDate());
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return date;
     }
@@ -788,7 +785,7 @@ public abstract class ResultSetBase
         try {
             return mResult.getDouble(index);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -798,7 +795,7 @@ public abstract class ResultSetBase
         try {
             return mResult.getFloat(index);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -809,7 +806,7 @@ public abstract class ResultSetBase
             int value = mResult.getInt(index);
             return value;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -819,7 +816,7 @@ public abstract class ResultSetBase
         try {
             return mResult.getLong(index);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -829,7 +826,7 @@ public abstract class ResultSetBase
         try {
             return DBTools.getObject(mResult.getObject(index));
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -843,7 +840,7 @@ public abstract class ResultSetBase
                 ref = new Ref(value);
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return ref;
     }
@@ -854,7 +851,7 @@ public abstract class ResultSetBase
         try {
             return mResult.getShort(index);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -870,7 +867,7 @@ public abstract class ResultSetBase
                     Integer.toString(index));
             return value;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -884,7 +881,7 @@ public abstract class ResultSetBase
                 time = UnoHelper.getUnoTime(value.toLocalTime());
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return time;
     }
@@ -899,7 +896,7 @@ public abstract class ResultSetBase
                 datetime = UnoHelper.getUnoDateTime(value.toLocalDateTime());
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return datetime;
     }
@@ -910,7 +907,7 @@ public abstract class ResultSetBase
         try {
             return mResult.wasNull();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -921,7 +918,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateNull(index);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -931,7 +928,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateBoolean(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -941,7 +938,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateByte(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -951,7 +948,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateShort(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -961,7 +958,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateInt(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -971,7 +968,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateLong(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -981,7 +978,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateFloat(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -991,7 +988,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateDouble(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -1001,7 +998,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateString(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -1011,7 +1008,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateBytes(index, value);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -1021,7 +1018,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateDate(index, java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value)));
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -1031,7 +1028,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateTime(index, java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value)));
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -1041,7 +1038,7 @@ public abstract class ResultSetBase
         try {
             mResult.updateTimestamp(index, java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value)));
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -1052,7 +1049,7 @@ public abstract class ResultSetBase
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             mResult.updateBinaryStream(index, input, lenght);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -1064,7 +1061,7 @@ public abstract class ResultSetBase
             Reader reader = new java.io.InputStreamReader(input);
             mResult.updateCharacterStream(index, reader, lenght);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -1105,7 +1102,7 @@ public abstract class ResultSetBase
                 metadata = new ResultSetMetaData(mConnection, rsmd);
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return metadata;
     }

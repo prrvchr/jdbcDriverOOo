@@ -125,7 +125,7 @@ public abstract class ContainerBase<T extends Descriptor>
         try {
             removeElement(index);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -138,7 +138,7 @@ public abstract class ContainerBase<T extends Descriptor>
         try {
             removeElement(name, true);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -170,7 +170,7 @@ public abstract class ContainerBase<T extends Descriptor>
 
             broadcastElementInserted(element, name);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

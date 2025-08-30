@@ -48,7 +48,6 @@ import com.sun.star.lib.uno.helper.ComponentBase;
 
 import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
-import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.DriverManager;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
@@ -160,7 +159,7 @@ public abstract class DriverBase
             } catch (java.sql.SQLException e) {
                 mLogger.logp(LogLevel.SEVERE, e.getMessage());
                 e.printStackTrace();
-                throw DBTools.getSQLException(e, this);
+                throw UnoHelper.getSQLException(e, this);
             }
         }
         return connection;
@@ -177,7 +176,7 @@ public abstract class DriverBase
             final int resource = Resources.STR_URI_SYNTAX_ERROR;
             final String message = SharedResources.getInstance().getResourceWithSubstitution(resource, url);
             java.sql.SQLException e = new java.sql.SQLException(message, StandardSQLState.SQL_GENERAL_ERROR.text());
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         List<DriverPropertyInfo> properties = new ArrayList<DriverPropertyInfo>();
         try {
@@ -194,7 +193,7 @@ public abstract class DriverBase
         } catch (NoSuchElementException e) {
             String state = StandardSQLState.SQL_GENERAL_ERROR.text();
             java.sql.SQLException ex = new java.sql.SQLException(e.getMessage(), state, e);
-            throw DBTools.getSQLException(ex, this);
+            throw UnoHelper.getSQLException(ex, this);
         }
         return properties.toArray(new DriverPropertyInfo[0]);
     }
@@ -359,7 +358,7 @@ public abstract class DriverBase
             int resource = Resources.STR_LOG_CONFIGURATION_LOADING_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, path);
             java.sql.SQLException ex = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
-            throw DBTools.getSQLException(ex, source);
+            throw UnoHelper.getSQLException(ex, source);
         }
     }
 
@@ -374,7 +373,7 @@ public abstract class DriverBase
             int resource = Resources.STR_LOG_CONFIGURATION_LOADING_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, path);
             java.sql.SQLException ex = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
-            throw DBTools.getSQLException(ex, source);
+            throw UnoHelper.getSQLException(ex, source);
         }
     }
 

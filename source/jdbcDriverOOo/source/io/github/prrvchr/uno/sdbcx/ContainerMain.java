@@ -154,7 +154,7 @@ public abstract class ContainerMain<T extends Descriptor>
         try {
             return getElementByName(name);
         } catch (SQLException e) {
-            throw new WrappedTargetException(e.getMessage());
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -184,14 +184,15 @@ public abstract class ContainerMain<T extends Descriptor>
     // com.sun.star.container.XIndexAccess:
     @Override
     public Object getByIndex(int index)
-        throws IndexOutOfBoundsException, WrappedTargetException {
+        throws IndexOutOfBoundsException,
+               WrappedTargetException {
         if (index < 0 || index >= getCount()) {
             throw new IndexOutOfBoundsException();
         }
         try {
             return getElementByIndex(index);
         } catch (SQLException e) {
-            throw new WrappedTargetException(e.getMessage());
+            throw DBTools.getWrappedException(e, this);
         }
     }
 

@@ -53,7 +53,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.Property;
@@ -74,7 +73,6 @@ import com.sun.star.sdbcx.XAppend;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
-import com.sun.star.uno.Exception;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.TypeClass;
 import com.sun.star.uno.UnoRuntime;
@@ -758,41 +756,24 @@ public class DBTools {
         return len;
     }
 
-    public static WrappedTargetException getWrappedException(java.lang.Exception e) {
-        WrappedTargetException exception = null;
-        if (e != null) {
-            Exception ex = new Exception(e.getMessage());
-            exception = getWrappedException(ex);
+    public static WrappedTargetException getWrappedException(Throwable e,
+                                                             XInterface component) {
+        WrappedTargetException ex;
+        String msg = e.getLocalizedMessage();
+        if (msg != null) {
+            ex = new WrappedTargetException(msg);
+        } else {
+            ex = new WrappedTargetException();
         }
-        return exception;
-    }
-
-    public static WrappedTargetException getWrappedException(Exception e) {
-        WrappedTargetException exception = null;
-        if (e != null) {
-            exception = new WrappedTargetException(e.getMessage());
-            exception.Context = e.Context;
-            exception.TargetException = e;
+        if (component != null) {
+            ex.Context = component;
         }
-        return exception;
+        ex.TargetException = UnoHelper.getSQLException(e, component);
+        return ex;
     }
 
     public static SQLException getSQLException(Throwable e) {
-        return getSQLException(e, null);
-    }
-
-    public static SQLException getSQLException(Throwable e,
-                                               XInterface context) {
-        SQLException ex = getUnoSQLException(e, context);
-        if (e instanceof java.sql.SQLException) {
-            SQLException prev = ex;
-            java.sql.SQLException e1 = (java.sql.SQLException) e;
-            Iterator<Throwable> it = e1.iterator();
-            while (it.hasNext()) {
-                prev = getUnoSQLException(prev, it.next(), context);
-            }
-        }
-        return ex;
+        return UnoHelper.getSQLException(e, null);
     }
 
     public static SQLException getSQLException(String msg) {
@@ -809,40 +790,9 @@ public class DBTools {
                                                      XInterface component,
                                                      ResourceBasedEventLogger logger) {
         
-        SQLException ex = getSQLException(e, component);
+        SQLException ex = UnoHelper.getSQLException(e, component);
         logger.log(LogLevel.SEVERE, e);
         return ex;
-    }
-
-    private static SQLException getUnoSQLException(Throwable e,
-                                                   XInterface context) {
-        SQLException ex;
-        String msg = e.getLocalizedMessage();
-        if (msg != null) {
-            ex = new SQLException(msg);
-        } else {
-            ex = new SQLException();
-        }
-        if (context != null) {
-            ex.Context = context;
-        }
-        if (e instanceof java.sql.SQLException) {
-            java.sql.SQLException e1 = (java.sql.SQLException) e;
-            ex.ErrorCode = e1.getErrorCode();
-            String state = e1.getSQLState();
-            if (state != null) {
-                ex.SQLState = e1.getSQLState();
-            }
-        }
-        return ex;
-    }
-
-    private static SQLException getUnoSQLException(SQLException ex,
-                                                   Throwable e,
-                                                   XInterface context) {
-        SQLException exception = getUnoSQLException(e, context);
-        ex.NextException = exception;
-        return exception;
     }
 
 }

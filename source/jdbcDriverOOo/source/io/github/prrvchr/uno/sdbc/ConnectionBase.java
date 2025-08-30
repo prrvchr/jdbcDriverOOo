@@ -156,7 +156,7 @@ public abstract class ConnectionBase
         try {
             WarningsSupplier.clearWarnings(mProvider.getConnection(), this);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -167,7 +167,7 @@ public abstract class ConnectionBase
         try {
             return WarningsSupplier.getWarnings(mProvider.getConnection(), this);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -184,7 +184,7 @@ public abstract class ConnectionBase
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID,
                                metadata.getLogger().getObjectId());
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return metadata;
     }
@@ -202,7 +202,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().commit();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -212,7 +212,7 @@ public abstract class ConnectionBase
         try {
             return getProvider().getConnection().getAutoCommit();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -227,7 +227,7 @@ public abstract class ConnectionBase
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -238,7 +238,7 @@ public abstract class ConnectionBase
         try {
             return getProvider().getConnection().getTransactionIsolation();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -248,7 +248,7 @@ public abstract class ConnectionBase
         try {
             return getProvider().getConnection().isClosed() && bDisposed;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -259,7 +259,7 @@ public abstract class ConnectionBase
         try {
             return getProvider().getConnection().isReadOnly();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -274,7 +274,7 @@ public abstract class ConnectionBase
             }
             return value;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -284,7 +284,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().rollback();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -294,7 +294,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().setAutoCommit(commit);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -304,7 +304,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().setCatalog(catalog);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -314,7 +314,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().setReadOnly(readonly);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -325,7 +325,7 @@ public abstract class ConnectionBase
         try {
             getProvider().getConnection().setTransactionIsolation(isolation);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -362,7 +362,7 @@ public abstract class ConnectionBase
         try {
             return getPreparedStatement(sql);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
 
     }
@@ -374,7 +374,7 @@ public abstract class ConnectionBase
         try {
             return getCallableStatement(sql);
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

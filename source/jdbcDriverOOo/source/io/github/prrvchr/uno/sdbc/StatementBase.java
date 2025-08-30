@@ -40,8 +40,8 @@ import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
-import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class StatementBase
@@ -65,7 +65,7 @@ public abstract class StatementBase
             mParsed = false;
             return getJdbcStatement().executeQuery(mQuery.getQuery());
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -170,7 +170,7 @@ public abstract class StatementBase
             mQuery = new QueryHelper(mConnection.getProvider(), sql);
             return getResultSet();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

@@ -570,6 +570,6 @@ Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. 
 [127]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#176>
 [128]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#218>
 [129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java>
-[130]: <https://github.com/microsoft/mssql-jdbc>
+[130]: <https://github.com/prrvchr/mssql-jdbc>
 [131]: <https://github.com/microsoft/mssql-jdbc/issues/2745>
 [132]: <https://gerrit.libreoffice.org/c/core/+/189732>

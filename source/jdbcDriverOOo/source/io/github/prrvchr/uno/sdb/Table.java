@@ -224,7 +224,7 @@ public final class Table
             return mPrivileges;
         } catch (java.sql.SQLException e) {
             System.out.println("scb.Table.getPrivileges() 2 ERROR ******************");
-            throw DBTools.getWrappedException(e);
+            throw DBTools.getWrappedException(e, this);
         }
     }
 

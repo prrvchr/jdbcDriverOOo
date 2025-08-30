@@ -50,6 +50,7 @@ import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class View
@@ -124,7 +125,7 @@ public final class View
                 String name = ComponentHelper.buildName(support, component, false);
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
                 java.sql.SQLException ex = new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
-                throw DBTools.getSQLException(ex, this);
+                throw UnoHelper.getSQLException(ex, this);
             }
             mCommand = command;
         }

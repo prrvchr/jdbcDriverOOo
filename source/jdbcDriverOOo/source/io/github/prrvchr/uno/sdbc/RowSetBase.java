@@ -43,8 +43,8 @@ import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class RowSetBase
@@ -128,7 +128,7 @@ public abstract class RowSetBase
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, bookmark.toString());
             return bookmark;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -167,7 +167,7 @@ public abstract class RowSetBase
             }
             return moved;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -183,7 +183,7 @@ public abstract class RowSetBase
             }
             return moved;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -214,7 +214,7 @@ public abstract class RowSetBase
             }
             return rows.stream().mapToInt(Integer::intValue).toArray();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -239,7 +239,7 @@ public abstract class RowSetBase
             // XXX: So we keep the fact that we performed an insert.
             mRowInserted = true;
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -255,7 +255,7 @@ public abstract class RowSetBase
                 acceptInsertInternal();
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -266,7 +266,7 @@ public abstract class RowSetBase
             // XXX: the update will be committed
             acceptChanges();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -277,7 +277,7 @@ public abstract class RowSetBase
             // XXX: the delete will be committed
             acceptChanges();
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

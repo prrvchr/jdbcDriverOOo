@@ -44,6 +44,7 @@ import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Role;
 
 
@@ -113,7 +114,7 @@ public abstract class RoleContainer<T extends Role>
                 }
                 System.out.println("sdbcx.Container.dropByIndex() 2 name: " + name);
             } catch (java.sql.SQLException e) {
-                throw DBTools.getSQLException(e, this);
+                throw UnoHelper.getSQLException(e, this);
             }
         }
     }
@@ -134,7 +135,7 @@ public abstract class RoleContainer<T extends Role>
                 }
                 System.out.println("sdbcx.Container.dropByName() 2");
             } catch (java.sql.SQLException e) {
-                throw DBTools.getSQLException(e, this);
+                throw UnoHelper.getSQLException(e, this);
             }
         }
     }
@@ -154,7 +155,7 @@ public abstract class RoleContainer<T extends Role>
                 broadcastElementInserted(element, name);
             }
         } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

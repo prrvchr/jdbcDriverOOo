@@ -45,10 +45,10 @@ Elle embarque les pilotes pour les base de données suivantes:
 - [PostgreSQL via pgJDBC][16] version 42.7.5
 - [H2 Database Engine][17] version 2.2.224
 - [Apache Derby][18] version 11.16.1.1
-- Firebird via [Jaybird][19] version 6.0.2 et [JaybirdEmbedded][20] version 1.0.0
+- Firebird via [Jaybird][19] version 6.0.3 et [JaybirdEmbedded][20] version 1.0.0
 - [MySQL via Connector/J][21] version 9.3.0
 - Oracle Database 23ai Free version 23ai (23.9.0.25.07) via [ojdbc17.jar][22].
-- Microsoft SQL Server via [mssql-jdbc-13.2.0.jre11.jar][23].
+- Microsoft SQL Server via [mssql-jdbc-13.2.0.jre17.jar][23].
 - [Trino ou PrestoSQL][24] version 458-SNAPSHOT (en cours d'intégration, à utiliser avec prudence)
 
 Grâce aux pilotes fournissant un moteur de base de données intégré tels que: HsqlDB, H2, SQLite, Derby ou Jaybird, il est possible dans Base de créer et gérer très facilement des bases de données, aussi facilement que de créer des documents Writer.  
@@ -334,7 +334,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [20]: <https://prrvchr.github.io/JaybirdEmbedded/README_fr>
 [21]: <https://dev.mysql.com/downloads/connector/j/>
 [22]: <https://www.oracle.com/fr/database/technologies/appdev/jdbc-downloads.html>
-[23]: <https://github.com/microsoft/mssql-jdbc>
+[23]: <https://github.com/prrvchr/mssql-jdbc>
 [24]: <https://trino.io/docs/current/client/jdbc.html#installing>
 [30]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#url-de-connexion>
 [31]: <https://github.com/prrvchr/jdbcDriverOOo/>
