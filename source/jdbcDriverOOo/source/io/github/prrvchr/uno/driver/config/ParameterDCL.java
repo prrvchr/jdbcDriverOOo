@@ -35,10 +35,10 @@ import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 
 public class ParameterDCL extends ParameterBase {
 
-    public static Map<String, Object> getUserArguments(NamedSupport support,
-                                                       String user,
-                                                       String password,
-                                                       boolean sensitive) {
+    public static Map<String, Object> getUserArguments(final NamedSupport support,
+                                                       final String user,
+                                                       final String password,
+                                                       final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${User} quoted / unquoted user name
         arguments.put("User", support.enquoteIdentifier(user, sensitive));
@@ -50,9 +50,9 @@ public class ParameterDCL extends ParameterBase {
         return arguments;
     }
 
-    public static Map<String, Object> getGroupArguments(NamedSupport support,
-                                                        String group,
-                                                        boolean sensitive) {
+    public static Map<String, Object> getGroupArguments(final NamedSupport support,
+                                                        final String group,
+                                                        final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${Role} quoted / unquoted user name
         arguments.put("Role", support.enquoteIdentifier(group, sensitive));
@@ -60,30 +60,31 @@ public class ParameterDCL extends ParameterBase {
         return arguments;
     }
 
-    public static Map<String, Object> getPrivilegesArguments(NamedSupport support,
-                                                             NamedComponent table,
-                                                             String grantee) {
+    public static Map<String, Object> getPrivilegesArguments(final NamedSupport support,
+                                                             final String tablename,
+                                                             final String grantee) {
         // These parameters do not need to be quoted, it will be used with a PreparedStatement
         Map<String, Object> arguments = new HashMap<>();
-        // XXX: ${Grantee} unquoted grantee name
-        arguments.put("Grantee", grantee);
+        NamedComponent table = ComponentHelper.qualifiedNameComponents(support, tablename);
         // XXX: ${TableName} unquoted full table name
-        arguments.put("TableName", ComponentHelper.buildName(support, table));
+        arguments.put("TableName", tablename);
         // XXX: ${Catalog} unquoted catalog name
         arguments.put("Catalog", table.getCatalogName());
         // XXX: ${Schema} unquoted schema name
         arguments.put("Schema", table.getSchemaName());
         // XXX: ${Table} unquoted table name
         arguments.put("Table",  table.getTableName());
+        // XXX: ${Grantee} unquoted grantee name
+        arguments.put("Grantee", grantee);
         return arguments;
     }
 
-    public static Map<String, Object> getAlterPrivilegesArguments(NamedSupport support,
-                                                                  NamedComponent table,
-                                                                  String privileges,
-                                                                  boolean isrole,
-                                                                  String grantee,
-                                                                  boolean sensitive) {
+    public static Map<String, Object> getAlterPrivilegesArguments(final NamedSupport support,
+                                                                  final NamedComponent table,
+                                                                  final String privileges,
+                                                                  final boolean isrole,
+                                                                  final String grantee,
+                                                                  final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${Privileges} the list of privileges to revoke
         arguments.put("Privileges", privileges);
@@ -96,12 +97,12 @@ public class ParameterDCL extends ParameterBase {
         return arguments;
     }
 
-    public static Map<String, Object> getAlterRoleArguments(NamedSupport support,
-                                                            String role1,
-                                                            String role2,
-                                                            boolean isrole,
-                                                            String role,
-                                                            boolean sensitive) {
+    public static Map<String, Object> getAlterRoleArguments(final NamedSupport support,
+                                                            final String role1,
+                                                            final String role2,
+                                                            final boolean isrole,
+                                                            final String role,
+                                                            final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${Grantor} quoted / unquoted role name
         arguments.put("Grantor", support.enquoteIdentifier(role1, sensitive));
@@ -116,7 +117,7 @@ public class ParameterDCL extends ParameterBase {
         return arguments;
     }
 
-    private static String getRole(boolean isrole) {
+    private static String getRole(final boolean isrole) {
         String role;
         if (isrole) {
             role = "ROLE";

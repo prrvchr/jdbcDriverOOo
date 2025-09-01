@@ -370,7 +370,7 @@ public class ConfigDDL extends ConfigSQL {
         return getColumnDescriptionQuery() != null;
     }
 
-    public String getColumnDescriptionQuery(Map<String, Object> keys) {
+    public String getColumnDescriptionQuery(final Map<String, Object> keys) {
         String query = null;
         String command = getColumnDescriptionQuery();
         if (command != null) {
@@ -401,7 +401,7 @@ public class ConfigDDL extends ConfigSQL {
         return format(command, keys);
     }
 
-    public String getSystemVersioningColumnQuery(Map<String, Object> keys)
+    public String getSystemVersioningColumnQuery(final Map<String, Object> keys)
         throws SQLException {
         String query = null;
         String command = getSystemVersioningColumnCommand();

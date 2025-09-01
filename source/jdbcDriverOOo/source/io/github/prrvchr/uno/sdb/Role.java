@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,7 @@ import com.sun.star.sdbcx.PrivilegeObject;
 import com.sun.star.sdbcx.XAuthorizable;
 import com.sun.star.sdbcx.XGroupsSupplier;
 
+import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
@@ -107,26 +109,24 @@ public abstract class Role
     public int getGrantablePrivileges(String name, int type)
         throws SQLException {
         int privileges = 0;
-        if (mProvider.getConfigSQL().ignoreDriverPrivileges()) {
-            privileges = mProvider.getConfigDCL().getMockPrivileges();
+        ConfigDCL config = mProvider.getConfigDCL();
+        if (config.ignoreDriverPrivileges()) {
+            privileges = config.getMockPrivileges();
         } else if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             try {
-                XNameAccess tables = mConnection.getTables();
-                if (tables.hasByName(name)) {
-                    NamedSupport support = mProvider.getNamedSupport(mRule);
-                    NamedComponent table = ComponentHelper.qualifiedNameComponents(support, name);
+                if (mConnection.getTables().hasByName(name)) {
                     java.sql.Connection connection = mProvider.getConnection();
                     if (!mIsrole && getName().equals(connection.getMetaData().getUserName())) {
                         privileges = PrivilegesHelper.getTablePrivileges(connection,
-                                                                         mProvider.getConfigDCL(),
-                                                                         support, table, getName());
+                                                                         mProvider.getNamedSupport(mRule),
+                                                                         config, name, getName());
                     } else {
                         privileges = PrivilegesHelper.getGrantablePrivileges(connection,
-                                                                             mProvider.getConfigDCL(),
-                                                                             support, table, getName());
+                                                                             mProvider.getNamedSupport(mRule),
+                                                                             config, name, getName());
                     }
                 } else {
-                    privileges = mProvider.getConfigDCL().getMockPrivileges();
+                    privileges = config.getMockPrivileges();
                 }
             } catch (java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, this);
@@ -139,22 +139,21 @@ public abstract class Role
     public int getPrivileges(String name, int type)
         throws SQLException {
         int privileges = 0;
-        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
+        ConfigDCL config = mProvider.getConfigDCL();
+        if (config.ignoreDriverPrivileges()) {
+            privileges = config.getMockPrivileges();
+        } else if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             try {
-                XNameAccess tables = mConnection.getTables();
-                if (tables.hasByName(name)) {
-                    NamedSupport support = mProvider.getNamedSupport(mRule);
-                    NamedComponent table = ComponentHelper.qualifiedNameComponents(support, name);
+                if (mConnection.getTables().hasByName(name)) {
                     privileges = PrivilegesHelper.getTablePrivileges(mProvider.getConnection(),
-                                                                     mProvider.getConfigDCL(),
-                                                                     table);
+                                                                     mProvider.getNamedSupport(mRule),
+                                                                     config, name, getName());
                 } else {
-                    privileges = mProvider.getConfigDCL().getMockPrivileges();
+                    privileges = config.getMockPrivileges();
                 }
-            } catch (Throwable e) {
+            } catch (java.sql.SQLException e) {
                 e.printStackTrace();
-                String msg = e.getMessage().replaceAll(QueryHelper.TOKEN_NEWLINE, QueryHelper.SPACE);
-                getLogger().logprb(LogLevel.SEVERE, Resources.STR_LOG_TABLE_PRIVILEGE_ACCESS_ERROR, msg);
+                getLogger().logprb(LogLevel.SEVERE, Resources.STR_LOG_TABLE_PRIVILEGE_ACCESS_ERROR, getErrorMessage(e));
             }
         }
         return privileges;
@@ -252,8 +251,7 @@ public abstract class Role
                 DBTools.executeSQLQuery(mConnection.getProvider(), query);
             } catch (java.sql.SQLException e) {
                 e.printStackTrace();
-                String error = e.getMessage().replaceAll(QueryHelper.TOKEN_NEWLINE, QueryHelper.SPACE);
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, error);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, getErrorMessage(e));
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw new SQLException(msg);
             } catch (Throwable e) {
@@ -286,14 +284,23 @@ public abstract class Role
                 }
             } catch (java.sql.SQLException e) {
                 e.printStackTrace();
-                String error = e.getMessage().replaceAll(QueryHelper.TOKEN_NEWLINE, QueryHelper.SPACE);
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, error);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, getErrorMessage(e));
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw new SQLException(msg);
             } catch (Throwable e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private String getErrorMessage(java.sql.SQLException e) {
+        String error = e.getLocalizedMessage();
+        if (error != null) {
+            error = error.replaceAll(QueryHelper.TOKEN_NEWLINE, QueryHelper.SPACE);
+        } else {
+            error = "";
+        }
+        return error;
     }
 
 }

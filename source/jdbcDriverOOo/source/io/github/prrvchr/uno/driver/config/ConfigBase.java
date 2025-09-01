@@ -51,6 +51,8 @@ import com.sun.star.sdb.XOfficeDatabaseDocument;
 
 import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
 import io.github.prrvchr.uno.driver.provider.DBTools;
+import io.github.prrvchr.uno.driver.provider.DriverManager;
+import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
 public abstract class ConfigBase extends ParameterBase {
@@ -86,6 +88,7 @@ public abstract class ConfigBase extends ParameterBase {
     private static final String INDEX_PATTERN = "[(]\\s*(\\d+)\\s*[)]";
     private static final String VALUE_PATTERN = "[=]\\s*([\\w+\\s*\\W*]+)";
 
+    protected final boolean mIsInstrumented;
     protected Object[] mPrivileges = null;
     protected RowSetData mTableData = null;
     protected Short mCachedRowSet = null;
@@ -131,6 +134,7 @@ public abstract class ConfigBase extends ParameterBase {
                          final String subProtocol,
                          final boolean rewriteTable)
         throws SQLException {
+        mIsInstrumented = DriverManager.isJavaInstrumantationInstalled();
 
         // XXX: Driver.xcs default properties
         Object[] typeInfo = null;
@@ -272,23 +276,7 @@ public abstract class ConfigBase extends ParameterBase {
         return mIgnoreDriverPrivileges;
     }
 
-    // XXX: this RowSetData will be used in methods:
-    // XXX: - TableHelper.useLiteral()
-    // XXX: - DatabaseMetaData.getTypeInfo()
-    public RowSetData getTypeInfoData() {
-        return mTypeInfoData;
-    }
-
-    // XXX: this RowSetData will be used in methods:
-    // XXX: - ConnectionSuper.refreshTables()
-    // XXX: - DatabaseMetaData.getTables()
-    public RowSetData getTableData() {
-        return mTableData;
-    }
-
-    // XXX: this RowSetData will be used in methods:
-    // XXX: - DatabaseMetaData.getTables() in sdbc mode
-    public RowSetData getRewriteTableData() {
+    private RowSetData getRewriteTableData() {
         RowSetData data = null;
         if (mShowSystemTable) {
             data = mRewriteTableData;
@@ -296,43 +284,79 @@ public abstract class ConfigBase extends ParameterBase {
         return data;
     }
 
-    // XXX: this RowSetData will be used in methods:
+    // XXX: this ResultSet will be used in methods:
+    // XXX: - DatabaseMetaData.getTypeInfo()
+    // XXX: - TableHelper.userLiteral()
+    public java.sql.ResultSet getMetaDataTypeInfo(java.sql.ResultSet rs)
+        throws SQLException {
+        if (mIsInstrumented) {
+            rs = ResultSetHelper.getCustomDataResultSet(rs, mTypeInfoData);
+        }
+        return rs;
+    }
+
+
+    // XXX: this ResultSet will be used in methods:
     // XXX: - DatabaseMetaData.getTableType()
-    public RowSetData getTableTypeData() {
-        return mTableTypeData;
+    public java.sql.ResultSet getMetaDataTableTypes(java.sql.ResultSet rs)
+        throws SQLException {
+        if (mIsInstrumented) {
+            rs = ResultSetHelper.getCustomDataResultSet(rs, mTableTypeData);
+        }
+        return rs;
     }
 
-    // XXX: this RowSetData will be used in methods:
+    // XXX: this ResultSet will be used in methods:
     // XXX: - DatabaseMetaData.getCatalogs()
-    public RowSetData getSytemCatalogFilter() {
-        RowSetData data = null;
-        if (!mShowSystemTable) {
-            data = mSystemCatalogData;
+    public java.sql.ResultSet getMetaDataCatalogs(java.sql.ResultSet rs)
+        throws SQLException {
+        if (mIsInstrumented && !mShowSystemTable) {
+            rs = ResultSetHelper.getCustomDataResultSet(rs, mSystemCatalogData);
+
         }
-        return data;
+        return rs;
     }
 
-    // XXX: this RowSetData will be used in methods:
+    // XXX: this ResultSet will be used in methods:
     // XXX: - DatabaseMetaData.getSchemas()
-    public RowSetData getSytemSchemaFilter() {
-        RowSetData data = null;
-        if (!mShowSystemTable) {
-            data = mSystemSchemaData;
+    public java.sql.ResultSet getMetaDataSchemas(java.sql.ResultSet rs)
+        throws SQLException {
+        if (mIsInstrumented && !mShowSystemTable) {
+            rs = ResultSetHelper.getCustomDataResultSet(rs, mSystemSchemaData);
         }
-        return data;
+        return rs;
     }
 
-    // XXX: this RowSetData will be used in methods:
-    // XXX: - ConnectionSuper.refreshTables()
+    // XXX: this ResultSet will be used in methods:
     // XXX: - DatabaseMetaData.getTables()
-    public RowSetData getSytemTableFilter() {
-        RowSetData data = null;
-        if (!mShowSystemTable) {
-            data = mSystemTableData;
+    public java.sql.ResultSet getMetaDataTables(java.sql.ResultSet rs)
+        throws SQLException {
+        if (mIsInstrumented && !mShowSystemTable) {
+            RowSetData rewrite = getRewriteTableData();
+            rs = ResultSetHelper.getCustomDataResultSet(rs, mTableData, mSystemTableData, rewrite);
         }
-        return data;
+        return rs;
     }
 
+    // XXX: this ResultSet will be used in methods:
+    // XXX: - ConnectionSuper.getTableNames()
+    public java.sql.ResultSet getResultSetTable(java.sql.ResultSet rs)
+        throws SQLException {
+        if (mIsInstrumented && !mShowSystemTable) {
+            rs = ResultSetHelper.getCustomDataResultSet(rs, mTableData, mSystemTableData);
+        }
+        return rs;
+    }
+
+    // XXX: this ResultSet will be used in methods:
+    // XXX: - ConnectionSuper.getViewNames()
+    public java.sql.ResultSet getResultSetView(java.sql.ResultSet rs)
+        throws SQLException {
+        if (mIsInstrumented && !mShowSystemTable) {
+            rs = ResultSetHelper.getCustomDataResultSet(rs, mSystemTableData);
+        }
+        return rs;
+    }
 
     // XXX: this RowSetData will be used in methods:
     // XXX: - PrivilegesHelper.getTablePrivilegesResultSet()
@@ -354,6 +378,10 @@ public abstract class ConfigBase extends ParameterBase {
 
     public XOfficeDatabaseDocument getDocument() {
         return mDocument;
+    }
+
+    public boolean isInstrumented() {
+        return mIsInstrumented;
     }
 
     // XXX: private methods
@@ -521,7 +549,7 @@ public abstract class ConfigBase extends ParameterBase {
     }
 
     @SuppressWarnings("unused")
-    private void setPropertiesInfo(PropertyValue[] infos,
+    private void setPropertiesInfo(final PropertyValue[] infos,
                                    Object[] typeInfo,
                                    Object[] tableType)
         throws SQLException {
@@ -584,28 +612,28 @@ public abstract class ConfigBase extends ParameterBase {
         }
     }
 
-    private Short getShortConfig(Object obj, Short value) {
+    private Short getShortConfig(final Object obj, Short value) {
         if (obj != null && AnyConverter.isShort(obj)) {
             value = AnyConverter.toShort(obj);
         }
         return value;
     }
 
-    private Boolean getBooleanConfig(Object obj, Boolean value) {
+    private Boolean getBooleanConfig(final Object obj, Boolean value) {
         if (obj != null && AnyConverter.isBoolean(obj)) {
             value = AnyConverter.toBoolean(obj);
         }
         return value;
     }
 
-    private String getStringConfig(Object obj, String value) {
+    private String getStringConfig(final Object obj, String value) {
         if (obj != null && AnyConverter.isString(obj)) {
             value = AnyConverter.toString(obj);
         }
         return value;
     }
 
-    private RowSetData parseRowsetData(Object[] data) throws SQLException {
+    private RowSetData parseRowsetData(final Object[] data) throws SQLException {
         Map<Integer, List<String>> keys = new HashMap<>();
         Map<String, List<SimpleImmutableEntry<Integer, String>>> values = new HashMap<>();
         Pattern idxPattern = Pattern.compile(INDEX_PATTERN);
@@ -629,7 +657,7 @@ public abstract class ConfigBase extends ParameterBase {
         return new RowSetData(keys, values);
     }
 
-    private Integer getRowSetDataIndex(Pattern pattern, String element) {
+    private Integer getRowSetDataIndex(final Pattern pattern, final String element) {
         Integer index = null;
         Matcher matcher = pattern.matcher(element);
         if (matcher.find()) {
@@ -638,7 +666,7 @@ public abstract class ConfigBase extends ParameterBase {
         return index;
     }
 
-    private String getRowSetDataValue(Pattern pattern, String element) {
+    private String getRowSetDataValue(final Pattern pattern, final String element) {
         String value = null;
         Matcher matcher = pattern.matcher(element);
         if (matcher.find()) {
@@ -669,7 +697,7 @@ public abstract class ConfigBase extends ParameterBase {
         return types;
     }
 
-    private String[] getMetaDataTableTypes(java.sql.DatabaseMetaData metadata) throws SQLException {
+    private String[] getMetaDataTableTypes(final java.sql.DatabaseMetaData metadata) throws SQLException {
         List<String> types = new ArrayList<>();
         try (ResultSet rs = metadata.getTableTypes()) {
             int count = rs.getMetaData().getColumnCount();
@@ -699,10 +727,10 @@ public abstract class ConfigBase extends ParameterBase {
         return new RowSetData(keys, values);
     }
 
-    private void addRowSetDataValue(Map<Integer, List<String>> keys,
-                                    Map<String, List<SimpleImmutableEntry<Integer, String>>> values,
-                                    Integer keyIndex, String keyValue,
-                                    Integer targetIndex, String targetValue) {
+    private void addRowSetDataValue(final Map<Integer, List<String>> keys,
+                                    final Map<String, List<SimpleImmutableEntry<Integer, String>>> values,
+                                    final Integer keyIndex, String keyValue,
+                                    final Integer targetIndex, String targetValue) {
         if (!keys.containsKey(keyIndex)) {
             keys.put(keyIndex, new ArrayList<>());
         }
@@ -748,5 +776,4 @@ public abstract class ConfigBase extends ParameterBase {
         }
         System.out.println("ConfigBase.setSystemProperties() 4");
     }
-
 }

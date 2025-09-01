@@ -36,6 +36,7 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbcx.Privilege;
 
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
@@ -91,12 +92,12 @@ public class ConfigDCL extends ConfigDDL {
         return  getCreateUserCommand() != null;
     }
 
-    public String getCreateUserCommand(Map<String, Object> keys) {
+    public String getCreateUserCommand(final Map<String, Object> keys) {
         String command = getCreateUserCommand();
         return format(command, keys);
     }
 
-    public String getAlterUserCommand(Map<String, Object> keys) {
+    public String getAlterUserCommand(final Map<String, Object> keys) {
         String command = getAlterUserCommand();
         return format(command, keys);
     }
@@ -107,12 +108,12 @@ public class ConfigDCL extends ConfigDDL {
         return format(command, keys);
     }
 
-    public String getCreateRoleCommand(Map<String, Object> keys) {
+    public String getCreateRoleCommand(final Map<String, Object> keys) {
         String command = getCreateRoleCommand();
         return format(command, keys);
     }
 
-    public String getDropRoleCommand(Map<String, Object> keys) {
+    public String getDropRoleCommand(final Map<String, Object> keys) {
         String command = getDropRoleCommand();
         return format(command, keys);
     }
@@ -124,7 +125,7 @@ public class ConfigDCL extends ConfigDDL {
         return getGrantRoleCommand(keys);
     }
 
-    public String getGrantRoleCommand(Map<String, Object> keys) {
+    public String getGrantRoleCommand(final Map<String, Object> keys) {
         String command = getGrantRoleCommand();
         return format(command, keys);
     }
@@ -136,7 +137,7 @@ public class ConfigDCL extends ConfigDDL {
         return getRevokeRoleCommand(keys);
     }
 
-    public String getRevokeRoleCommand(Map<String, Object> keys) {
+    public String getRevokeRoleCommand(final Map<String, Object> keys) {
         String command = getRevokeRoleCommand();
         return format(command, keys);
     }
@@ -156,7 +157,7 @@ public class ConfigDCL extends ConfigDDL {
     }
 
     public String getTablePrivilegesQuery(final Map<String, Object> parameters,
-                                          List<Object> values) {
+                                          final List<Object> values) {
         String command = getTablePrivilegesQuery();
         return format(command, parameters, values, "?");
     }
@@ -166,17 +167,9 @@ public class ConfigDCL extends ConfigDDL {
     }
 
     public String getGrantablePrivilegesQuery(final Map<String, Object> parameters,
-                                              List<Object> values) {
+                                              final List<Object> values) {
         String command = getGrantablePrivilegesQuery();
-        String query = format(command, parameters, values, "?");
-        String[] objs = new String[values.size()];
-        int i = 0;
-        for (Object obj : values) {
-            objs[i++] = obj.toString();
-        }
-        System.out.println("PrivilegesHelper.getGrantablePrivilegesQuery() Query: " + query +
-                           " - Values: " + String.join(", ", objs));
-        return query;
+        return format(command, parameters, values, "?");
     }
 
     public String getUsersQuery() {
@@ -243,6 +236,28 @@ public class ConfigDCL extends ConfigDDL {
         int privileges = 0;
         for (Integer value : mPrivilegeValues) {
             privileges += value;
+        }
+        return privileges;
+    }
+
+    // XXX: this ResultSet will be used in methods:
+    // XXX: - sdb.Table.getPrivileges()
+    public int getTablePrivileges(final java.sql.DatabaseMetaData md, final NamedComponent table)
+        throws SQLException {
+        int privileges = 0;
+        final int PRIVILEGE = 6;
+        try (java.sql.ResultSet result = getMetaDataTablePrivileges(md, table.getCatalog(),
+                                                                    table.getSchema(),
+                                                                    table.getTable())) {
+            while (result.next()) {
+                String privilege = result.getString(PRIVILEGE);
+                if (!result.wasNull()) {
+                    privilege = privilege.toUpperCase().strip();
+                    if (hasPrivilege(privilege)) {
+                        privileges |= getPrivilege(privilege);
+                    }
+                }
+            }
         }
         return privileges;
     }

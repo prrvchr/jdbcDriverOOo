@@ -30,6 +30,8 @@
 from ...unotool import getConfiguration
 from ...unotool import getLibreOfficeVersion
 
+from ...jdbcdriver import isInstrumented
+
 from ...configuration import g_identifier
 
 import traceback
@@ -43,8 +45,12 @@ class TabModel():
         self._version = getLibreOfficeVersion(ctx)
         self._javalogger = self._getJavaLogger()
         self._classpath = self._getClassPath()
+        self._instrumented = isInstrumented(ctx, 'xdbc:jdbc')
 
 # TabModel getter methods
+    def isInstrumented(self):
+        return self._instrumented
+
     def getJavaLogger(self):
         return self._javalogger
 
@@ -77,4 +83,3 @@ class TabModel():
 
     def _getClassPath(self):
         return self._config.getByName(self._key2)
-

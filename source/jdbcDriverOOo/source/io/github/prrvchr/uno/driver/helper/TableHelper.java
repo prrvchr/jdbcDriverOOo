@@ -71,8 +71,6 @@ import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.provider.DBTools;
-import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
-import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
 
 public class TableHelper {
@@ -795,8 +793,7 @@ public class TableHelper {
         final int TYPE_NAME = 1;
         final int DATA_TYPE = 2;
         final int CREATE_PARAMS = 6;
-        RowSetData data = config.getTypeInfoData();
-        try (ResultSet result = ResultSetHelper.getCustomDataResultSet(metadata.getTypeInfo(), data)) {
+        try (ResultSet result = config.getMetaDataTypeInfo(metadata.getTypeInfo())) {
             while (result.next()) {
                 String typename2cmp = result.getString(TYPE_NAME);
                 int type2cmp = result.getShort(DATA_TYPE);

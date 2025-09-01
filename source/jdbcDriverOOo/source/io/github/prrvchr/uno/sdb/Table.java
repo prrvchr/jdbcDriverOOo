@@ -36,14 +36,12 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.config.ConfigDCL;
-import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.provider.DBTools;
-import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
 
@@ -211,12 +209,11 @@ public final class Table
         try {
             System.out.println("scb.Table.getPrivileges() 1");
             if (mPrivileges == 0) {
-                java.sql.Connection connection = getConnection().getProvider().getConnection();
+                java.sql.DatabaseMetaData md = getConnection().getProvider().getConnection().getMetaData();
                 ConfigDCL config = getConnection().getProvider().getConfigDCL();
-                Provider provider = getConnection().getProvider();
-                int privileges = PrivilegesHelper.getTablePrivileges(connection, config, getNamedComponents());
+                int privileges = config.getTablePrivileges(md, getNamedComponents());
                 if (privileges == 0) {
-                    privileges = provider.getConfigDCL().getMockPrivileges();
+                    privileges = config.getMockPrivileges();
                 }
                 mPrivileges = privileges;
             }

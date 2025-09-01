@@ -39,17 +39,13 @@ import com.sun.star.sdbc.XDatabaseMetaData2;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.AnyConverter;
 
-import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
-import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
-import io.github.prrvchr.uno.driver.resultset.RowSetData;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -192,8 +188,7 @@ public class DatabaseMetaData
     @Override
     public XResultSet getCatalogs() throws SQLException {
         try {
-            RowSetData filter = getConfig().getSytemCatalogFilter();
-            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getCatalogs(), filter);
+            java.sql.ResultSet rs = getConfig().getMetaDataCatalogs(mMetadata.getCatalogs());
             return getResultSet(rs, "getCatalogs");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -667,8 +662,7 @@ public class DatabaseMetaData
     @Override
     public XResultSet getSchemas() throws SQLException {
         try {
-            RowSetData filter = getConfig().getSytemSchemaFilter();
-            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getSchemas(), filter);
+            java.sql.ResultSet rs = getConfig().getMetaDataSchemas(mMetadata.getSchemas());
             return getResultSet(rs, "getSchemas");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -719,20 +713,18 @@ public class DatabaseMetaData
         throws SQLException {
         try {
             System.out.println("DatabaseMetaData.getTablePrivileges() **********************************");
-            ConfigDCL config = getProvider().getConfigDCL();
-            java.sql.ResultSet rs = PrivilegesHelper.getTablePrivilegesResultSet(config,
-                                                                                 mMetadata,
-                                                                                 getPattern(catalog),
-                                                                                 getPattern(schema),
-                                                                                 table);
+            ConfigSQL config = getProvider().getConfigSQL();
+            java.sql.ResultSet rs = config.getMetaDataTablePrivileges(mMetadata,
+                                                                      getPattern(catalog),
+                                                                      getPattern(schema),
+                                                                      table);
             DBTools.printResultSet(rs);
             rs.close();
             XResultSet resultset = null;
-            rs = PrivilegesHelper.getTablePrivilegesResultSet(config,
-                                                              mMetadata,
-                                                              getPattern(catalog),
-                                                              getPattern(schema),
-                                                              table);
+            rs = config.getMetaDataTablePrivileges(mMetadata,
+                                                   getPattern(catalog),
+                                                   getPattern(schema),
+                                                   table);
             if (rs != null) {
                 resultset = getResultSet(rs, "getTablePrivileges");
             }
@@ -746,9 +738,8 @@ public class DatabaseMetaData
     public XResultSet getTableTypes()
         throws SQLException {
         try {
-            RowSetData data = getConfig().getTableTypeData();
-            java.sql.ResultSet resultset = ResultSetHelper.getCustomDataResultSet(mMetadata.getTableTypes(), data);
-            return getResultSet(resultset, "getTableTypes");
+            java.sql.ResultSet rs = getConfig().getMetaDataTableTypes(mMetadata.getTableTypes());
+            return getResultSet(rs, "getTableTypes");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -759,14 +750,11 @@ public class DatabaseMetaData
         throws SQLException {
         try {
             types = getConfig().getTableTypes(types);
-            RowSetData data = getConfig().getTableData();
-            RowSetData filter = getConfig().getSytemTableFilter();
-            RowSetData rewrite = getConfig().getRewriteTableData();
-            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getTables(getPattern(catalog),
-                                                                                               getPattern(schema),
-                                                                                               table,
-                                                                                               getPattern(types)),
-                                                                           data, filter, rewrite);
+            java.sql.ResultSet rs = mMetadata.getTables(getPattern(catalog),
+                                                        getPattern(schema),
+                                                        table,
+                                                        getPattern(types));
+            rs = getConfig().getMetaDataTables(rs);
             return getResultSet(rs, "getTables");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -792,8 +780,7 @@ public class DatabaseMetaData
             //java.sql.ResultSet result = mMetadata.getTypeInfo();
             //DBTools.printResultSet(result);
             //result.close();
-            RowSetData data = getConfig().getTypeInfoData();
-            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getTypeInfo(), data);
+            java.sql.ResultSet rs = getConfig().getMetaDataTypeInfo(mMetadata.getTypeInfo());
             return getResultSet(rs, "getTypeInfo");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

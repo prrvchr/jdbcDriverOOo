@@ -44,6 +44,7 @@ import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
 import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponentSupport;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 
@@ -122,6 +123,15 @@ public class Provider {
 
     public NamedSupport getNamedSupport() {
         return getNamedSupport(ComposeRule.Complete);
+    }
+
+    public boolean hasWarnings() {
+        return !mConfig.isInstrumented();
+    }
+
+    public java.sql.SQLWarning getWarnings() {
+        String msg = mLogger.getStringResource(Resources.STR_LOG_DRIVER_JAVA_INSTRUMENTATION_ERROR);
+        return new java.sql.SQLWarning(msg, StandardSQLState.SQL_GENERAL_ERROR.text());
     }
 
     public NamedSupport getNamedSupport(ComposeRule rule) {

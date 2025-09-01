@@ -42,6 +42,8 @@ import com.sun.star.container.XNameAccess;
 
 import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
+import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
+import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
 
 public class ConfigSQL extends ConfigBase {
@@ -63,7 +65,6 @@ public class ConfigSQL extends ConfigBase {
     private static final String[] TABLE_PRIVILEGES_COLUMNS = {"TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME",
                                                               "GRANTOR", "GRANTEE", "PRIVILEGE", "IS_GRANTABLE"};
     private static final String[] DEFAULT_TABLE_PRIVILEGES = {"SELECT", "INSERT", "UPDATE", "DELETE"};
-
 
     private final String mIdentifierQuote;
     private final String mSubProtocol;
@@ -103,16 +104,21 @@ public class ConfigSQL extends ConfigBase {
         mStringsProperties = new HashMap<>();
     }
 
-    public boolean useCachedRowSet(ResultSet rs, QueryHelper query)
+    public boolean useCachedRowSet(final ResultSet rs, final QueryHelper query)
         throws SQLException {
-        boolean use = true;
-        switch (mCachedRowSet) {
-            case 0:
-                use = false;
-                break;
-            case 1:
-                use = hasRequiredMetaData(query) && isEditableResultSet(rs, query);
-                break;
+        boolean use = false;
+        if (mIsInstrumented) {
+            switch (mCachedRowSet) {
+                case 0:
+                    use = false;
+                    break;
+                case 1:
+                    use = hasRequiredMetaData(query) && isEditableResultSet(rs, query);
+                    break;
+                case 2:
+                    use = true;
+                    break;
+            }
         }
         return use;
     }
@@ -128,7 +134,7 @@ public class ConfigSQL extends ConfigBase {
         return identifier;
     }
 
-    public String enquoteIdentifier(String identifier) {
+    public String enquoteIdentifier(final String identifier) {
         return mIdentifierQuote + identifier + mIdentifierQuote;
     }
 
@@ -145,11 +151,38 @@ public class ConfigSQL extends ConfigBase {
         return DEFAULT_TABLE_PRIVILEGES;
     }
 
-    public String getEmptyResultSetQuery(String tableName) {
+    // XXX: this ResultSet will be used in methods:
+    // XXX: - DatabaseMetaData.getTablePrivileges()
+    public java.sql.ResultSet getMetaDataTablePrivileges(final java.sql.DatabaseMetaData md,
+                                                         final String catalog,
+                                                         final String schema,
+                                                         final String table)
+        throws SQLException {
+        java.sql.ResultSet rs = null;
+        if (mIsInstrumented) {
+            if (ignoreDriverPrivileges()) {
+                String user = md.getUserName();
+                String[] privileges = getDefaultTablePrivileges();
+                String[] columns = getTablePrivilegesColumns();
+                rs = ResultSetHelper.getDefaultTablePrivilegesResultset(privileges, columns,
+                                                                        catalog, schema, table, user);
+            } else {
+                String[] columns = getTablePrivilegesColumns();
+                RowSetData data = getTablePrivilegeData();
+                rs = ResultSetHelper.getTablePrivilegesResultset(md.getTablePrivileges(catalog, schema, table),
+                                                                 columns, data);
+            }
+        } else {
+            rs = md.getTablePrivileges(catalog, schema, table);
+        }
+        return rs;
+    }
+
+    public String getEmptyResultSetQuery(final String tableName) {
         return String.format(EMPTY_RESULTSET_QUERY, tableName);
     }
 
-    public String getGeneratedKeyQuery(String tableName, String predicate) {
+    public String getGeneratedKeyQuery(final String tableName, final String predicate) {
         return String.format(GENERATED_KEY_QUERY, tableName, predicate);
     }
 
@@ -157,11 +190,11 @@ public class ConfigSQL extends ConfigBase {
         return METADATA_RESULTSET_QUERY;
     }
 
-    protected Boolean getPropertyBoolean(String key) {
+    protected Boolean getPropertyBoolean(final String key) {
         return getPropertyBoolean(key, null);
     }
 
-    protected Boolean getPropertyBoolean(String key, Boolean value) {
+    protected Boolean getPropertyBoolean(final String key, final Boolean value) {
         if (!mBooleanProperties.containsKey(key)) {
             try {
                 mBooleanProperties.put(key, getConfigurationBoolean(key, value));
@@ -172,11 +205,11 @@ public class ConfigSQL extends ConfigBase {
         return mBooleanProperties.get(key);
     }
 
-    protected String getPropertyString(String key) {
+    protected String getPropertyString(final String key) {
         return getPropertyString(key, null);
     }
 
-    protected String getPropertyString(String key, String value) {
+    protected String getPropertyString(final String key, final String value) {
         if (!mStringProperties.containsKey(key)) {
             try {
                 mStringProperties.put(key, getConfigurationString(key, value));
@@ -187,11 +220,11 @@ public class ConfigSQL extends ConfigBase {
         return mStringProperties.get(key);
     }
 
-    protected String[] getPropertyStrings(String key) {
+    protected String[] getPropertyStrings(final String key) {
         return getPropertyStrings(key, null);
     }
 
-    protected String[] getPropertyStrings(String key, String[] values) {
+    protected String[] getPropertyStrings(final String key, final String[] values) {
         if (!mStringsProperties.containsKey(key)) {
             try {
                 mStringsProperties.put(key, getConfigurationStrings(key, values));
@@ -216,8 +249,8 @@ public class ConfigSQL extends ConfigBase {
 
     protected final String format(final String command,
                                   final Map<String, Object> parameters,
-                                  List<Object> values,
-                                  String token) {
+                                  final List<Object> values,
+                                  final String token) {
         StringBuilder template = new StringBuilder(command);
         for (String key : getFormatKeys(command)) {
             String parameter = KEY_PREFIX + key + KEY_SUFFIX;
@@ -230,18 +263,18 @@ public class ConfigSQL extends ConfigBase {
         return template.toString();
     }
 
-    private boolean hasRequiredMetaData(QueryHelper query) {
+    private boolean hasRequiredMetaData(final QueryHelper query) {
         return !needCompletedMetaData() || query.isSingleTableSelect();
     }
 
-    private boolean isEditableResultSet(ResultSet rs, QueryHelper query)
+    private boolean isEditableResultSet(final ResultSet rs, final QueryHelper query)
         throws SQLException {
         return rs.getType() == ResultSet.TYPE_FORWARD_ONLY ||
                rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY ||
                !query.hasPrimaryKeys();
     }
 
-    private static String getDriverCommandSuffix(XHierarchicalNameAccess config, String subprotocol) {
+    private static String getDriverCommandSuffix(final XHierarchicalNameAccess config, final String subprotocol) {
         String suffix = "";
         try {
             String path = PropertiesHelper.getConfigMetaDataPath(subprotocol, SQL_COMMAND_SUFFIX);
@@ -254,7 +287,8 @@ public class ConfigSQL extends ConfigBase {
         return suffix;
     }
 
-    private Boolean getConfigurationBoolean(final String name, Boolean value) throws NoSuchElementException {
+    private Boolean getConfigurationBoolean(final String name, final Boolean value)
+        throws NoSuchElementException {
         return (Boolean) getConfiguration(mConfig, mSubProtocol, name, value);
     }
 

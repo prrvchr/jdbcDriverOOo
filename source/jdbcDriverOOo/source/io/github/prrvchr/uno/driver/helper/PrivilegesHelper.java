@@ -55,12 +55,9 @@ import java.util.Map;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.config.ConfigDCL;
-import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.config.ParameterDCL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
-import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
-import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
 
 public class PrivilegesHelper {
@@ -91,87 +88,14 @@ public class PrivilegesHelper {
         return config.getRevokePrivilegesCommand(arguments);
     }
 
-    public static java.sql.ResultSet getTablePrivilegesResultSet(ConfigSQL config,
-                                                                 java.sql.DatabaseMetaData md,
-                                                                 String catalog,
-                                                                 String schema,
-                                                                 String table)
-        throws java.sql.SQLException {
-        java.sql.ResultSet result = null;
-        if (config.ignoreDriverPrivileges()) {
-            String user = md.getUserName();
-            result = ResultSetHelper.getDefaultTablePrivilegesResultset(config, catalog, schema, table, user);
-        } else {
-            String[] columns = config.getTablePrivilegesColumns();
-            RowSetData data = config.getTablePrivilegeData();
-            result = ResultSetHelper.getTablePrivilegesResultset(md.getTablePrivileges(catalog, schema, table),
-                                                                 columns, data);
-        }
-        return result;
-    }
-
-    /** get Privileges on a Table for the current connection.
-    *
-    * @param connection
-    *    The java.sql.Connection.
-    * @param config
-    *    The DCL configuration.
-    * @param table
-    *    The named components of the table.
-    *
-    * @return
-    *   The Privileges.
-    * @throws java.sql.SQLException 
-    */
-    public static int getTablePrivileges(Connection connection,
-                                         ConfigDCL config,
-                                         NamedComponent table)
-        throws java.sql.SQLException {
-        return getTablePrivileges(config, connection.getMetaData(), table);
-    }
-
-    /** get Privileges on a Table for the current connection.
-    *
-    * @param config
-    *    The DCL configuration.
-    * @param metadata
-    *    The database metadata.
-    * @param table
-    *    The named components of the table.
-    *
-    * @return
-    *   The Privileges.
-    * @throws java.sql.SQLException 
-    */
-    public static int getTablePrivileges(ConfigDCL config,
-                                         java.sql.DatabaseMetaData metadata,
-                                         NamedComponent table)
-        throws java.sql.SQLException {
-        int privileges = 0;
-        final int PRIVILEGE = 6;
-        try (java.sql.ResultSet result = getTablePrivilegesResultSet(config, metadata, table.getCatalog(),
-                                                                     table.getSchema(), table.getTable())) {
-            while (result.next()) {
-                String privilege = result.getString(PRIVILEGE);
-                if (!result.wasNull()) {
-                    privilege = privilege.toUpperCase().strip();
-                    if (config.hasPrivilege(privilege)) {
-                        privileges |= config.getPrivilege(privilege);
-                    }
-                }
-            }
-        }
-        return privileges;
-    }
-
     /** get Privileges on a Table for a grantee.
     *
     * @param connection
     *    The java.sql.Connection.
-    * @param config
-    *    The DCL configuration.
     * @param support
     *    The named support of the table.
+    * @param config
+    *    The DCL configuration.
     * @param table
     *    The named components of the table.
     * @param grantee
@@ -182,9 +106,9 @@ public class PrivilegesHelper {
     * @throws java.sql.SQLException 
     */
     public static int getTablePrivileges(Connection connection,
-                                         ConfigDCL config,
                                          NamedSupport support,
-                                         NamedComponent table,
+                                         ConfigDCL config,
+                                         String table,
                                          String grantee)
         throws java.sql.SQLException {
         int privileges = 0;
@@ -204,10 +128,10 @@ public class PrivilegesHelper {
     *
     * @param connection
     *    The java.sql.Connection.
-    * @param config
-    *    The DCL configuration.
     * @param support
     *    The named support of the table.
+    * @param config
+    *    The DCL configuration.
     * @param table
     *    The named components of the table.
     * @param grantee
@@ -218,9 +142,9 @@ public class PrivilegesHelper {
     * @throws java.sql.SQLException 
     */
     public static int getGrantablePrivileges(Connection connection,
-                                             ConfigDCL config,
                                              NamedSupport support,
-                                             NamedComponent table,
+                                             ConfigDCL config,
+                                             String table,
                                              String grantee)
         throws java.sql.SQLException {
         int privileges;

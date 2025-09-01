@@ -42,7 +42,8 @@ class TabManager():
     def __init__(self, ctx, window, restart, offset, logger, *loggers):
         self._model = TabModel(ctx)
         self._view = TabWindow(ctx, window, TabHandler(self))
-        self._manager = OptionManager(ctx, self._view.getWindow(), (), restart, offset, logger, *loggers)
+        instrumented = self._model.isInstrumented()
+        self._manager = OptionManager(ctx, self._view.getWindow(), (), instrumented, restart, offset, logger, *loggers)
 
 # TabManager setter methods
     def initView(self):
@@ -78,6 +79,7 @@ class TabManager():
 
 # TabManager private methods
     def _initView(self):
-        self._view.setJavaLogger(self._model.getJavaLogger())
-        self._view.setClassPath(self._model.getClassPath())
+        instrumented = self._model.isInstrumented()
+        self._view.setJavaLogger(self._model.getJavaLogger(), instrumented)
+        self._view.setClassPath(self._model.getClassPath(), instrumented)
 

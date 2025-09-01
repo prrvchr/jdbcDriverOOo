@@ -87,29 +87,18 @@ public abstract class DriverBase
                                                "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, IDENTIFIER);
         // XXX: Is the necessary Java instrumentation installed correctly?
-        if (!DriverManager.isJavaInstrumantationInstalled()) {
+        /*if (!DriverManager.isJavaInstrumantationInstalled()) {
             String msg = mLogger.getStringResource(Resources.STR_LOG_DRIVER_JAVA_INSTRUMENTATION_ERROR);
             throw new SQLException(msg);
-        }
-        // XXX: We are loading configurations...
-        DriverManager.setJavaRowSetFactory(context, IDENTIFIER);
-        if (isJavaLoggerEnabled(context)) {
-            DriverManager.setJavaLoggerService(context, IDENTIFIER);
+        }*/
+        if (DriverManager.isJavaInstrumantationInstalled()) {
+            // XXX: We are loading configurations...
+            DriverManager.setJavaRowSetFactory(context, IDENTIFIER);
+            if (isJavaLoggerEnabled(context)) {
+                DriverManager.setJavaLoggerService(context, IDENTIFIER);
+            }
         }
         mDriver = getDriverConfig(context, "org.openoffice.Office.DataAccess.Drivers", this);
-    }
-
-    private boolean isJavaLoggerEnabled(XComponentContext context) throws SQLException {
-        boolean enabled = false;
-        try {
-            XHierarchicalNameAccess config = getDriverConfig(context, IDENTIFIER, this);
-            Object obj = config.getByHierarchicalName("EnableJavaSystemLogger");
-            if (obj != null && AnyConverter.isBoolean(obj)) {
-                enabled = AnyConverter.toBoolean(obj);
-            }
-            UnoHelper.disposeComponent(config);
-        } catch (NoSuchElementException e) { }
-        return enabled;
     }
 
     // com.sun.star.lang.XComponent:
@@ -146,6 +135,10 @@ public abstract class DriverBase
         // XXX: The driver should return NULL if it realizes it is
         // XXX: the wrong kind of driver to connect to the given URL
         if (isValidURL(url)) {
+            /*if (!DriverManager.isJavaInstrumantationInstalled()) {
+                String msg = mLogger.getStringResource(Resources.STR_LOG_DRIVER_JAVA_INSTRUMENTATION_ERROR);
+                throw new SQLException(msg);
+            }*/
             try {
                 XNameAccess config = getOptionConfig(mContext, IDENTIFIER, this);
                 Properties properties = PropertiesHelper.getJdbcConnectionProperties(info);
@@ -172,7 +165,7 @@ public abstract class DriverBase
 
     public DriverPropertyInfo[] getPropertyInfo(String url, PropertyValue[] infos)
         throws SQLException {
-        if (!acceptsURL(url)) {
+        if (!isValidURL(url)) {
             final int resource = Resources.STR_URI_SYNTAX_ERROR;
             final String message = SharedResources.getInstance().getResourceWithSubstitution(resource, url);
             java.sql.SQLException e = new java.sql.SQLException(message, StandardSQLState.SQL_GENERAL_ERROR.text());
@@ -182,12 +175,14 @@ public abstract class DriverBase
         try {
             String protocol = PropertiesHelper.getSubProtocol(url);
             for (PropertyValue info : infos) {
-                String path = PropertiesHelper.getConfigPropertiesPath(protocol, info.Name);
-                if (!mDriver.hasByHierarchicalName(path)) {
-                    path = PropertiesHelper.getDefaultConfigPropertiesPath(info.Name);
-                }
-                if (mDriver.hasByHierarchicalName(path)) {
-                    setPropertyInfo(properties, info, path);
+                if (!setStaticPropertyInfo(properties, info)) {
+                    String path = PropertiesHelper.getConfigPropertiesPath(protocol, info.Name);
+                    if (!mDriver.hasByHierarchicalName(path)) {
+                        path = PropertiesHelper.getDefaultConfigPropertiesPath(info.Name);
+                    }
+                    if (mDriver.hasByHierarchicalName(path)) {
+                        setConfigPropertyInfo(properties, info, path);
+                    }
                 }
             }
         } catch (NoSuchElementException e) {
@@ -207,18 +202,52 @@ public abstract class DriverBase
     }
 
     // Protected methods:
-    protected final XComponentContext getComponentContext() {
-        return mContext;
-    }
+    protected abstract ConnectionBase getConnection(XComponentContext ctx,
+                                                    Provider provider,
+                                                    String url,
+                                                    Set<String> properties);
 
     // Private methods:
+    private boolean isJavaLoggerEnabled(XComponentContext context) throws SQLException {
+        boolean enabled = false;
+        try {
+            XHierarchicalNameAccess config = getDriverConfig(context, IDENTIFIER, this);
+            Object obj = config.getByHierarchicalName("EnableJavaSystemLogger");
+            if (obj != null && AnyConverter.isBoolean(obj)) {
+                enabled = AnyConverter.toBoolean(obj);
+            }
+            UnoHelper.disposeComponent(config);
+        } catch (NoSuchElementException e) { }
+        return enabled;
+    }
+
     private boolean isValidURL(String url) {
         return url.startsWith(PropertiesHelper.REGISTRED_PROTOCOL) &&
                PropertiesHelper.hasSubProtocol(url);
     }
 
-    private void setPropertyInfo(List<DriverPropertyInfo> properties,
-                                 PropertyValue info, String path)
+    private boolean setStaticPropertyInfo(List<DriverPropertyInfo> properties,
+                                          PropertyValue info) {
+        boolean retrieved = false;
+        String description;
+        Boolean state;
+        String[] choices;
+        switch (info.Name) {
+            case "SupportsInstrumentationAgent":
+                state = (Boolean) DriverManager.isJavaInstrumantationInstalled();
+                choices = new String[]{"false", "true"};
+                description = "Is Java Instrumentation Agent installed.";
+                // XXX: Name, Description, IsRequired, Value, Choices
+                properties.add(new DriverPropertyInfo("SupportsInstrumentationAgent",
+                               description, false, state.toString(), choices));
+                retrieved = true;
+                break;
+        }
+        return retrieved;
+    }
+
+    private void setConfigPropertyInfo(List<DriverPropertyInfo> properties,
+                                       PropertyValue info, String path)
         throws NoSuchElementException {
         String description, value;
         Boolean state;
@@ -376,10 +405,5 @@ public abstract class DriverBase
             throw UnoHelper.getSQLException(ex, source);
         }
     }
-
-    protected abstract ConnectionBase getConnection(XComponentContext ctx,
-                                                    Provider provider,
-                                                    String url,
-                                                    Set<String> properties);
 
 }

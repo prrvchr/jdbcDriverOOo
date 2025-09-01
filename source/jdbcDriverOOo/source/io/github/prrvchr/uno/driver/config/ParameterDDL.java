@@ -66,7 +66,7 @@ public class ParameterDDL extends ParameterBase {
         return Map.of("ColumnNames", getIdentifiersAsString(support, columns));
     }
 
-    public static Map<String, Object> getTableDescription(String table, String description) {
+    public static Map<String, Object> getTableDescription(final String table, final String description) {
         return Map.of("TableName", table, "Description", description);
     }
 
@@ -100,16 +100,16 @@ public class ParameterDDL extends ParameterBase {
     }
 
 
-    public static Map<String, Object> getDropTable(String table) {
+    public static Map<String, Object> getDropTable(final String table) {
         return Map.of("TableName", table);
     }
 
-    public static Map<String, Object> getCreateView(String view,
-                                                             String select) {
+    public static Map<String, Object> getCreateView(final String view,
+                                                    final String select) {
         return Map.of("ViewName", view, "SelectCommand", select);
     }
 
-    public static Map<String, Object> getDropView(String view) {
+    public static Map<String, Object> getDropView(final String view) {
         return Map.of("ViewName", view);
     }
 
@@ -121,19 +121,19 @@ public class ParameterDDL extends ParameterBase {
                       "ColumnDescription", getColumnDescription(support, column));
     }
 
-    public static Map<String, Object> getDropColumn(String table, String column) {
+    public static Map<String, Object> getDropColumn(final String table, final String column) {
         return Map.of("TableName", table, "Column", column);
     }
 
     public static Map<String, Object> getAddIndex(final String table,
                                                   final String name,
-                                                  String[] columns) {
+                                                  final String[] columns) {
         return getCreateConstraint(table, name, columns);
     }
 
     public static Map<String, Object> getCreateConstraint(final String table,
                                                           final String name,
-                                                          String[] columns) {
+                                                          final String[] columns) {
         Map<String, Object> arguments = new HashMap<>();
         arguments.put("TableName", table);
         arguments.put("Name", name);
@@ -141,15 +141,15 @@ public class ParameterDDL extends ParameterBase {
         return arguments;
     }
 
-    public static Map<String, Object> getDropConstraint(String table, String name) {
+    public static Map<String, Object> getDropConstraint(final String table, final String name) {
         return Map.of("TableName", table, "Name", name);
     }
 
-    public static void setCreateConstraint(Map<String, Object> arguments,
-                                           String table,
-                                           String[] columns,
-                                           int update,
-                                           int delete) {
+    public static void setCreateConstraint(final Map<String, Object> arguments,
+                                           final String table,
+                                           final String[] columns,
+                                           final int update,
+                                           final int delete) {
         arguments.put("ReferencedTable", table);
         arguments.put("RelatedColumns", String.join(getSeparator(), columns));
         arguments.put("UpdateRule", getKeyRuleString(true, update));
@@ -191,12 +191,12 @@ public class ParameterDDL extends ParameterBase {
         return keyRule;
     }
 
-    public static Map<String, Object> getRenameTable(NamedSupport support,
-                                                     NamedComponent newtable,
-                                                     NamedComponent oldtable,
-                                                     String fullname,
-                                                     boolean reversed,
-                                                     boolean sensitive) {
+    public static Map<String, Object> getRenameTable(final NamedSupport support,
+                                                     final NamedComponent newtable,
+                                                     final NamedComponent oldtable,
+                                                     final String fullname,
+                                                     final boolean reversed,
+                                                     final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${TableName} quoted / unquoted full old table name
         arguments.put("TableName", ComponentHelper.quoteTableName(support, fullname, sensitive));
@@ -239,18 +239,18 @@ public class ParameterDDL extends ParameterBase {
         return arguments;
     }
 
-    public static Map<String, Object> getAlterView(NamedSupport support,
-                                                   NamedComponent view,
-                                                   String command,
-                                                   boolean sensitive) {
+    public static Map<String, Object> getAlterView(final NamedSupport support,
+                                                   final NamedComponent view,
+                                                   final String command,
+                                                   final boolean sensitive) {
         Map<String, Object> arguments = getViewDefinition(support, view, sensitive);
         arguments.put("SelectCommand", command);
         return arguments;
     }
 
-    public static Map<String, Object> getViewDefinition(NamedSupport support,
-                                                        NamedComponent view,
-                                                        boolean sensitive) {
+    public static Map<String, Object> getViewDefinition(final NamedSupport support,
+                                                        final NamedComponent view,
+                                                        final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${ViewName} quoted / unquoted  full view name
         arguments.put("ViewName", ComponentHelper.buildName(support, view, sensitive));
@@ -266,10 +266,10 @@ public class ParameterDDL extends ParameterBase {
         return arguments;
     }
 
-    public static Map<String, Object> getColumnProperties(NamedSupport support,
-                                                          NamedComponent component,
+    public static Map<String, Object> getColumnProperties(final NamedSupport support,
+                                                          final NamedComponent component,
                                                           final ColumnProperties column,
-                                                          boolean sensitive) {
+                                                          final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         arguments.put("TableName", ComponentHelper.composeTableName(support, component, sensitive));
         arguments.put("RawTableName", ComponentHelper.composeTableName(support, component, false));

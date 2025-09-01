@@ -164,8 +164,14 @@ public abstract class ConnectionBase
     public Object getWarnings()
         throws SQLException {
         checkDisposed();
+        Object warning;
         try {
-            return WarningsSupplier.getWarnings(mProvider.getConnection(), this);
+            if (mProvider.hasWarnings()) {
+                warning = WarningsSupplier.getWarnings(mProvider.getWarnings(), this);
+            } else {
+                warning = WarningsSupplier.getWarnings(mProvider.getConnection(), this);
+            }
+            return warning;
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }

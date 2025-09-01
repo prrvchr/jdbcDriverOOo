@@ -42,7 +42,6 @@ import javax.sql.rowset.spi.SyncFactory;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.Provider;
 
@@ -143,17 +142,17 @@ public class ResultSetHelper {
         return rowset;
     }
 
-    public static ResultSet getDefaultTablePrivilegesResultset(ConfigSQL config,
+    public static ResultSet getDefaultTablePrivilegesResultset(String[] privileges,
+                                                               String[] columns,
                                                                String catalog,
                                                                String schema,
                                                                String table,
                                                                String user)
         throws java.sql.SQLException {
-        String[] columns = config.getTablePrivilegesColumns();
         CachedRowSet rowset = getCachedRowSet();
         rowset.setMetaData(getTablePrivilegesMetadata(columns));
         int i = 1;
-        for (String privilege : config.getDefaultTablePrivileges()) {
+        for (String privilege : privileges) {
             rowset.moveToInsertRow();
             rowset.updateString(i++, catalog);
             rowset.updateString(i++, schema);
@@ -196,8 +195,10 @@ public class ResultSetHelper {
     }
 
     private static CachedRowSet getCachedRowSet() throws java.sql.SQLException {
+        System.out.println("ResultSet.getCachedRowSet() 1");
         CachedRowSet rowset = getRowSetFactory().createCachedRowSet();
         rowset.setSyncProvider(ROWSET_PROVIDER);
+        System.out.println("ResultSet.getCachedRowSet() 2 rowset: " + rowset);
         return rowset;
     }
 

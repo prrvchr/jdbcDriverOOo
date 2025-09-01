@@ -28,36 +28,17 @@
 """
 
 from ..unotool import createService
-from ..unotool import getStringResource
+from ..unotool import getPropertyValueSet
 
-from ..configuration import g_identifier
-from ..configuration import g_service
-
-
-import traceback
+from .configuration import g_instrumented
+from .configuration import g_service
 
 
-class OptionsModel():
-    def __init__(self, ctx):
-        self._ctx = ctx
-        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._resources = {'TabTitle1': 'OptionsDialog.Tab1.Title',
-                           'TabTitle2': 'OptionsDialog.Tab2.Title'}
-
-# OptionsModel setter methods
-    def loadDriver(self):
-        try:
-            driver = createService(self._ctx, g_service)
-        except:
-            # Nothing to do the error is already logged
-            pass
-
-# OptionsModel getter methods
-    def getTabTitles(self):
-        return self._getTabTitle(1), self._getTabTitle(2)
-
-# OptionsModel private getter methods
-    def _getTabTitle(self, tab):
-        resource = self._resources.get('TabTitle%s' % tab)
-        return self._resolver.resolveString(resource)
+def isInstrumented(ctx, url):
+    support = False
+    driver = createService(ctx, g_service)
+    for info in driver.getPropertyInfo(url, getPropertyValueSet({g_instrumented: True})):
+        if (info.Name == g_instrumented):
+            support = info.Value != 'false'
+    return support
 

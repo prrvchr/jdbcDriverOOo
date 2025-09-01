@@ -46,8 +46,6 @@ import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
-import io.github.prrvchr.uno.driver.resultset.RowSetData;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
@@ -170,14 +168,11 @@ public abstract class ConnectionSuper
         // FIXME: It is preferable to display all the entities of the underlying database.
         // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
         List<String> names = new ArrayList<>();
-        java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-        RowSetData data = getProvider().getConfigSQL().getTableData();
-        RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
         String[] types = getProvider().getConfigSQL().getTableTypes();
+        java.sql.ResultSet result = getProvider().getConnection().getMetaData().getTables(null, null, "%", types);
         ComposeRule rule = ComposeRule.InDataManipulation;
         NamedSupport support = getProvider().getNamedSupport(rule);
-        try (ResultSet rs = ResultSetHelper.getCustomDataResultSet(metadata.getTables(null, null, "%", types),
-                                                                   data, filter)) {
+        try (ResultSet rs = getProvider().getConfigSQL().getResultSetTable(result)) {
             while (rs.next()) {
                 String name = buildName(support, rs);
                 names.add(name);
@@ -189,11 +184,10 @@ public abstract class ConnectionSuper
     private String[] getViewNames() throws java.sql.SQLException, SQLException {
         List<String> names = new ArrayList<>();
         String[] types = getProvider().getConfigSQL().getViewTypes();
-        RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
         java.sql.ResultSet rs = getProvider().getConnection().getMetaData().getTables(null, null, "%", types);
         ComposeRule rule = ComposeRule.InDataManipulation;
         NamedSupport support = getProvider().getNamedSupport(rule);
-        try (java.sql.ResultSet result = ResultSetHelper.getCustomDataResultSet(rs, filter)) {
+        try (java.sql.ResultSet result = getProvider().getConfigSQL().getResultSetView(rs)) {
             while (result.next()) {
                 String name = buildName(support, result);
                 names.add(name);
