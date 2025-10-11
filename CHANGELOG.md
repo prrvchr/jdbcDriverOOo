@@ -417,7 +417,7 @@ Supporting an additional driver like Oracle's requires a lot of work for functio
 
 If you use multiple accounts to connect to a database, you will not be able to reconnect to that database again if you opened it with an account other than the one offered and then closed it without saving the file. You must restart LibreOffice. See [tdf#167960][125].
 
-### What has been done for version 1.5.7:
+### What has been done for version 1.6.0:
 
 The naming logic for elements requiring compound names, such as tables, views, and columns, has been modified:
 - The naming rules [ComposeRule][126] have been extended with two new rules:
@@ -433,9 +433,11 @@ Integration of the [SQL Server JDBC driver][130] `mssql-jdbc-13.2.0.jre11.jar`. 
 - With these changes, the catalog, which is actually the database name in SQL Server, will not be used to name the identifiers of SQL queries managing view creation, as required by the SQL Server JDBC driver.
 - Recompilation of SQL Server 13.2.0 driver under Java 17 with correction of [issue#2745][131] to allow the use of relationship management in LibreOffice Base.
 
+If Java instrumentation is not installed, jdbcDriverOOo will run in degraded mode with many features disabled and an SQL warning message will be issued upon connection.
+
 Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. A fix [fix#189732][132] will be available with LibreOffice 26.2.x and will make Base truly multi-user.
 
-### What remains to be done for version 1.5.7:
+### What remains to be done for version 1.6.0:
 
 - Add new languages for internationalization...
 

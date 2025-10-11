@@ -86,11 +86,8 @@ public abstract class DriverBase
         mLogger = new ResourceBasedEventLogger(context, IDENTIFIER, "resource",
                                                "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, IDENTIFIER);
-        // XXX: Is the necessary Java instrumentation installed correctly?
-        /*if (!DriverManager.isJavaInstrumantationInstalled()) {
-            String msg = mLogger.getStringResource(Resources.STR_LOG_DRIVER_JAVA_INSTRUMENTATION_ERROR);
-            throw new SQLException(msg);
-        }*/
+
+        // XXX: If the necessary Java instrumentation is installed correctly we use it.
         if (DriverManager.isJavaInstrumantationInstalled()) {
             // XXX: We are loading configurations...
             DriverManager.setJavaRowSetFactory(context, IDENTIFIER);
@@ -135,10 +132,7 @@ public abstract class DriverBase
         // XXX: The driver should return NULL if it realizes it is
         // XXX: the wrong kind of driver to connect to the given URL
         if (isValidURL(url)) {
-            /*if (!DriverManager.isJavaInstrumantationInstalled()) {
-                String msg = mLogger.getStringResource(Resources.STR_LOG_DRIVER_JAVA_INSTRUMENTATION_ERROR);
-                throw new SQLException(msg);
-            }*/
+            // XXX: If the necessary Java instrumentation is not installed a warning will be throw.
             try {
                 XNameAccess config = getOptionConfig(mContext, IDENTIFIER, this);
                 Properties properties = PropertiesHelper.getJdbcConnectionProperties(info);

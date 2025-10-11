@@ -30,7 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XServiceInfo;
@@ -44,14 +43,11 @@ import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
-import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
-import com.sun.star.util.XStringSubstitution;
 
 import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.ServiceInfo;
@@ -167,7 +163,7 @@ public abstract class ConnectionBase
         Object warning;
         try {
             if (mProvider.hasWarnings()) {
-                warning = WarningsSupplier.getWarnings(mProvider.getWarnings(), this);
+                warning = WarningsSupplier.getWarnings(mProvider.getConnection(), mProvider.getWarnings(), this);
             } else {
                 warning = WarningsSupplier.getWarnings(mProvider.getConnection(), this);
             }
@@ -391,24 +387,6 @@ public abstract class ConnectionBase
     protected abstract XStatement getStatement();
     protected abstract XPreparedStatement getPreparedStatement(String sql) throws java.sql.SQLException;
     protected abstract XPreparedStatement getCallableStatement(String sql) throws java.sql.SQLException;
-
-    @SuppressWarnings("unused")
-    private String _substituteVariables(String sql)
-        throws SQLException {
-        PropertyValue[] properties = new PropertyValue[1];
-        properties[0] = new PropertyValue();
-        properties[0].Name = "ActiveConnection";
-        properties[0].Value = this;
-        try {
-            String service = "com.sun.star.sdb.ParameterSubstitution";
-            Object object = mContext.getServiceManager().createInstanceWithArgumentsAndContext(service,
-                    properties, mContext);
-            XStringSubstitution substitution = UnoRuntime.queryInterface(XStringSubstitution.class, object);
-            return substitution.substituteVariables(sql, true);
-        } catch (com.sun.star.uno.Exception e) {
-            throw DBTools.getLoggedSQLException(e, this, getLogger());
-        }
-    }
 
     // XXX: Checks whether this component (which you should have locked, prior to this call,
     // XXX: and until you are done using) is disposed, throwing DisposedException if it is.

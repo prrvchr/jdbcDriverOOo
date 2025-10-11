@@ -417,7 +417,7 @@ La prise en charge d'un pilote supplémentaire comme celui d'Oracle me demande b
 
 Si vous utilisez plusieurs comptes pour vous connecter à une base de données, vous ne pourrez pas vous reconnecter à cette base de données à nouveau si vous l'aviez ouverte avec un compte autre que celui proposé puis fermée sans enregistrer le fichier. Vous devez redémarrer LibreOffice. Voir [tdf#167960][125].
 
-### Ce qui a été fait pour la version 1.5.7:
+### Ce qui a été fait pour la version 1.6.0:
 
 La logique de nommage des éléments nécessitant des noms composés, tels que les tables, les vues et les colonnes, a été modifiée:
 - Les règles de nommage [ComposeRule][126] ont été étendues avec deux nouvelles règles:
@@ -433,9 +433,11 @@ Intégration du [pilote JDBC SQL Server][130] `mssql-jdbc-13.2.0.jre17.jar`. Cet
 - Avec ces modifications, le catalogue, qui est en fait le nom de la base de données sous SQL Server, ne sera pas utilisé pour nommer les identifiants des requêtes SQL gérant la création des vues, comme l'exige le pilote JDBC de SQL Server.
 - Recompilation du pilote SQL Server 13.2.0 sous Java 17 avec la correction du [dysfonctionnement#2745][131] pour permettre l'utilisation de la gestion des relations dans LibreOffice Base.
 
+Si l'instrumentation Java n'est pas installée, jdbcDriverOOo fonctionnera en mode dégradé avec de nombreuses fonctionnalités désactivées et un message d'avertissement SQL sera émis lors de la connexion.
+
 Correction du problème d'utilisation de plusieurs comptes de connexion avec Base [tdf#167960][125]. Un correctif [fix#189732][131] sera disponible avec LibreOffice 26.2.x et rendra Base véritablement multi-utilisateur.
 
-### Que reste-t-il à faire pour la version 1.5.7:
+### Que reste-t-il à faire pour la version 1.6.0:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
