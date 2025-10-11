@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
@@ -25,7 +22,28 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-from .wizard import Wizard
+#ifndef __com_sun_star_task_XTaskEvent_idl__
+#define __com_sun_star_task_XTaskEvent_idl__
 
+#include <com/sun/star/uno/XInterface.idl>
+
+module com { module sun { module star { module task {
+
+interface XTaskEvent : com::sun::star::uno::XInterface
+{
+
+    boolean isSet();
+
+    void set();
+
+    void clear();
+
+    boolean wait([in] float Timeout);
+
+};
+
+}; }; }; };
+
+#endif

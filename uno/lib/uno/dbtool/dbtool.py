@@ -176,6 +176,7 @@ def checkDataBase(ctx, connection):
 def executeQueries(ctx, statement, queries, name='%s', template=None):
     for item in queries:
         query = name % item
+        print("dbtool.executeQueries() query: %s" % query)
         statement.executeQuery(getSqlQuery(ctx, query, template))
 
 def getDataSourceClassPath(ctx, identifier):
@@ -302,6 +303,14 @@ def getRowDict(result, default=None, count=None):
         value = getResultValue(result, i, default)
         row[name] = value
     return row
+
+def getDictSequenceFromResult(result, default=None):
+    sequence = []
+    count = result.MetaData.ColumnCount +1
+    while result.next():
+        data = getRowDict(result, default, count)
+        sequence.append(data)
+    return tuple(sequence)
 
 def getObjectFromResult(result, default=None, count=None):
     obj = Object()

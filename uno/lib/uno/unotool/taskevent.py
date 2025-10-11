@@ -27,5 +27,31 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .wizard import Wizard
+import unohelper
+
+from com.sun.star.task import XTaskEvent
+
+from threading import Event
+
+
+class TaskEvent(unohelper.Base,
+                XTaskEvent):
+    def __init__(self, set=False):
+        self._event = Event()
+        if set:
+            self._event.set()
+
+    def isSet(self):
+        return self._event.is_set()
+
+    def set(self):
+        self._event.set()
+
+    def clear(self):
+        return self._event.clear()
+
+    def wait(self, timeout):
+        if not timeout > 0:
+            timeout = None
+        return self._event.wait(timeout)
 
