@@ -189,8 +189,6 @@ class GridManager():
 
 # GridManager setter methods
     def dispose(self):
-        print("GridManager.dispose() 1")
-        #self.saveColumnSettings()
         self.Column.dispose()
         self.Model.dispose()
 

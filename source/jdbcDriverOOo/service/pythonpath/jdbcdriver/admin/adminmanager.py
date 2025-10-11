@@ -68,7 +68,7 @@ from .adminhandler import PasswordHandler
 from .gridmanager import GridManager
 from .gridmodel import GridModel
 
-from ..grid import GridListener
+from .grid import GridListener
 
 from ..unotool import createMessageBox
 from ..unotool import getResourceLocation

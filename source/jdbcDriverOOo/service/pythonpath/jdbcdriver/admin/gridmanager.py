@@ -31,7 +31,7 @@ from com.sun.star.sdbc.DataType import VARCHAR
 
 from com.sun.star.style.HorizontalAlignment import CENTER
 
-from ..grid import GridManager as GridManagerBase
+from .grid import GridManager as GridManagerBase
 
 from ..unotool import getNamedValue
 

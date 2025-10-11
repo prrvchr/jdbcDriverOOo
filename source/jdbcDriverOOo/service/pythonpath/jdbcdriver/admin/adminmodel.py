@@ -83,6 +83,7 @@ class AdminModel(unohelper.Base):
         return column
 
     def dispose(self):
+        self._grid.saveColumnSettings()
         self._grid.dispose()
 
     def getSelectedIdentifier(self):
