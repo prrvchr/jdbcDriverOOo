@@ -27,14 +27,17 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ..unotool import createService
-from ..unotool import getConfiguration
-from ..unotool import getSimpleFile
+from ...jdbcdriver import isInstrumented
 
-from ..helper import getDataBaseUrl
+from ...unotool import createService
+from ...unotool import getConfiguration
+from ...unotool import getSimpleFile
+from ...unotool import getStringResource
 
-from ..configuration import g_identifier
-from ..configuration import g_implementation
+from ...helper import getDataBaseUrl
+
+from ...configuration import g_identifier
+from ...configuration import g_implementation
 
 
 class OptionsModel():
@@ -42,6 +45,9 @@ class OptionsModel():
         self._ctx = ctx
         self._config = getConfiguration(ctx, g_identifier, True)
         self._url = getDataBaseUrl(ctx)
+        self._instrumented = isInstrumented(ctx, 'xdbc:hsqldb')
+        resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
+        self._link = resolver.resolveString('OptionsDialog.Hyperlink1.Url')
         self._factor = 60
 
     @property
@@ -53,8 +59,11 @@ class OptionsModel():
         return self._config.getByName('AddressBookName')
 
 # OptionsModel getter methods
+    def isInstrumented(self):
+        return self._instrumented
+
     def getViewData(self):
-        return self._Timeout, self._ViewName, self._hasDatasource()
+        return self._link, self._instrumented, self._Timeout, self._ViewName, self._hasDatasource()
 
     def getTimeout(self):
          return self._Timeout
@@ -64,7 +73,6 @@ class OptionsModel():
 
     def getDatasourceUrl(self):
         return self._url
-
 
 # OptionsModel setter methods
     def loadDriver(self):

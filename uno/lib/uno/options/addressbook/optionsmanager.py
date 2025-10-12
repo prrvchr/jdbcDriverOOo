@@ -33,12 +33,12 @@ from com.sun.star.logging.LogLevel import SEVERE
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
 
-from ..unotool import getDesktop
+from ...unotool import getDesktop
 
-from ..logger import LogManager
+from ...logger import LogManager
 
-from ..configuration import g_defaultlog
-from ..configuration import g_synclog
+from ...configuration import g_defaultlog
+from ...configuration import g_synclog
 
 
 class OptionsManager():
@@ -46,7 +46,7 @@ class OptionsManager():
         self._ctx = ctx
         self._logger = logger
         self._model = OptionsModel(ctx)
-        self._view = OptionsView(window, OptionsManager._restart, offset, *self._model.getViewData())
+        self._view = OptionsView(window, offset, OptionsManager._restart, *self._model.getViewData())
         self._logmanager = LogManager(self._ctx, window, 'requirements.txt', g_defaultlog, g_synclog)
         self._logmanager.initView()
         self._logger.logprb(INFO, 'OptionsManager', '__init__()', 301)
@@ -57,7 +57,7 @@ class OptionsManager():
     def loadSetting(self):
         self._view.setTimeout(self._model.getTimeout())
         self._view.setViewName(self._model.getViewName())
-        self._view.setRestart(OptionsManager._restart)
+        self._view.setWarning(OptionsManager._restart, self._model.isInstrumented())
         self._logmanager.loadSetting()
         self._logger.logprb(INFO, 'OptionsManager', 'loadSetting()', 311)
 
@@ -66,8 +66,9 @@ class OptionsManager():
         option = self._model.setViewData(timeout, view)
         log = self._logmanager.saveSetting()
         if log:
+            print("OptionsManager.saveSetting() restart")
             OptionsManager._restart = True
-            self._view.setRestart(True)
+            self._view.setWarning(True, self._model.isInstrumented())
         self._logger.logprb(INFO, 'OptionsManager', 'saveSetting()', 321, option, log)
 
     def viewData(self):

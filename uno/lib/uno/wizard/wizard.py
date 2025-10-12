@@ -243,13 +243,13 @@ class Wizard(unohelper.Base,
                     if self._view.isModal():
                         self._view.endDialog(OK)
                     else:
-                        self._close()
+                        self._tryToClose()
 
     def doCancel(self):
         if self._view.isModal():
             self._view.endDialog(CANCEL)
         else:
-            self._close()
+            self._tryToClose()
 
 # Wizard private getter methods
     def _isComplete(self):
@@ -395,7 +395,7 @@ class Wizard(unohelper.Base,
         return init
 
 # Wizard private setter methods
-    def _close(self):
+    def _tryToClose(self):
         try:
             self._queryClosing()
         except CloseVetoException as e:

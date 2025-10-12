@@ -33,13 +33,16 @@ import traceback
 
 
 class OptionsView():
-    def __init__(self, window, restart, offset, timeout, view, enabled):
+    def __init__(self, window, offset, restart, url, instrumented, timeout, view, enabled):
         self._window = window
         self._getTimeout().Value = timeout
         self._getDatasource().Model.Enabled = enabled
         self._setViewName(view, not enabled)
-        self.setRestart(restart)
+        control = self._getWarning()
+        control.URL = url
+        control.Model.PositionY += offset
         self._getRestart().Model.PositionY += offset
+        self.setWarning(restart, instrumented)
 
 # OptionsView getter methods
     def getViewData(self):
@@ -52,8 +55,13 @@ class OptionsView():
     def setViewName(self, view):
         self._getViewName().Text = view
 
-    def setRestart(self, enabled):
-        self._getRestart().setVisible(enabled)
+    def setWarning(self, restart, instrumented):
+        if restart:
+            self._getWarning().setVisible(False)
+            self._getRestart().setVisible(True)
+        else:
+            self._getRestart().setVisible(False)
+            self._getWarning().setVisible(not instrumented)
 
 # OptionsView private setter methods
     def _setViewName(self, view, disabled):
@@ -77,4 +85,7 @@ class OptionsView():
 
     def _getRestart(self):
         return self._window.getControl('Label4')
+
+    def _getWarning(self):
+        return self._window.getControl('Hyperlink1')
 
