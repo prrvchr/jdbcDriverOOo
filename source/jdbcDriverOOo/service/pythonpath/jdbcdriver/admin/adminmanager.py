@@ -65,10 +65,10 @@ from .adminhandler import UsersHandler
 from .adminhandler import NewUserHandler
 from .adminhandler import PasswordHandler
 
+from .grid import GridDataListener
+
 from .gridmanager import GridManager
 from .gridmodel import GridModel
-
-from .grid import GridListener
 
 from ..unotool import createMessageBox
 from ..unotool import getResourceLocation
@@ -101,7 +101,7 @@ class AdminManager(unohelper.Base):
         quote = connection.getMetaData().getIdentifierQuoteString()
         resolver = getStringResource(ctx, g_identifier, 'dialogs', 'PrivilegesDialog')
         resources = (resolver, 'PrivilegesDialog.CheckBox%s.Label')
-        manager = GridManager(ctx, datasource, GridListener(self), self._columns, url, model, window, quote, 'AdminGrid', SINGLE, resources, None, True)
+        manager = GridManager(ctx, datasource, GridDataListener(self), self._columns, url, model, window, quote, 'AdminGrid', SINGLE, resources, None, True)
         self._model = AdminModel(ctx, manager, users, members, tables, name)
         self._dialog = None
         self._disabled = True
