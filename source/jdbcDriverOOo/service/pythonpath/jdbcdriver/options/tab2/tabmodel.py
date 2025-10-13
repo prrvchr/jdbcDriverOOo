@@ -36,6 +36,7 @@ from com.sun.star.uno import Exception as UnoException
 
 from ...unotool import createService
 from ...unotool import getConfiguration
+from ...unotool import getNamedValueSet
 from ...unotool import getPathSettings
 from ...unotool import getSimpleFile
 from ...unotool import getStringResource
@@ -57,11 +58,9 @@ import traceback
 
 
 class TabModel():
-    def __init__(self, ctx, lock, restart, instrumented, xdl):
+    def __init__(self, ctx, lock, xdl):
         self._ctx = ctx
         self._lock = lock
-        self._restart = restart
-        self._instrumented = instrumented
         self._pmode = 0
         self._vmode = 0
         self._value = None
@@ -95,15 +94,9 @@ class TabModel():
     _directory = None
 
 # TabModel getter methods
-    def isInstrumented(self):
-        return self._instrumented
-
     def saveSetting(self):
         self._saveConfiguration()
         return self._saveArchives()
-
-    def getRestart(self):
-        return self._restart
 
     def getArchivePath(self):
         return '%s/%s' % (self._getUrl().Main, g_folder)
@@ -226,9 +219,6 @@ class TabModel():
             self._deleteFolderContent(sf, self._url.Main + self._tmp)
             self._folder = None
         self._drivers = self._getDriverConfigurations()
-
-    def setRestart(self, restart):
-        self._restart = restart
 
     def cancelDriver(self):
         self._path = None
@@ -513,7 +503,7 @@ class TabModel():
                 versions[protocol] = default
             with self._lock:
                 self._versions = versions
-            self._callback.addCallback(caller, versions)
+            self._callback.addCallback(caller, getNamedValueSet(versions))
         except UnoException as e:
             # If the driver fails, the error is already logged
             pass

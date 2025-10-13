@@ -39,11 +39,10 @@ import traceback
 
 
 class TabManager():
-    def __init__(self, ctx, window, restart, url, instrumented, offset, logger, *loggers):
-        self._model = TabModel(ctx)
+    def __init__(self, ctx, window, instrumented, logger, *loggers):
+        self._model = TabModel(ctx, instrumented)
         self._view = TabWindow(ctx, window, TabHandler(self))
-        instrumented = self._model.isInstrumented()
-        self._manager = OptionsManager(ctx, self._view.getWindow(), (), restart, url, instrumented, offset, logger, *loggers)
+        self._manager = OptionsManager(ctx, self._view.getWindow(), instrumented, (), logger, *loggers)
 
 # TabManager setter methods
     def initView(self):
@@ -69,9 +68,6 @@ class TabManager():
         reboot = self._model.saveSetting()
         reboot |= self._manager.saveSetting()
         return reboot
-
-    def setWarning(self, state):
-        self._manager.setWarning(state)
 
     def loadSetting(self):
         self._manager.loadSetting()

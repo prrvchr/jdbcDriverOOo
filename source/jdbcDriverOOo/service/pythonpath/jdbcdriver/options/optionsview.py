@@ -35,11 +35,14 @@ import traceback
 
 
 class OptionsView():
-    def __init__(self, ctx, window, listener, title1, title2):
+    def __init__(self, ctx, window, listener, restart, url, instrumented, title1, title2):
         self._tab = 'Tab1'
         self._window = window
         self._tab1, self._tab2 = self._getTabPages(window, self._tab, title1, title2)
         self._getTab().addTabPageContainerListener(listener)
+        control = self._getWarning()
+        control.URL = url
+        self._setWarning(control, restart, instrumented)
 
 # OptionsView getter methods
     def getWindow(self):
@@ -52,6 +55,9 @@ class OptionsView():
         return self._tab2
 
 # OptionsView setter methods
+    def setWarning(self, restart, instrumented):
+        self._setWarning(self._getWarning(), restart, instrumented)
+
     def dispose(self):
         self._tab1.dispose()
         self._tab2.dispose()
@@ -85,7 +91,21 @@ class OptionsView():
         model.insertByIndex(index, page)
         return tab.getControls()[index]
 
+    def _setWarning(self, control, restart, instrumented):
+        if restart:
+            control.setVisible(False)
+            self._getRestart().setVisible(True)
+        else:
+            self._getRestart().setVisible(False)
+            control.setVisible(not instrumented)
+
 # OptionsView private control methods
     def _getTab(self):
         return self._window.getControl(self._tab)
+
+    def _getRestart(self):
+        return self._window.getControl('Label1')
+
+    def _getWarning(self):
+        return self._window.getControl('Hyperlink1')
 

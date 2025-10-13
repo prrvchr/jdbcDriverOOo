@@ -57,12 +57,13 @@ class OptionsModel():
             pass
 
 # OptionsModel getter methods
-    def getDriverInfo(self):
-        url = self._resolver.resolveString(self._resources.get('Link'))
-        return url, self._instrumented
+    def isInstrumented(self):
+        return self._instrumented
 
-    def getTabTitles(self):
-        return self._getTabTitle(1), self._getTabTitle(2)
+    def getViewData(self):
+        resource = self._resources.get('Link')
+        url = self._resolver.resolveString(resource)
+        return url, self._instrumented, self._getTabTitle(1), self._getTabTitle(2)
 
 # OptionsModel private getter methods
     def _getTabTitle(self, tab):
