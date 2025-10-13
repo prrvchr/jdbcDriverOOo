@@ -35,21 +35,12 @@ import traceback
 
 
 class OptionsWindow():
-    def __init__(self, ctx, window, handler, options, restart, url, instrumented, offset):
+    def __init__(self, ctx, window, handler, options):
         self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
         self._window.setVisible(True)
-        for crs in options:
-            self._getCachedRowSet(crs).Model.Enabled = False
-        control = self._getWarning()
-        control.URL = url
-        control.Model.PositionY += offset
-        self._getRestart().Model.PositionY += offset
-        self._setWarning(control, restart, instrumented)
+        self.enableCachedRowSet(False, options)
 
 # OptionWindow setter methods
-    def setWarning(self, restart, instrumented):
-        self._setWarning(self._getWarning(), restart, instrumented)
-
     def dispose(self):
         self._window.dispose()
 
@@ -62,17 +53,9 @@ class OptionsWindow():
         self.enableCachedRowSet(instrumented and enabled)
         self._getSytemTable().State = int(system)
 
-    def enableCachedRowSet(self, enabled):
-        for crs in range(3):
-            self._getCachedRowSet(crs).Model.Enabled = enabled
-
-    def _setWarning(self, control, restart, instrumented):
-        if restart:
-            control.setVisible(False)
-            self._getRestart().setVisible(True)
-        else:
-            self._getRestart().setVisible(False)
-            control.setVisible(not instrumented)
+    def enableCachedRowSet(self, enabled, options=(0, 1, 2)):
+        for index in options:
+            self._getCachedRowSet(index).Model.Enabled = enabled
 
 # OptionWindow private control methods
     def _getApiLevel(self, index):
@@ -83,10 +66,4 @@ class OptionsWindow():
 
     def _getSytemTable(self):
         return self._window.getControl('CheckBox1')
-
-    def _getRestart(self):
-        return self._window.getControl('Label3')
-
-    def _getWarning(self):
-        return self._window.getControl('Hyperlink1')
 
