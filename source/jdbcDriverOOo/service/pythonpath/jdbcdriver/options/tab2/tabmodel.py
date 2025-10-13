@@ -57,10 +57,11 @@ import traceback
 
 
 class TabModel():
-    def __init__(self, ctx, lock, restart, xdl):
+    def __init__(self, ctx, lock, restart, instrumented, xdl):
         self._ctx = ctx
         self._lock = lock
         self._restart = restart
+        self._instrumented = instrumented
         self._pmode = 0
         self._vmode = 0
         self._value = None
@@ -94,6 +95,9 @@ class TabModel():
     _directory = None
 
 # TabModel getter methods
+    def isInstrumented(self):
+        return self._instrumented
+
     def saveSetting(self):
         self._saveConfiguration()
         return self._saveArchives()

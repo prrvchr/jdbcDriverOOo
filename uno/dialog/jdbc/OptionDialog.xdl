@@ -59,5 +59,6 @@
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SystemTable" script:language="UNO"/>
     </dlg:checkbox>
     <dlg:text dlg:style-id="0" dlg:id="Label3" dlg:tab-index="10" dlg:left="10" dlg:top="185" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionDialog.Label3.HelpText" dlg:value="&amp;OptionDialog.Label3.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:linklabel dlg:style-id="0" dlg:id="Hyperlink1" dlg:tab-index="11" dlg:left="10" dlg:top="185" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionDialog.Hyperlink1.HelpText" dlg:value="&amp;OptionDialog.Hyperlink1.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>

@@ -25,6 +25,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <oor:component-data
+  xsi:schemaLocation="http://openoffice.org/2001/registry/component-update.xsd"
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

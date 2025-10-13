@@ -58,14 +58,14 @@ import traceback
 
 class TabManager(unohelper.Base,
                  XCallback):
-    def __init__(self, ctx, window, restart):
+    def __init__(self, ctx, window, restart, url, instrumented):
         self._ctx = ctx
         self._lock = RLock()
         self._disposed = False
         self._dialog = None
         xdl = 'Option2Dialog'
-        self._model = TabModel(ctx, self._lock, restart, xdl)
-        self._view = TabView(ctx, window, TabHandler(self), restart, xdl)
+        self._model = TabModel(ctx, self._lock, restart, instrumented, xdl)
+        self._view = TabView(ctx, window, TabHandler(self), restart, url, instrumented, xdl)
         self._properties = PropertiesManager(ctx, self._view.getWindow(), self)
         self._view.setDrivers(self._model.getDrivers())
         # FIXME: If we changed the driver selection then the
@@ -90,9 +90,9 @@ class TabManager(unohelper.Base,
     def setDriverVersions(self, apilevel):
         self._model.setDriverVersions(apilevel, self)
 
-    def setRestart(self, state):
+    def setWarning(self, state):
         self._model.setRestart(state)
-        self._view.setRestart(state)
+        self._view.setWarning(state, self._model.isInstrumented())
 
     def loadSetting(self):
         self._model.loadSetting()
@@ -385,7 +385,7 @@ class TabManager(unohelper.Base,
     def _switchDriverEditMode(self, enabled):
         self._view.enableDriverName(enabled)
         step = 2 if enabled else 1
-        self._view.setStep(step, self._model.getRestart())
+        self._view.setStep(step, self._model.getRestart(), self._model.isInstrumented())
 
     def _setPropertyValue(self, value, updatable=True):
         cls = type(value)

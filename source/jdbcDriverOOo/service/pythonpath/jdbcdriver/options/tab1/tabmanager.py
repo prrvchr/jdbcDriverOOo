@@ -33,17 +33,17 @@ from .tabview import TabWindow
 
 from .tabhandler import TabHandler
 
-from ...option import OptionManager
+from ..options import OptionsManager
 
 import traceback
 
 
 class TabManager():
-    def __init__(self, ctx, window, restart, offset, logger, *loggers):
+    def __init__(self, ctx, window, restart, url, instrumented, offset, logger, *loggers):
         self._model = TabModel(ctx)
         self._view = TabWindow(ctx, window, TabHandler(self))
         instrumented = self._model.isInstrumented()
-        self._manager = OptionManager(ctx, self._view.getWindow(), (), instrumented, restart, offset, logger, *loggers)
+        self._manager = OptionsManager(ctx, self._view.getWindow(), (), restart, url, instrumented, offset, logger, *loggers)
 
 # TabManager setter methods
     def initView(self):
@@ -70,8 +70,8 @@ class TabManager():
         reboot |= self._manager.saveSetting()
         return reboot
 
-    def setRestart(self, state):
-        self._manager.setRestart(state)
+    def setWarning(self, state):
+        self._manager.setWarning(state)
 
     def loadSetting(self):
         self._manager.loadSetting()

@@ -29,28 +29,32 @@
 
 from com.sun.star.logging.LogLevel import INFO
 
-from ..unotool import getConfiguration
+from ...unotool import getConfiguration
 
-from ..logger import getLogger
+from ...logger import getLogger
 
-from ..jdbcdriver import g_services
+from ...jdbcdriver import g_services
 
-from ..configuration import g_identifier
-from ..configuration import g_basename
+from ...configuration import g_identifier
+from ...configuration import g_basename
 
 import traceback
 
 
-class OptionModel():
-    def __init__(self, ctx, instrumented):
+class OptionsModel():
+    def __init__(self, ctx, url, instrumented):
         self._rebootkeys = ('ApiLevel', 'CachedRowSet')
         configkeys = ('ShowSystemTable', )
         self._keys = self._rebootkeys + configkeys
         self._config = getConfiguration(ctx, g_identifier, True)
         self._settings = self._getSettings()
+        self._url = url
         self._instrumented = instrumented
 
 # OptionModel getter methods
+    def getUrl(self):
+        return self._url
+
     def isInstrumented(self):
         return self._instrumented
 

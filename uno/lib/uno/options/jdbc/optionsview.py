@@ -27,58 +27,66 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .optionmodel import OptionModel
-from .optionview import OptionWindow
-from .optionhandler import WindowHandler
+from ...unotool import getContainerWindow
 
-from ..logger import LogManager
+from ...configuration import g_identifier
 
 import traceback
 
 
-class OptionManager():
-    def __init__(self, ctx, window, options, instrumented, restart, offset, logger, *loggers):
-        self._logmanager = LogManager(ctx, window, 'requirements.txt', logger, *loggers)
-        self._model = OptionModel(ctx, instrumented)
-        self._view = OptionWindow(ctx, window, WindowHandler(self), options, restart, offset)
+class OptionsWindow():
+    def __init__(self, ctx, window, handler, options, restart, url, instrumented, offset):
+        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
+        self._window.setVisible(True)
+        for crs in options:
+            self._getCachedRowSet(crs).Model.Enabled = False
+        control = self._getWarning()
+        control.URL = url
+        control.Model.PositionY += offset
+        self._getRestart().Model.PositionY += offset
+        self._setWarning(control, restart, instrumented)
 
-# OptionManager setter methods
-    def initView(self):
-        self._logmanager.initView()
-        self._initView()
+# OptionWindow setter methods
+    def setWarning(self, restart, instrumented):
+        self._setWarning(self._getWarning(), restart, instrumented)
 
     def dispose(self):
-        self._logmanager.dispose()
-        self._view.dispose()
+        self._window.dispose()
 
-# OptionManager getter methods
-    def getConfigApiLevel(self):
-        return self._model.getConfigApiLevel()
+    def initView(self, instrumented, level, crs, system, enabled):
+        self._getApiLevel(level).State = 1
+        if instrumented:
+            self._getCachedRowSet(crs).State = 1
+        else:
+            self._getCachedRowSet(0).State = 1
+        self.enableCachedRowSet(instrumented and enabled)
+        self._getSytemTable().State = int(system)
 
-# OptionManager setter methods
-    def saveSetting(self):
-        saved = self._logmanager.saveSetting()
-        saved |= self._model.saveSetting()
-        return saved
+    def enableCachedRowSet(self, enabled):
+        for crs in range(3):
+            self._getCachedRowSet(crs).Model.Enabled = enabled
 
-    def setRestart(self, state):
-        self._view.setRestart(state)
+    def _setWarning(self, control, restart, instrumented):
+        if restart:
+            control.setVisible(False)
+            self._getRestart().setVisible(True)
+        else:
+            self._getRestart().setVisible(False)
+            control.setVisible(not instrumented)
 
-    def loadSetting(self):
-        self._logmanager.loadSetting()
-        self._initView()
+# OptionWindow private control methods
+    def _getApiLevel(self, index):
+        return self._window.getControl('OptionButton%s' % (index + 1))
 
-    def setApiLevel(self, level):
-        self._view.enableCachedRowSet(self._model.setApiLevel(level))
+    def _getCachedRowSet(self, index):
+        return self._window.getControl('OptionButton%s' % (index + 4))
 
-    def setCachedRowSet(self, level):
-        self._model.setCachedRowSet(level)
+    def _getSytemTable(self):
+        return self._window.getControl('CheckBox1')
 
-    def setSystemTable(self, state):
-        self._model.setSystemTable(state)
+    def _getRestart(self):
+        return self._window.getControl('Label3')
 
-# OptionManager private methods
-    def _initView(self):
-        instrumented = self._model.isInstrumented()
-        self._view.initView(instrumented, *self._model.getViewData())
+    def _getWarning(self):
+        return self._window.getControl('Hyperlink1')
 
