@@ -38,7 +38,7 @@ class OptionsView():
     def __init__(self, ctx, window, listener, restart, url, instrumented, title1, title2):
         self._tab = 'Tab1'
         self._window = window
-        self._tab1, self._tab2 = self._getTabPages(window, self._tab, title1, title2)
+        self._tab1, self._tab2 = self._getTabPages(window, self._tab, title1, title2, 25)
         self._getTab().addTabPageContainerListener(listener)
         control = self._getWarning()
         control.URL = url
@@ -66,8 +66,8 @@ class OptionsView():
         self._getTab().removeTabPageContainerListener(listener)
 
 # OptionsView private methods
-    def _getTabPages(self, window, name, title1, title2, i=1):
-        model = self._getTabModel(window)
+    def _getTabPages(self, window, name, title1, title2, offset, i=1):
+        model = self._getTabModel(window, offset)
         window.Model.insertByName(name, model)
         tab = self._getTab()
         tab1 = self._getTabPage(model, tab, title1)
@@ -75,13 +75,13 @@ class OptionsView():
         tab.ActiveTabPageID = i
         return tab1, tab2
 
-    def _getTabModel(self, window):
+    def _getTabModel(self, window, offset):
         service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
         model = window.Model.createInstance(service)
         #model.PositionX = window.Model.PositionX
         #model.PositionY = window.Model.PositionY
         model.Width = window.Model.Width
-        model.Height = window.Model.Height
+        model.Height = window.Model.Height - offset
         return model
 
     def _getTabPage(self, model, tab, title):
