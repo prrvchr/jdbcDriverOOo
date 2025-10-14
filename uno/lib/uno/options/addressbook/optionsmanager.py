@@ -31,7 +31,10 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from .optionsmodel import OptionsModel
+
 from .optionsview import OptionsView
+
+from .optionshandler import WindowHandler
 
 from ...unotool import getDesktop
 
@@ -42,34 +45,28 @@ from ...configuration import g_synclog
 
 
 class OptionsManager():
-    def __init__(self, ctx, logger, window, offset=0):
+    def __init__(self, ctx, logger, window):
         self._ctx = ctx
-        self._logger = logger
         self._model = OptionsModel(ctx)
-        self._view = OptionsView(window, offset, OptionsManager._restart, *self._model.getViewData())
-        self._logmanager = LogManager(self._ctx, window, 'requirements.txt', g_defaultlog, g_synclog)
+        self._view = OptionsView(ctx, window, WindowHandler(self), *self._model.getViewData())
+        self._logmanager = LogManager(ctx, self._view.getWindow(), 'requirements.txt', g_defaultlog, g_synclog)
         self._logmanager.initView()
+        self._logger = logger
         self._logger.logprb(INFO, 'OptionsManager', '__init__()', 301)
         self._model.loadDriver()
-
-    _restart = False
 
     def loadSetting(self):
         self._view.setTimeout(self._model.getTimeout())
         self._view.setViewName(self._model.getViewName())
-        self._view.setWarning(OptionsManager._restart, self._model.isInstrumented())
         self._logmanager.loadSetting()
         self._logger.logprb(INFO, 'OptionsManager', 'loadSetting()', 311)
 
     def saveSetting(self):
         timeout, view = self._view.getViewData()
         option = self._model.setViewData(timeout, view)
-        log = self._logmanager.saveSetting()
-        if log:
-            print("OptionsManager.saveSetting() restart")
-            OptionsManager._restart = True
-            self._view.setWarning(True, self._model.isInstrumented())
-        self._logger.logprb(INFO, 'OptionsManager', 'saveSetting()', 321, option, log)
+        saved = self._logmanager.saveSetting()
+        self._logger.logprb(INFO, 'OptionsManager', 'saveSetting()', 321, option, saved)
+        return saved
 
     def viewData(self):
         url = self._model.getDatasourceUrl()

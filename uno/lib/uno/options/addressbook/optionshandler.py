@@ -27,52 +27,29 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import getContainerWindow
+import unohelper
 
-from ...configuration import g_identifier
+from com.sun.star.awt import XContainerWindowEventHandler
 
 import traceback
 
 
-class OptionsView():
-    def __init__(self, ctx, window, handler, timeout, view, enabled):
-        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
-        self._window.setVisible(True)
-        self._getTimeout().Value = timeout
-        self._getDatasource().Model.Enabled = enabled
-        self._setViewName(view, not enabled)
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
 
-# OptionsView getter methods
-    def getWindow(self):
-        return self._window
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, window, event, method):
+        try:
+            handled = False
+            if method == 'ViewData':
+                self._manager.viewData()
+                handled = True
+            return handled
+        except Exception as e:
+            print("ERROR: %s - %s" % (e, traceback.format_exc()))
 
-    def getViewData(self):
-        return int(self._getTimeout().Value), self._getViewName().Text
-
-# OptionsView setter methods
-    def setTimeout(self, timeout):
-        self._getTimeout().Value = timeout
-
-    def setViewName(self, view):
-        self._getViewName().Text = view
-
-# OptionsView private setter methods
-    def _setViewName(self, view, disabled):
-        self._getViewLabel().Model.Enabled = disabled
-        control = self._getViewName()
-        control.Model.Enabled = disabled
-        control.Text = view
-
-# OptionsView private control methods
-    def _getTimeout(self):
-        return self._window.getControl('NumericField1')
-
-    def _getDatasource(self):
-        return self._window.getControl('CommandButton1')
-
-    def _getViewLabel(self):
-        return self._window.getControl('Label3')
-
-    def _getViewName(self):
-        return self._window.getControl('TextField1')
+    def getSupportedMethodNames(self):
+        return ('ViewData', )
 
