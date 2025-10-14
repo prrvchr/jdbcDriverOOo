@@ -36,3 +36,4 @@
     <dlg:linklabel dlg:style-id="0" dlg:id="Hyperlink1" dlg:tab-index="0" dlg:left="10" dlg:top="165" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Hyperlink1.HelpText" dlg:value="&amp;OptionsDialog.Hyperlink1.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>
+
