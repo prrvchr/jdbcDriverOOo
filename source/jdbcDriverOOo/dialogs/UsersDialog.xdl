@@ -48,3 +48,4 @@
     <dlg:button dlg:id="CommandButton4" dlg:disabled="true" dlg:tab-index="7" dlg:left="175" dlg:top="120" dlg:width="45" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton4.HelpText" dlg:default="true" dlg:value="&amp;UsersDialog.CommandButton4.Label" dlg:button-type="ok"/>
   </dlg:bulletinboard>
 </dlg:window>
+

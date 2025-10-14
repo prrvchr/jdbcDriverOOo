@@ -32,7 +32,7 @@
   <dlg:bulletinboard>
     <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="5" dlg:top="3" dlg:width="355" dlg:height="15" dlg:help-text="&amp;GroupDialog.FixedLine1.HelpText" dlg:value="&amp;GroupDialog.FixedLine1.Label"/>
     <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="10" dlg:top="18" dlg:width="50" dlg:height="15" dlg:help-text="&amp;GroupDialog.Label1.HelpText" dlg:value="&amp;GroupDialog.Label1.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="240" dlg:top="18" dlg:width="120" dlg:height="15" dlg:help-text="&amp;GroupDialog.ListBox1.HelpText" dlg:value="&amp;GroupDialog.ListBox1.Text" dlg:spin="true">
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="240" dlg:top="18" dlg:width="120" dlg:height="15" dlg:help-text="&amp;GroupDialog.ListBox1.HelpText" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetGrantee" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:left="10" dlg:top="38" dlg:width="80" dlg:height="15" dlg:help-text="&amp;GroupDialog.CommandButton1.HelpText" dlg:value="&amp;GroupDialog.CommandButton1.Label">
@@ -57,3 +57,4 @@
     <dlg:button dlg:id="CommandButton5" dlg:tab-index="9" dlg:left="315" dlg:top="240" dlg:width="45" dlg:height="15" dlg:help-text="&amp;GroupDialog.CommandButton5.HelpText" dlg:value="&amp;GroupDialog.CommandButton5.Label" dlg:button-type="ok"/>
   </dlg:bulletinboard>
 </dlg:window>
+

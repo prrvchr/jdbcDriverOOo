@@ -32,13 +32,13 @@
   <dlg:bulletinboard>
     <dlg:text dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="140" dlg:width="40" dlg:height="15" dlg:help-text="&amp;PropertyWindow.Label1.HelpText" dlg:value="&amp;PropertyWindow.Label1.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox1" dlg:tab-index="1" dlg:disabled="true" dlg:left="55" dlg:top="140" dlg:width="112" dlg:height="15" dlg:help-text="&amp;PropertyWindow.ListBox1.HelpText" dlg:spin="true">
-      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetType" script:language="UNO"/>
       <dlg:menupopup>
         <dlg:menuitem dlg:value="&amp;PropertyWindow.ListBox1.StringItemList.0"/>
         <dlg:menuitem dlg:value="&amp;PropertyWindow.ListBox1.StringItemList.1"/>
         <dlg:menuitem dlg:value="&amp;PropertyWindow.ListBox1.StringItemList.2"/>
         <dlg:menuitem dlg:value="&amp;PropertyWindow.ListBox1.StringItemList.3"/>
       </dlg:menupopup>
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetType" script:language="UNO"/>
     </dlg:menulist>
     <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="160" dlg:width="40" dlg:height="15" dlg:help-text="&amp;PropertyWindow.Label2.HelpText" dlg:value="&amp;PropertyWindow.Label2.Label" dlg:valign="center"/>
     <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="3" dlg:page="1" dlg:left="159" dlg:top="160" dlg:width="8" dlg:height="15" dlg:help-text="&amp;PropertyWindow.CheckBox1.HelpText" dlg:value="&amp;PropertyWindow.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
@@ -50,7 +50,7 @@
     <dlg:textfield dlg:id="TextField1" dlg:tab-index="5" dlg:page="3" dlg:left="55" dlg:top="160" dlg:width="112" dlg:height="15" dlg:help-text="&amp;PropertyWindow.TextField1.HelpText" dlg:value="&amp;PropertyWindow.TextField1.Text">
       <script:event script:event-name="on-blur" script:macro-name="vnd.sun.star.UNO:SetStringValue" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="6" dlg:page="4" dlg:left="55" dlg:top="160" dlg:width="112" dlg:height="15" dlg:help-text="&amp;PropertyWindow.ListBox2.HelpText" dlg:value="&amp;PropertyWindow.ListBox2.Text" dlg:spin="true"/>
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="6" dlg:page="4" dlg:left="55" dlg:top="160" dlg:width="112" dlg:height="15" dlg:help-text="&amp;PropertyWindow.ListBox2.HelpText" dlg:spin="true"/>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="7" dlg:page="4" dlg:disabled="true" dlg:left="172" dlg:top="160" dlg:width="38" dlg:height="15" dlg:help-text="&amp;PropertyWindow.CommandButton1.HelpText" dlg:value="&amp;PropertyWindow.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:EditValue" script:language="UNO"/>
     </dlg:button>
@@ -69,3 +69,4 @@
     </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>
+

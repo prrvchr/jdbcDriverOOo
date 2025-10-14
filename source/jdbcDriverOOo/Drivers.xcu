@@ -24,11 +24,11 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+<!DOCTYPE oor:component-data SYSTEM "component-update.dtd">
 <oor:component-data
-  xsi:schemaLocation="http://openoffice.org/2001/registry/component-update.xsd"
+  xmlns:install="http://openoffice.org/2004/installation"
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   oor:package="org.openoffice.Office.DataAccess"
   oor:name="Drivers">
 <!-- View: https://github.com/LibreOffice/core/tree/master/connectivity/registry#readme -->
@@ -2166,3 +2166,4 @@
 
   </node>
 </oor:component-data>
+

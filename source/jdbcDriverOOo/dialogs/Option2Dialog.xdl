@@ -32,7 +32,7 @@
   <dlg:bulletinboard>
     <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="6" dlg:top="3" dlg:width="244" dlg:height="15" dlg:help-text="&amp;Option2Dialog.FixedLine1.HelpText" dlg:value="&amp;Option2Dialog.FixedLine1.Label"/>
     <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="10" dlg:top="20" dlg:width="40" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label1.HelpText" dlg:value="&amp;Option2Dialog.Label1.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="55" dlg:top="20" dlg:width="112" dlg:height="15" dlg:help-text="&amp;Option2Dialog.ListBox1.HelpText" dlg:value="&amp;Option2Dialog.ListBox1.Text" dlg:spin="true">
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="55" dlg:top="20" dlg:width="112" dlg:height="15" dlg:help-text="&amp;Option2Dialog.ListBox1.HelpText" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetDriver" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:page="1" dlg:disabled="true" dlg:left="172" dlg:top="20" dlg:width="38" dlg:height="15" dlg:help-text="&amp;Option2Dialog.CommandButton1.HelpText" dlg:value="&amp;Option2Dialog.CommandButton1.Label" dlg:valign="center">
@@ -67,8 +67,9 @@
     <dlg:text dlg:id="Label6" dlg:tab-index="16" dlg:left="172" dlg:top="60" dlg:width="78" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label6.HelpText" dlg:value="&amp;Option2Dialog.Label6.Label.0" dlg:valign="center" dlg:align="right"/>
     <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine2" dlg:tab-index="17" dlg:left="6" dlg:top="83" dlg:width="244" dlg:height="15" dlg:help-text="&amp;Option2Dialog.FixedLine2.HelpText" dlg:value="&amp;Option2Dialog.FixedLine2.Label"/>
     <dlg:text dlg:id="Label7" dlg:tab-index="18" dlg:left="10" dlg:top="100" dlg:width="40" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label7.HelpText" dlg:value="&amp;Option2Dialog.Label7.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="19" dlg:left="55" dlg:top="100" dlg:width="112" dlg:height="15" dlg:help-text="&amp;Option2Dialog.ListBox2.HelpText" dlg:value="&amp;Option2Dialog.ListBox2.Text" dlg:spin="true">
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="19" dlg:left="55" dlg:top="100" dlg:width="112" dlg:height="15" dlg:help-text="&amp;Option2Dialog.ListBox2.HelpText" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetGroup" script:language="UNO"/>
     </dlg:menulist>
   </dlg:bulletinboard>
 </dlg:window>
+

@@ -31,7 +31,7 @@
   </dlg:styles>
   <dlg:bulletinboard>
     <dlg:text dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="120" dlg:width="40" dlg:height="15" dlg:help-text="&amp;PropertiesWindow.Label1.HelpText" dlg:value="&amp;PropertiesWindow.Label1.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="1" dlg:page="1" dlg:left="55" dlg:top="120" dlg:width="112" dlg:height="15" dlg:help-text="&amp;PropertiesWindow.ListBox1.HelpText" dlg:value="&amp;PropertiesWindow.ListBox1.Text" dlg:spin="true">
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="1" dlg:page="1" dlg:left="55" dlg:top="120" dlg:width="112" dlg:height="15" dlg:help-text="&amp;PropertiesWindow.ListBox1.HelpText" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetProperty" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="2" dlg:page="1" dlg:disabled="true" dlg:left="172" dlg:top="120" dlg:width="38" dlg:height="15" dlg:help-text="&amp;PropertiesWindow.CommandButton1.HelpText" dlg:value="&amp;PropertiesWindow.CommandButton1.Label">
@@ -54,3 +54,4 @@
     </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>
+

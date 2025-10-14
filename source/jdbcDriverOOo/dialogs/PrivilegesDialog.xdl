@@ -34,3 +34,4 @@
     <dlg:button dlg:id="CommandButton2" dlg:tab-index="1" dlg:left="60" dlg:top="15" dlg:width="45" dlg:height="15" dlg:help-text="&amp;PrivilegesDialog.CommandButton2.HelpText" dlg:default="true" dlg:value="&amp;PrivilegesDialog.CommandButton2.Label" dlg:button-type="ok"/>
   </dlg:bulletinboard>
 </dlg:window>
+

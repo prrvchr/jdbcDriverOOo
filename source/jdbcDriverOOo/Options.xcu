@@ -24,14 +24,14 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+<!DOCTYPE oor:component-data SYSTEM "component-update.dtd">
 <oor:component-data
-  xsi:schemaLocation="http://openoffice.org/2001/registry/component-update.xsd"
-  xml:lang="en-US"
+  xmlns:install="http://openoffice.org/2004/installation"
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   oor:package="io.github.prrvchr"
-  oor:name="jdbcDriverOOo">
+  oor:name="jdbcDriverOOo"
+  xml:lang="en-US">
   <prop oor:name="ApiLevel" oor:op="fuse">
     <value>2</value>
   </prop>
@@ -54,3 +54,4 @@
     <value>{}</value>
   </prop>
 </oor:component-data>
+
