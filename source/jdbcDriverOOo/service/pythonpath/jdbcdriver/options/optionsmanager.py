@@ -49,7 +49,7 @@ class OptionsManager():
         self._model = OptionsModel(ctx)
         url, instrumented, title1, title2 = self._model.getViewData()
         self._view = OptionsView(ctx, window, self._listener, OptionsManager._restart, url, instrumented, title1, title2)
-        self._tab1 = Tab1Manager(ctx, self._view.getTab1(), instrumented, 0, 'Driver')
+        self._tab1 = Tab1Manager(ctx, self._view.getTab1(), instrumented, 'Driver')
         self._tab2 = Tab2Manager(ctx, self._view.getTab2())
         self._tab1.initView()
         self._model.loadDriver()

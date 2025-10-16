@@ -49,9 +49,10 @@ It embeds the drivers for the following databases:
 - [MySQL via Connector/J][21] version 9.3.0
 - Oracle Database 23ai Free version 23.9.0.25.07 via [ojdbc17.jar][22].
 - Microsoft SQL Server via [mssql-jdbc-13.2.0.jre11.jar][23].
-- [Trino or PrestoSQL][24] version 458-SNAPSHOT (currently being integrated, use with caution)
+- Microsoft Access via [ucanaccess-5.1.4.jar][24] (currently being integrated, use with caution).
+- [Trino or PrestoSQL][25] version 458-SNAPSHOT (currently being integrated, use with caution).
 
-Thanks to drivers providing an integrated database engine such as: HsqlDB, H2, SQLite, Derby or Jaybird, it is possible in Base to very easily create and manage databases, as easily as creating Writer documents.  
+Thanks to drivers providing an integrated database engine such as: HsqlDB, H2, SQLite, Derby, UCanAccess or Jaybird, it is possible in Base to very easily create and manage databases, as easily as creating Writer documents.  
 You will find the information needed to create a database with these drivers in the section: [Connection URL][30]
 
 Being free software I encourage you:
@@ -224,12 +225,15 @@ To create a database, in LibreOffice go to the menu: **File -> New -> Database -
 - **Derby pure Java**:
   - Linux: `/home/prrvchr/testdb/derby;create=true`
   - Windows: `C:\Utilisateurs\prrvc\testdb\derby;create=true`
+- **MS Access pure Java**:
+  - Linux: `///home/prrvchr/testdb/test.accdb;newDatabaseVersion=V2010`
+  - Windows: `//C:/Utilisateurs/prrvc/testdb/test.accdb;newDatabaseVersion=V2010`
 - **Firebird pure Java**:
   - Linux: `embedded:/home/prrvchr/testdb/firebird?createDatabaseIfNotExist=true`
   - Windows: `embedded:C:\Utilisateurs\prrvc\testdb\firebird?createDatabaseIfNotExist=true`
 
-    Firebird uses [JaybirdEmbedded][20] for its embedded mode to work. You can find the supported platforms in the [JaybirdEmbedded][20] documentation.  
-    For unsupported platforms, you can always install the [Firebird Server][54] for your platform.
+  Firebird uses [JaybirdEmbedded][20] for its embedded mode to work. You can find the supported platforms in the [JaybirdEmbedded][20] documentation.  
+  For unsupported platforms, you can always install the [Firebird Server][54] for your platform.
 
 ___
 
@@ -335,7 +339,8 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [21]: <https://dev.mysql.com/downloads/connector/j/>
 [22]: <https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html>
 [23]: <https://github.com/prrvchr/mssql-jdbc>
-[24]: <https://trino.io/docs/current/client/jdbc.html#installing>
+[24]: <https://github.com/spannm/ucanaccess>
+[25]: <https://trino.io/docs/current/client/jdbc.html#installing>
 [30]: <https://prrvchr.github.io/jdbcDriverOOo/#connection-url>
 [31]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [32]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>

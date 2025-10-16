@@ -433,9 +433,11 @@ Integration of the [SQL Server JDBC driver][130] `mssql-jdbc-13.2.0.jre11.jar`. 
 - With these changes, the catalog, which is actually the database name in SQL Server, will not be used to name the identifiers of SQL queries managing view creation, as required by the SQL Server JDBC driver.
 - Recompilation of SQL Server 13.2.0 driver under Java 17 with correction of [issue#2745][131] to allow the use of relationship management in LibreOffice Base.
 
-If Java instrumentation is not installed, jdbcDriverOOo will run in degraded mode with many features disabled and an SQL warning message will be issued upon connection.
+Testing of the [UCanAccess JDBC driver][132] allowing reading and writing of Microsoft Access files. This driver is included in this new version, but its integration remains to be finalized.
 
-Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. A fix [fix#189732][132] will be available with LibreOffice 26.2.x and will make Base truly multi-user.
+If Java instrumentation is not installed, jdbcDriverOOo will operate in degraded mode, with many features disabled. A SQL warning message will be issued upon connection, and all extensions using jdbcDriverOOo will display a warning message in their Options dialog.
+
+Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. A fix [fix#189732][133] will be available with LibreOffice 26.2.x and will make Base truly multi-user.
 
 ### What remains to be done for version 1.6.0:
 
@@ -574,4 +576,5 @@ Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. 
 [129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java>
 [130]: <https://github.com/prrvchr/mssql-jdbc>
 [131]: <https://github.com/microsoft/mssql-jdbc/issues/2745>
-[132]: <https://gerrit.libreoffice.org/c/core/+/189732>
+[132]: <https://github.com/spannm/ucanaccess>
+[133]: <https://gerrit.libreoffice.org/c/core/+/189732>

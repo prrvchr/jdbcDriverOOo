@@ -433,9 +433,11 @@ Intégration du [pilote JDBC SQL Server][130] `mssql-jdbc-13.2.0.jre17.jar`. Cet
 - Avec ces modifications, le catalogue, qui est en fait le nom de la base de données sous SQL Server, ne sera pas utilisé pour nommer les identifiants des requêtes SQL gérant la création des vues, comme l'exige le pilote JDBC de SQL Server.
 - Recompilation du pilote SQL Server 13.2.0 sous Java 17 avec la correction du [dysfonctionnement#2745][131] pour permettre l'utilisation de la gestion des relations dans LibreOffice Base.
 
-Si l'instrumentation Java n'est pas installée, jdbcDriverOOo fonctionnera en mode dégradé avec de nombreuses fonctionnalités désactivées et un message d'avertissement SQL sera émis lors de la connexion.
+Test du pilote [JDBC UCanAccess][132] permettant la lecture et l'écriture de fichiers Microsoft Access. Ce pilote est inclus dans cette nouvelle version, mais son intégration reste à finaliser.
 
-Correction du problème d'utilisation de plusieurs comptes de connexion avec Base [tdf#167960][125]. Un correctif [fix#189732][131] sera disponible avec LibreOffice 26.2.x et rendra Base véritablement multi-utilisateur.
+Si l'instrumentation Java n'est pas installée, jdbcDriverOOo fonctionnera en mode dégradé, avec de nombreuses fonctionnalités désactivées. Un message d'avertissement SQL sera émis à la connexion, et toutes les extensions utilisant jdbcDriverOOo afficheront un message d'avertissement dans leur boîte de dialogue Options.
+
+Correction du problème d'utilisation de plusieurs comptes de connexion avec Base [tdf#167960][125]. Un correctif [fix#189732][132] sera disponible avec LibreOffice 26.2.x et rendra Base véritablement multi-utilisateur.
 
 ### Que reste-t-il à faire pour la version 1.6.0:
 
@@ -574,4 +576,5 @@ Correction du problème d'utilisation de plusieurs comptes de connexion avec Bas
 [129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java>
 [130]: <https://github.com/prrvchr/mssql-jdbc>
 [131]: <https://github.com/microsoft/mssql-jdbc/issues/2745>
-[132]: <https://gerrit.libreoffice.org/c/core/+/189732>
+[132]: <https://github.com/spannm/ucanaccess>
+[133]: <https://gerrit.libreoffice.org/c/core/+/189732>
