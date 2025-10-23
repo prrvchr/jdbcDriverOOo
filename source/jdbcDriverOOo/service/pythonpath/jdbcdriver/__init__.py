@@ -28,7 +28,7 @@
 """
 
 from .unotool import createService
-from .unotool import hasInterface
+from .unotool import hasFrameInterface
 from .unotool import getConfiguration
 
 from .logger import LoggerPool

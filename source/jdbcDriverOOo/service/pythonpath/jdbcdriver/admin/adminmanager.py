@@ -65,7 +65,7 @@ from .adminhandler import UsersHandler
 from .adminhandler import NewUserHandler
 from .adminhandler import PasswordHandler
 
-from .grid import GridDataListener
+from .grid import GridSelectionListener
 
 from .gridmanager import GridManager
 from .gridmodel import GridModel
@@ -98,10 +98,10 @@ class AdminManager(unohelper.Base):
         window = self._view.getGridWindow()
         url = getResourceLocation(ctx, g_identifier, 'img')
         model = GridModel(ctx, user, groups, grantees, tables, self._flags, isuser, url)
-        quote = connection.getMetaData().getIdentifierQuoteString()
         resolver = getStringResource(ctx, g_identifier, 'dialogs', 'PrivilegesDialog')
         resources = (resolver, 'PrivilegesDialog.CheckBox%s.Label')
-        manager = GridManager(ctx, datasource, GridDataListener(self), self._columns, url, model, window, quote, 'AdminGrid', SINGLE, resources, None, True)
+        listener = GridSelectionListener(self)
+        manager = GridManager(ctx, datasource, listener, self._columns, url, model, window, 'AdminGrid', SINGLE, resources, None, True)
         self._model = AdminModel(ctx, manager, users, members, tables, name)
         self._dialog = None
         self._disabled = True
