@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from ..unotool import getPropertyValueSet
 from ..unotool import getInteractionHandler
 
 from .oauth2lib import InteractionRequest
