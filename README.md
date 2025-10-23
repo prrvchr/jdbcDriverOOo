@@ -209,7 +209,7 @@ ___
 
 ## Connection URL:
 
-Certain databases such as HsqlDB, H2, SQLite Derby or Firebird via Jaybird allow the creation of the database during connection if this database does not yet exist.
+Certain databases such as HsqlDB, H2, SQLite, Derby, UCanAccess or Firebird via Jaybird allow the creation of the database during connection if this database does not yet exist.
 This feature makes it as easy to create databases as Writer documents. Generally it is enough to add the option expected by the driver to the connection URL.
 This connection URL may be different depending on the operating system of your computer (Windows, Linux or MacOS).  
 To create a database, in LibreOffice go to the menu: **File -> New -> Database -> Connect to an existing database**, then according to your choice:

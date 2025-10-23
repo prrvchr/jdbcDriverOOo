@@ -209,7 +209,7 @@ ___
 
 ## URL de connexion:
 
-Certaines bases de données comme HsqlDB, H2, SQLite, Derby ou Firebird via Jaybird permettent la création de la base de données lors de la connexion si cette base de données n'existe pas encore.
+Certaines bases de données comme HsqlDB, H2, SQLite, Derby, UCanAccess ou Firebird via Jaybird permettent la création de la base de données lors de la connexion si cette base de données n'existe pas encore.
 Cette fonctionnalité rend la création de bases de données aussi simple que celle de documents Writer. Généralement il suffit d'ajouter l'option attendue par le driver à l'URL de connexion.
 Cette URL de connexion peut être différente selon le système d'exploitation de votre ordinateur (Windows, Linux ou MacOS).  
 Pour créer une base de données, dans LibreOffice allez dans le menu: **Fichier -> Nouveau -> Base de données -> Connecter une base de données existante**, puis selon votre choix:
