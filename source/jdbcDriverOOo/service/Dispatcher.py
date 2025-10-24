@@ -37,7 +37,7 @@ from com.sun.star.lang import XServiceInfo
 
 from jdbcdriver import Dispatch
 
-from jdbcdriver import hasInterface
+from jdbcdriver import hasFrameInterface
 
 from jdbcdriver import g_identifier
 
@@ -59,9 +59,7 @@ class Dispatcher(unohelper.Base,
 
 # XInitialization
     def initialize(self, args):
-        service = 'com.sun.star.frame.Frame'
-        interface = 'com.sun.star.lang.XServiceInfo'
-        if len(args) > 0 and hasInterface(args[0], interface) and args[0].supportsService(service):
+        if isinstance(args, tuple) and len(args) and hasFrameInterface(args[0]):
             self._frame = args[0]
 
 # XDispatchProvider

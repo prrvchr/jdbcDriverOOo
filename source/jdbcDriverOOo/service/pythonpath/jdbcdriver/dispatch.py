@@ -44,6 +44,7 @@ from .group import GroupManager
 from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import getInteractionHandler
+from .unotool import getPropertyValueSet
 from .unotool import getStringResource
 from .unotool import hasInterface
 
@@ -71,7 +72,7 @@ class Dispatch(unohelper.Base,
         state = FAILURE
         result = None
         parent = self._frame.getContainerWindow()
-        close, connection = self._getConnection()
+        close, connection = self._getConnection(url.Path)
         if connection is None:
             self._showDialog(parent, 'MessageBox.Connection')
         elif url.Path == 'ShowUsers':
@@ -146,7 +147,7 @@ class Dispatch(unohelper.Base,
             print(msg)
         return state, None
 
-    def _getConnection(self):
+    def _getConnection(self, url):
         close = False
         connection = self._frame.Controller.ActiveConnection
         # FIXME: In Base the connection to the database is not necessarily open, if this is
@@ -156,6 +157,8 @@ class Dispatch(unohelper.Base,
             # FIXME: If password is required then we need an InteractionHandler to get it...
             if datasource.IsPasswordRequired:
                 handler = getInteractionHandler(self._ctx)
+                parent = self._frame.getContainerWindow().getPeer()
+                handler.initialize(getPropertyValueSet({'Parent': parent, 'Context': url}))
                 connection = datasource.getIsolatedConnectionWithCompletion(handler)
             else:
                 connection = datasource.getIsolatedConnection(datasource.User, datasource.Password)

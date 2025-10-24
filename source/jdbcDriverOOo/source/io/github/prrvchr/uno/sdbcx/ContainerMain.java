@@ -48,8 +48,8 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.container.BiMapMain;
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 
 
@@ -154,7 +154,7 @@ public abstract class ContainerMain<T extends Descriptor>
         try {
             return getElementByName(name);
         } catch (SQLException e) {
-            throw new WrappedTargetException(e.getMessage());
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -184,14 +184,15 @@ public abstract class ContainerMain<T extends Descriptor>
     // com.sun.star.container.XIndexAccess:
     @Override
     public Object getByIndex(int index)
-        throws IndexOutOfBoundsException, WrappedTargetException {
+        throws IndexOutOfBoundsException,
+               WrappedTargetException {
         if (index < 0 || index >= getCount()) {
             throw new IndexOutOfBoundsException();
         }
         try {
             return getElementByIndex(index);
         } catch (SQLException e) {
-            throw new WrappedTargetException(e.getMessage());
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
@@ -202,8 +203,8 @@ public abstract class ContainerMain<T extends Descriptor>
 
 
     // XXX: For all container but TableContainerMain has its own method
-    protected String getElementName(XPropertySet descriptor) {
-        return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+    protected String getElementName(XPropertySet descriptor) throws SQLException {
+        return DBTools.getDescriptorStringValue(descriptor, PropertyID.NAME);
     }
 
 

@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -50,19 +51,21 @@ import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.uno.driver.helper.ColumnHelper;
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.IndexHelper;
 import io.github.prrvchr.uno.driver.helper.KeyHelper;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.TableHelper;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -100,24 +103,24 @@ public abstract class TableSuper
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.DESCRIPTION.getName(),
+        properties.put(PropertyID.DESCRIPTION,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mDescription;
                 },
                 null));
 
-        properties.put(PropertyIds.TYPE.getName(),
+        properties.put(PropertyID.TYPE,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mType;
                 },
                 null));
 
-        properties.put(PropertyIds.PRIVILEGES.getName(),
+        properties.put(PropertyID.PRIVILEGES,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return getPrivileges();
@@ -221,7 +224,7 @@ public abstract class TableSuper
         Provider provider = getConnection().getProvider();
 
         String oldname = oldcolumn.getName();
-        String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
+        String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyID.NAME);
         int flags = TableHelper.getAlterColumnChanges(oldcolumn, newcolumn, oldname, newname);
 
         // XXX: Identity or Type have been changed?
@@ -259,15 +262,18 @@ public abstract class TableSuper
         int result = 0;
         String table = null;
         List<String> queries = new ArrayList<>();
-        NamedComponents component = getNamedComponents();
+        NamedComponent component = getNamedComponents();
         ComposeRule rule = ComposeRule.InTableDefinitions;
+        NamedSupport support = provider.getNamedSupport(rule);
         try {
-            table = DBTools.buildName(provider, component, rule);
+            table = ComponentHelper.buildName(support, component);
             boolean alterpk = isPrimaryKeyColumn(oldname);
             boolean alterfk = isForeignKeyColumn(oldname);
             boolean alterkey = alterpk || alterfk;
-            result = TableHelper.getAlterColumnQueries(queries, provider, component, rule, oldname, oldcolumn,
-                                                       newcolumn, flags, alterkey, isCaseSensitive());
+            DatabaseMetaData metadata = provider.getConnection().getMetaData();
+            result = TableHelper.getAlterColumnQueries(queries, provider.getConfigDDL(), metadata,
+                                                       support, component, oldname, oldcolumn, newcolumn,
+                                                       flags, alterkey, isCaseSensitive());
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
@@ -294,29 +300,29 @@ public abstract class TableSuper
 
         // Column have changed its description value
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_DESCRIPTION)) {
-            oldcolumn.setDescriptionInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DESCRIPTION));
+            oldcolumn.setDescriptionInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyID.DESCRIPTION));
         }
         // Column have changed its not null constraint
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NULLABLE)) {
-            oldcolumn.setIsNullableInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.ISNULLABLE));
+            oldcolumn.setIsNullableInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyID.ISNULLABLE));
         }
         // Column have changed its default value
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_DEFAULT_VALUE)) {
-            oldcolumn.setDefaultValueInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DEFAULTVALUE));
+            oldcolumn.setDefaultValueInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyID.DEFAULTVALUE));
         }
         // Column have changed its type
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_TYPE)) {
-            oldcolumn.setTypeInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.TYPE));
-            oldcolumn.setTypeNameInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyIds.TYPENAME));
+            oldcolumn.setTypeInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyID.TYPE));
+            oldcolumn.setTypeNameInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyID.TYPENAME));
         }
         // Column have changed its identity (auto-increment)
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_IDENTITY)) {
             oldcolumn.setIsAutoIncrementInternal(DBTools.getDescriptorBooleanValue(newcolumn,
-                                                                                   PropertyIds.ISAUTOINCREMENT));
+                                                                                   PropertyID.ISAUTOINCREMENT));
         }
         // Column have changed its name
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NAME)) {
-            String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
+            String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyID.NAME);
             mColumns.replaceElement(oldname, newname);
         }
     }
@@ -365,13 +371,7 @@ public abstract class TableSuper
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor() {
-        TableDescriptor descriptor = new TableDescriptor(isCaseSensitive());
-        synchronized (this) {
-            UnoHelper.copyProperties(this, descriptor);
-        }
-        return descriptor;
-    }
+    public abstract XPropertySet createDataDescriptor();
 
     // com.sun.star.sdbcx.XRename
     // XXX: see: https://github.com/LibreOffice/core/blob/6361a9398584defe9ab8db1e3383e02912e3f24c/
@@ -388,8 +388,9 @@ public abstract class TableSuper
             // XXX: Table and View use the same functions to rename.
             boolean isview = mType.toUpperCase().contains("VIEW");
             ComposeRule rule = ComposeRule.InDataManipulation;
+            NamedSupport support = getConnection().getProvider().getNamedSupport(rule);
             Provider provider = getConnection().getProvider();
-            table = DBTools.buildName(provider, getNamedComponents(), rule);
+            table = ComponentHelper.buildName(support, getNamedComponents());
 
             // XXX: We can handle renaming if it is a table and the driver does not have a command to rename the table
             // XXX: or it's a view and we don't have access to the view's command definition.
@@ -399,7 +400,7 @@ public abstract class TableSuper
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table);
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
-            NamedComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
+            NamedComponent component = ComponentHelper.qualifiedNameComponents(support, name);
             if (isview) {
                 renamed = renameView(provider, component, rule, table, name);
             } else {
@@ -424,12 +425,12 @@ public abstract class TableSuper
             e.printStackTrace();
             int resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw UnoHelper.getSQLException(new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e), this);
         }
     }
 
     private boolean renameView(Provider provider,
-                               NamedComponents component,
+                               NamedComponent component,
                                ComposeRule rule,
                                String table,
                                String name) throws SQLException, java.sql.SQLException {
@@ -450,7 +451,9 @@ public abstract class TableSuper
                 renamed = true;
             } else {
                 getConnection().getViewsInternal().removeView(view);
-                query = DBTools.getCreateViewCommand(provider, component, view.mCommand, rule, isCaseSensitive());
+                query = DBTools.getCreateViewQuery(provider.getConfigDDL(),
+                                                   provider.getNamedSupport(rule),
+                                                   component, view.mCommand, isCaseSensitive());
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_RENAME_QUERY, name, query);
                 if (DBTools.executeSQLQuery(provider, query)) {
                     views.rename(table, name);
@@ -460,7 +463,8 @@ public abstract class TableSuper
         } catch (ElementExistException e) {
             int resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            java.sql.SQLException ex = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw UnoHelper.getSQLException(ex, this);
         }
         return renamed;
     }
@@ -468,7 +472,7 @@ public abstract class TableSuper
     protected void refreshColumns() {
         try {
             List<ColumnDescription> columns = ColumnHelper.readColumns(getConnection().getProvider(),
-                                                                       getNamedComponents());
+                                                                       getNamedComponents(), isCaseSensitive());
             if (mColumns == null) {
                 mColumns = getColumnContainer(columns);
                 mListener = new ColumnListener(getConnection().getTablesInternal());
@@ -508,8 +512,9 @@ public abstract class TableSuper
 
     protected void refreshIndexes() {
         try {
-            String[] indexes = IndexHelper.readIndexes(getConnection().getProvider(),
-                                                       getNamedComponents(), mQualifiedindex);
+            DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
+            String[] indexes = IndexHelper.readIndexes(getConnection().getProvider().getConfigSQL(),
+                                                       metadata, getNamedComponents(), mQualifiedindex);
             if (mIndexes == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_INDEXES);
                 mIndexes = new IndexContainer(this, isCaseSensitive(), indexes);
@@ -542,8 +547,9 @@ public abstract class TableSuper
     }
 
     protected String composeTableName(ComposeRule rule) {
-        NamedComponents component = getNamedComponents();
-        return DBTools.buildName(getConnection().getProvider(), component, rule);
+        NamedSupport support = getConnection().getProvider().getNamedSupport(rule);
+        NamedComponent component = getNamedComponents();
+        return ComponentHelper.buildName(support, component);
     }
 
     protected abstract int getPrivileges() throws WrappedTargetException;

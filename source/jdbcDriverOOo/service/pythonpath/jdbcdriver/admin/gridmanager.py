@@ -31,7 +31,7 @@ from com.sun.star.sdbc.DataType import VARCHAR
 
 from com.sun.star.style.HorizontalAlignment import CENTER
 
-from ..grid import GridManager as GridManagerBase
+from .grid import GridManager as GridManagerBase
 
 from ..unotool import getNamedValue
 
@@ -40,8 +40,8 @@ import traceback
 
 
 class GridManager(GridManagerBase):
-    def __init__(self, ctx, datasource, listener, columns, url, model, window, quote, setting, selection, resources, maxi=None, multi=False, factor=4):
-        GridManagerBase.__init__(self, ctx, url, model, window, quote, setting, selection, resources, maxi, multi, factor)
+    def __init__(self, ctx, datasource, listener, columns, url, model, window, setting, selection, resources, maxi=None, multi=False, factor=4):
+        GridManagerBase.__init__(self, ctx, url, model, window, setting, selection, resources, maxi, multi, factor)
         self._datasource = datasource
         self._indexes = {'0': 0}
         self._types = {'0': VARCHAR}

@@ -32,8 +32,8 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptorSuper;
 import io.github.prrvchr.uno.sdbcx.TableMain;
 
@@ -67,10 +67,10 @@ public final class ColumnDescriptor
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
         short maybevoid = PropertyAttribute.MAYBEVOID;
 
-        /*properties.put(PropertyIds.ALIGN.getName(),
+        /*properties.put(PropertyIds.ALIGN,
             new PropertyWrapper(Type.LONG, maybevoid,
                () -> {
                     return m_Align;
@@ -79,7 +79,7 @@ public final class ColumnDescriptor
                     m_Align = (int) value;
                }));
 
-        properties.put(PropertyIds.CONTROLDEFAULT.getName(),
+        properties.put(PropertyIds.CONTROLDEFAULT,
            new PropertyWrapper(Type.STRING, maybevoid,
                () -> {
                     return m_ControlDefault;
@@ -88,7 +88,7 @@ public final class ColumnDescriptor
                     m_ControlDefault = (String) value;
                }));
 
-        properties.put(PropertyIds.CONTROLMODEL.getName(),
+        properties.put(PropertyIds.CONTROLMODEL,
            new PropertyWrapper(new Type(XPropertySet.class), maybevoid,
                () -> {
                     return m_ControlModel;
@@ -97,7 +97,7 @@ public final class ColumnDescriptor
                     m_ControlModel = (XPropertySet) value;
                }));
 
-        properties.put(PropertyIds.FORMATKEY.getName(),
+        properties.put(PropertyIds.FORMATKEY,
             new PropertyWrapper(Type.LONG, maybevoid,
                () -> {
                     return m_FormatKey;
@@ -106,7 +106,7 @@ public final class ColumnDescriptor
                     m_FormatKey = (Integer) value;
                }));
 
-        properties.put(PropertyIds.HELPTEXT.getName(),
+        properties.put(PropertyIds.HELPTEXT,
            new PropertyWrapper(Type.STRING, maybevoid,
                () -> {
                     return m_HelpText;
@@ -115,7 +115,7 @@ public final class ColumnDescriptor
                     m_HelpText = (String) value;
                }));*/
 
-        properties.put(PropertyIds.HIDDEN.getName(),
+        properties.put(PropertyID.HIDDEN,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mHidden;
@@ -124,7 +124,7 @@ public final class ColumnDescriptor
                     mHidden = (boolean) value;
                 }));
 
-        properties.put(PropertyIds.POSITION.getName(),
+        properties.put(PropertyID.POSITION,
             new PropertyWrapper(Type.LONG, maybevoid,
                 () -> {
                     return mPosition;
@@ -133,7 +133,7 @@ public final class ColumnDescriptor
                     mPosition = (Integer) value;
                 }));
 
-        /*properties.put(PropertyIds.WIDTH.getName(),
+        /*properties.put(PropertyIds.WIDTH,
             new PropertyWrapper(Type.LONG, maybevoid,
                 () -> {
                     return m_Width;

@@ -30,7 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XServiceInfo;
@@ -44,16 +43,13 @@ import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
-import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
-import com.sun.star.util.XStringSubstitution;
 
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
+import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.driver.provider.Tools;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -116,7 +112,6 @@ public abstract class ConnectionBase
             System.out.println("Connection.dispose() No ResultSet Open...");
         }
 
-        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_SHUTDOWN);
         try {
             for (Iterator<StatementMain> it = mStatements.keySet().iterator(); it.hasNext();) {
                 StatementMain statement = it.next();
@@ -127,7 +122,6 @@ public abstract class ConnectionBase
             getProvider().closeConnection();
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
-            getLogger().logp(LogLevel.WARNING, e);
             System.out.println("Connection.dispose() ERROR:\n" + UnoHelper.getStackTrace(e));
         }
         super.dispose();
@@ -155,29 +149,28 @@ public abstract class ConnectionBase
     public void clearWarnings()
         throws SQLException {
         checkDisposed();
-        if (getProvider().supportWarningsSupplier()) {
-            try {
-                
-                WarningsSupplier.clearWarnings(getProvider().getConnection(), this);
-            } catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
-            }
+        try {
+            WarningsSupplier.clearWarnings(mProvider.getConnection(), this);
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public Object getWarnings()
         throws SQLException {
-        Object warging = Any.VOID;
         checkDisposed();
-        if (getProvider().supportWarningsSupplier()) {
-            try {
-                warging = WarningsSupplier.getWarnings(getProvider().getConnection(), this);
-            } catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
+        Object warning;
+        try {
+            if (mProvider.hasWarnings()) {
+                warning = WarningsSupplier.getWarnings(mProvider.getConnection(), mProvider.getWarnings(), this);
+            } else {
+                warning = WarningsSupplier.getWarnings(mProvider.getConnection(), this);
             }
+            return warning;
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
-        return warging;
     }
 
 
@@ -201,6 +194,7 @@ public abstract class ConnectionBase
     @Override
     public synchronized void close()
         throws SQLException {
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_SHUTDOWN);
         dispose();
     }
 
@@ -229,9 +223,7 @@ public abstract class ConnectionBase
         throws SQLException {
         checkDisposed();
         try {
-            System.out.println("Connection.getCatalog() 1");
             String value = getProvider().getConnection().getCatalog();
-            System.out.println("Connection.getCatalog() 2 Catalog: " + value);
             if (value == null) {
                 value = "";
             }
@@ -267,9 +259,7 @@ public abstract class ConnectionBase
         throws SQLException {
         checkDisposed();
         try {
-            boolean readonly = getProvider().getConnection().isReadOnly();
-            System.out.println("Connection.isReadOnly() 1 readonly: " + readonly);
-            return readonly;
+            return getProvider().getConnection().isReadOnly();
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -371,7 +361,11 @@ public abstract class ConnectionBase
     public XPreparedStatement prepareStatement(String sql)
         throws SQLException {
         checkDisposed();
-        return getPreparedStatement(sql);
+        try {
+            return getPreparedStatement(sql);
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
 
     }
 
@@ -379,8 +373,11 @@ public abstract class ConnectionBase
     public XPreparedStatement prepareCall(String sql)
         throws SQLException {
         checkDisposed();
-        return getCallableStatement(sql);
-
+        try {
+            return getCallableStatement(sql);
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     protected XComponentContext getComponentContext() {
@@ -388,46 +385,16 @@ public abstract class ConnectionBase
     }
 
     protected abstract XStatement getStatement();
-    protected abstract XPreparedStatement getPreparedStatement(String sql) throws SQLException;
-    protected abstract XPreparedStatement getCallableStatement(String sql) throws SQLException;
-
-    @SuppressWarnings("unused")
-    private String _substituteVariables(String sql)
-        throws SQLException {
-        PropertyValue[] properties = new PropertyValue[1];
-        properties[0] = new PropertyValue();
-        properties[0].Name = "ActiveConnection";
-        properties[0].Value = this;
-        try {
-            String service = "com.sun.star.sdb.ParameterSubstitution";
-            Object object = mContext.getServiceManager().createInstanceWithArgumentsAndContext(service,
-                    properties, mContext);
-            XStringSubstitution substitution = UnoRuntime.queryInterface(XStringSubstitution.class, object);
-            return substitution.substituteVariables(sql, true);
-        } catch (com.sun.star.uno.Exception e) {
-            throw Tools.toUnoExceptionLogged(this, getLogger(), e);
-        }
-    }
+    protected abstract XPreparedStatement getPreparedStatement(String sql) throws java.sql.SQLException;
+    protected abstract XPreparedStatement getCallableStatement(String sql) throws java.sql.SQLException;
 
     // XXX: Checks whether this component (which you should have locked, prior to this call,
     // XXX: and until you are done using) is disposed, throwing DisposedException if it is.
     protected final synchronized void checkDisposed() {
         if (bInDispose || bDisposed) {
-            String msg = "sdbc.ConnectionBase.checkDisposed() ERROR: **************************";
-            lastMethod();
-            System.out.println(msg + this.getClass().getName());
+            System.out.println("sdbc.ConnectionBase.checkDisposed() ERROR: **************************");
             throw new DisposedException();
         }
-    }
-
-    private void lastMethod() { 
-        final int max = 4;
-        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        for (int i = 1; i < stackTraceElements.length && i <= max; i++) {
-            StackTraceElement stackTraceElement = stackTraceElements[i]; 
-            System.out.println(stackTraceElement.getClassName() + " Method " + stackTraceElement.getMethodName()); 
-            //$NON-NLS-1$`
-        } 
     }
 
 }

@@ -28,7 +28,7 @@
 """
 
 from .unotool import createService
-from .unotool import hasInterface
+from .unotool import hasFrameInterface
 from .unotool import getConfiguration
 
 from .logger import LoggerPool
@@ -39,9 +39,9 @@ from .options import OptionsManager
 
 from .dispatch import Dispatch
 
-from .jdbcdriver import g_services
-
 from .configuration import g_basename
 from .configuration import g_defaultlog
 from .configuration import g_identifier
+from .configuration import g_services
+
 

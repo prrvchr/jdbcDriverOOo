@@ -36,15 +36,19 @@ import traceback
 
 
 class TabModel():
-    def __init__(self, ctx):
+    def __init__(self, ctx, instrumented):
         self._key1 = 'EnableJavaSystemLogger'
         self._key2 = 'AddDriverToClassPath'
         self._config = getConfiguration(ctx, g_identifier, True)
         self._version = getLibreOfficeVersion(ctx)
         self._javalogger = self._getJavaLogger()
         self._classpath = self._getClassPath()
+        self._instrumented = instrumented
 
 # TabModel getter methods
+    def isInstrumented(self):
+        return self._instrumented
+
     def getJavaLogger(self):
         return self._javalogger
 
@@ -77,4 +81,3 @@ class TabModel():
 
     def _getClassPath(self):
         return self._config.getByName(self._key2)
-

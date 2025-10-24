@@ -36,6 +36,7 @@ from com.sun.star.uno import Exception as UnoException
 
 from ...unotool import createService
 from ...unotool import getConfiguration
+from ...unotool import getNamedValueSet
 from ...unotool import getPathSettings
 from ...unotool import getSimpleFile
 from ...unotool import getStringResource
@@ -57,10 +58,9 @@ import traceback
 
 
 class TabModel():
-    def __init__(self, ctx, lock, restart, xdl):
+    def __init__(self, ctx, lock, xdl):
         self._ctx = ctx
         self._lock = lock
-        self._restart = restart
         self._pmode = 0
         self._vmode = 0
         self._value = None
@@ -75,6 +75,7 @@ class TabModel():
         self._name = 'DriverTypeDisplayName'
         self._class = 'JavaDriverClass'
         self._classpath = 'JavaDriverClassPath'
+        self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
         self._package = 'vnd.sun.star.expand:$UNO_USER_PACKAGES_CACHE/uno_packages'
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._config = getConfiguration(ctx, path, True)
@@ -96,9 +97,6 @@ class TabModel():
     def saveSetting(self):
         self._saveConfiguration()
         return self._saveArchives()
-
-    def getRestart(self):
-        return self._restart
 
     def getArchivePath(self):
         return '%s/%s' % (self._getUrl().Main, g_folder)
@@ -221,9 +219,6 @@ class TabModel():
             self._deleteFolderContent(sf, self._url.Main + self._tmp)
             self._folder = None
         self._drivers = self._getDriverConfigurations()
-
-    def setRestart(self, restart):
-        self._restart = restart
 
     def cancelDriver(self):
         self._path = None
@@ -482,7 +477,7 @@ class TabModel():
             sf.kill(folder)
         sf.createFolder(folder)
 
-    def _setDriverVersions(self, apilevel, update):
+    def _setDriverVersions(self, apilevel, caller):
         driver = None
         try:
             versions = {}
@@ -508,7 +503,7 @@ class TabModel():
                 versions[protocol] = default
             with self._lock:
                 self._versions = versions
-            update(versions)
+            self._callback.addCallback(caller, getNamedValueSet(versions))
         except UnoException as e:
             # If the driver fails, the error is already logged
             pass

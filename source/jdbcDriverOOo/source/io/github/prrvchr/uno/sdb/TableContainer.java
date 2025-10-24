@@ -29,8 +29,8 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.TableContainerSuper;
 
@@ -61,9 +61,9 @@ public final class TableContainer
     }
 
     @Override
-    protected Table getTable(NamedComponents component,
-                              String type,
-                              String remarks) {
+    protected Table getTable(NamedComponent component,
+                             String type,
+                             String remarks) {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
         Table table = new Table(getConnection(), isCaseSensitive(), component.getCatalogName(),
                                 component.getSchemaName(), component.getTableName(), type, remarks);

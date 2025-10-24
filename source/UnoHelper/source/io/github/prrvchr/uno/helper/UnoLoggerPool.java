@@ -35,9 +35,9 @@ import com.sun.star.uno.XComponentContext;
 
 public final class UnoLoggerPool {
 
-    private static XComponentContext m_xContext;
-    private static String m_root;
-    private static String m_service = "io.github.prrvchr.jdbcDriverOOo.LoggerPool";
+    private static XComponentContext sCONTEXT;
+    private static String sROOT;
+    private static String sSERVICE = "io.github.prrvchr.jdbcDriverOOo.LoggerPool";
 
     // The constructor method:
     public UnoLoggerPool() {
@@ -46,8 +46,8 @@ public final class UnoLoggerPool {
 
     public static void initialize(XComponentContext context,
                                   String root) {
-        m_xContext = context;
-        m_root = root;
+        sCONTEXT = context;
+        sROOT = root;
     }
 
     public static XLogger getNamedLogger(String name) {
@@ -59,19 +59,18 @@ public final class UnoLoggerPool {
     }
 
     private static String getLoggerName(String name) {
-        return String.format("%s.%s", m_root, name);
+        return String.format("%s.%s", sROOT, name);
     }
 
     private static XLoggerPool _getLoggerPool() {
         XLoggerPool pool = null;
         try {
-            Object object = m_xContext.getServiceManager().createInstanceWithContext(m_service, m_xContext);
+            Object object = sCONTEXT.getServiceManager().createInstanceWithContext(sSERVICE, sCONTEXT);
             pool = UnoRuntime.queryInterface(XLoggerPool.class, object);
-        }
-        catch (Exception e) {}
+        } catch (Exception e) { }
         if (pool == null) {
-            throw new DeploymentException("component context fails to supply singleton com.sun.star.logging.LoggerPool of type com.sun.star.logging.XLoggerPool",
-                                          m_xContext);
+            String msg = "component context fails to supply singleton css.logging.LoggerPool";
+            throw new DeploymentException(msg, sCONTEXT);
         }
         return pool;
     }

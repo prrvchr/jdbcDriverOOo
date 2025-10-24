@@ -36,13 +36,13 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.IndexHelper;
 import io.github.prrvchr.uno.driver.helper.IndexHelper.IndexProperties;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -86,31 +86,31 @@ public final class Index
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.CATALOG.getName(),
+        properties.put(PropertyID.CATALOG,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mCatalog;
                 },
                 null));
 
-        properties.put(PropertyIds.ISCLUSTERED.getName(),
+        properties.put(PropertyID.ISCLUSTERED,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsClustered;
                 },
                 null));
 
-        properties.put(PropertyIds.ISPRIMARYKEYINDEX.getName(),
+        properties.put(PropertyID.ISPRIMARYKEYINDEX,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsPrimaryKeyIndex;
                 },
                 null));
 
-        properties.put(PropertyIds.ISUNIQUE.getName(),
+        properties.put(PropertyID.ISUNIQUE,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsUnique;
@@ -184,11 +184,11 @@ public final class Index
         String[] columns = null;
         try {
             Provider provider = mTable.getConnection().getProvider();
-            NamedComponents component = mTable.getNamedComponents();
+            NamedComponent component = mTable.getNamedComponents();
             DatabaseMetaData metadata;
             metadata = provider.getConnection().getMetaData();
-            IndexProperties properties = IndexHelper.getIndexProperties(provider, metadata,
-                                                                        component, mCatalog, getName());
+            IndexProperties properties = IndexHelper.getIndexProperties(provider.getConfigSQL(),
+                                                                        metadata, component, mCatalog, getName());
             columns = properties.getColumns();
         } catch (java.sql.SQLException e) {
             e.printStackTrace();

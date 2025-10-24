@@ -27,7 +27,8 @@ package io.github.prrvchr.uno.sdb;
 
 import java.util.HashMap;
 
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
 
 
@@ -40,7 +41,7 @@ public final class GroupDescriptor
     // The constructor method:
     public GroupDescriptor(boolean sensitive) {
         super(SERVICE, SERVICES, sensitive);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
     }
 
 }

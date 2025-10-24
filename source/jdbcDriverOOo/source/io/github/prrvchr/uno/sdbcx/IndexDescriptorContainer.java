@@ -27,7 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.XPropertySet;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public final class IndexDescriptorContainer

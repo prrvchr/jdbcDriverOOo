@@ -27,9 +27,9 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.sdbc.PreparedStatementBase;
 
 
@@ -44,7 +44,7 @@ public abstract class PreparedStatementSuper
                                   String[] services,
                                   ConnectionSuper connection,
                                   String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         super(service, services, connection, sql);
         System.out.println("sdbc.PreparedStatementSuper() 1: '" + sql + "'");
     }
@@ -66,9 +66,9 @@ public abstract class PreparedStatementSuper
     }
 
     @Override
-    protected java.sql.ResultSet getGeneratedValues(Provider provider, java.sql.Statement statement)
+    protected java.sql.ResultSet getGeneratedValues(ConfigSQL config, java.sql.Statement statement)
         throws SQLException {
-        return GeneratedKeys.getGeneratedResult(provider, getConnectionInternal(), statement, mQuery);
+        return GeneratedKeys.getGeneratedResult(config, getConnectionInternal(), statement, mQuery);
     }
 
 }

@@ -37,17 +37,20 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAlterView;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class View
@@ -74,17 +77,17 @@ public final class View
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.CHECKOPTION.getName(),
+        properties.put(PropertyID.CHECKOPTION,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mCheckOption;
                 },
                 null));
 
-        properties.put(PropertyIds.COMMAND.getName(),
+        properties.put(PropertyID.COMMAND,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mCommand;
@@ -100,27 +103,29 @@ public final class View
     public void alterCommand(String command)
         throws SQLException {
         if (!mCommand.equals(command)) {
-            String name = null;
             List<String> queries = new ArrayList<>();
+            Provider provider = getConnection().getProvider();
+            ComposeRule rule = ComposeRule.InViewDefinitions;
+            NamedSupport support = provider.getNamedSupport(rule);
+            NamedComponent component = getNamedComponents();
             try {
-                NamedComponents component = getNamedComponents();
-                ComposeRule rule = ComposeRule.InDataManipulation;
-                Provider provider = getConnection().getProvider();
-                name = DBTools.buildName(provider, component, rule);
-                Map<String, Object> arguments = ParameterDDL.getAlterView(provider, component,
-                                                                                   name, command, rule,
-                                                                                   isCaseSensitive());
-                queries =  provider.getConfigDDL().getAlterViewCommands(arguments);
+                Map<String, Object> arguments = ParameterDDL.getAlterView(support, component,
+                                                                          command, isCaseSensitive());
+                ConfigDDL config = mConnection.getProvider().getConfigDDL();
+                queries =  config.getAlterViewCommands(arguments);
                 if (!queries.isEmpty()) {
                     String query = String.join("> <", queries);
+                    String name = ComponentHelper.buildName(support, component, false);
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_ALTER_QUERY, name, query);
                     DBTools.executeSQLQueries(provider, queries);
                 }
             } catch (java.sql.SQLException e) {
                 int resource = Resources.STR_LOG_VIEW_ALTER_QUERY_ERROR;
                 String query = String.join("> <", queries);
+                String name = ComponentHelper.buildName(support, component, false);
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
-                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+                java.sql.SQLException ex = new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
+                throw UnoHelper.getSQLException(ex, this);
             }
             mCommand = command;
         }
@@ -133,21 +138,15 @@ public final class View
         throws SQLException,
                ElementExistException {
         String oldname = null;
-        try {
-            ComposeRule rule = ComposeRule.InDataManipulation;
-            Provider provider = getConnection().getProvider();
-            oldname = DBTools.buildName(provider, getNamedComponents(), rule);
-            NamedComponents table = DBTools.qualifiedNameComponents(provider, newname, rule);
-            if (rename(table, oldname, newname, true, rule)) {
-                mCatalogName = table.getCatalogName();
-                mSchemaName = table.getSchemaName();
-                setName(table.getTableName());
-                getConnection().getViewsInternal().rename(oldname, newname);
-            }
-        } catch (java.sql.SQLException e) {
-            int resource = Resources.STR_LOG_VIEW_RENAME_UNSPECIFIED_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+        ComposeRule rule = ComposeRule.InDataManipulation;
+        NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
+        oldname = ComponentHelper.buildName(support, getNamedComponents());
+        NamedComponent table = ComponentHelper.qualifiedNameComponents(support, newname);
+        if (rename(table, oldname, newname, true, rule)) {
+            mCatalogName = table.getCatalogName();
+            mSchemaName = table.getSchemaName();
+            setName(table.getTableName());
+            getConnection().getViewsInternal().rename(oldname, newname);
         }
     }
 

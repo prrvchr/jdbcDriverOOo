@@ -31,8 +31,8 @@ import java.sql.SQLException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbcx.KeyType;
 
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 
 public final class KeyColumns
     extends ContainerBase<KeyColumn> {
@@ -121,7 +121,7 @@ public final class KeyColumns
 
     private java.sql.ResultSet getImportedKeyResultSet()
         throws SQLException {
-        NamedComponents component = mKey.getTable().getNamedComponents();
+        NamedComponent component = mKey.getTable().getNamedComponents();
         DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
         return metadata.getImportedKeys(component.getCatalog(), component.getSchema(), component.getTable());
     }

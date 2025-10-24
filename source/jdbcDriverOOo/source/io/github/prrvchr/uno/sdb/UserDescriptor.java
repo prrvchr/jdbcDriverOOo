@@ -30,8 +30,8 @@ import java.util.Map;
 
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
 
 
@@ -50,9 +50,9 @@ public final class UserDescriptor
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
 
-        properties.put(PropertyIds.PASSWORD.getName(),
+        properties.put(PropertyID.PASSWORD,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mPassword;

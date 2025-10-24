@@ -24,7 +24,13 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-<oor:component-data oor:name="Drivers" oor:package="org.openoffice.Office.DataAccess" xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<!DOCTYPE oor:component-data SYSTEM "component-update.dtd">
+<oor:component-data
+  xmlns:install="http://openoffice.org/2004/installation"
+  xmlns:oor="http://openoffice.org/2001/registry"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  oor:package="org.openoffice.Office.DataAccess"
+  oor:name="Drivers">
 <!-- View: https://github.com/LibreOffice/core/tree/master/connectivity/registry#readme -->
   <node oor:name="Installed">
     <node oor:name="xdbc:*" oor:op="replace">
@@ -351,7 +357,7 @@
         </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE ${TableName} ALTER COLUMN ${OldName} RENAME TO ${Column}</value>
+            <value>ALTER TABLE ${TableName} ALTER COLUMN ${Column} RENAME TO ${NewColumn}</value>
           </prop>
         </node>
         <node oor:name="ColumnSetNotNullCommand" oor:op="replace">
@@ -436,11 +442,6 @@
           </prop>
         </node>
 
-        <node oor:name="LogLevel" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:string">
-            <value>OFF</value>
-          </prop>
-        </node>
         <node oor:name="UseJava" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>true</value>
@@ -558,12 +559,12 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ${Catalog} AND TABLE_SCHEMA = ${Schema} AND TABLE_NAME = ${View}</value>
+            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ${RawCatalog} AND TABLE_SCHEMA = ${RawSchema} AND TABLE_NAME = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="RenameTableCommands" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">ALTER TABLE ${Catalog.Schema.Table} RENAME TO ${NewTable}</value>
+            <value oor:separator="|">ALTER TABLE ${TableName} RENAME TO ${NewTable}</value>
           </prop>
         </node>
         <node oor:name="SystemVersioningCommands" oor:op="replace">
@@ -722,12 +723,12 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ${Catalog} AND TABLE_SCHEMA = ${Schema} AND TABLE_NAME = ${View}</value>
+            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ${RawCatalog} AND TABLE_SCHEMA = ${RawSchema} AND TABLE_NAME = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="RenameTableCommands" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">ALTER TABLE ${Catalog.Schema.Table} RENAME TO ${NewTable}</value>
+            <value oor:separator="|">ALTER TABLE ${TableName} RENAME TO ${NewTable}</value>
           </prop>
         </node>
         <node oor:name="SupportsAlterIdentity" oor:op="replace">
@@ -844,12 +845,12 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ${Schema} AND TABLE_NAME = ${View}</value>
+            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ${RawSchema} AND TABLE_NAME = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="RenameTableCommands" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">RENAME TABLE ${Catalog.Schema.Table} TO ${NewCatalog.NewSchema.NewTable}|</value>
+            <value oor:separator="|">RENAME TABLE ${TableName} TO ${NewCatalog.NewSchema.NewTable}|</value>
           </prop>
         </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
@@ -983,12 +984,12 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ${Schema} AND TABLE_NAME = ${View}</value>
+            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ${RawSchema} AND TABLE_NAME = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="RenameTableCommands" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">RENAME TABLE ${Catalog.Schema.Table} TO ${NewCatalog.NewSchema.NewTable}|</value>
+            <value oor:separator="|">RENAME TABLE ${TableName} TO ${NewCatalog.NewSchema.NewTable}|</value>
           </prop>
         </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
@@ -1127,17 +1128,17 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ${Schema} AND TABLE_NAME = ${View}</value>
+            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ${RawSchema} AND TABLE_NAME = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="RenameTableCommands" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">ALTER TABLE ${Catalog.Schema.Table} SET SCHEMA ${NewSchema}|ALTER TABLE ${Catalog.NewSchema.Table} RENAME TO ${NewTable}</value>
+            <value oor:separator="|">ALTER TABLE ${TableName} SET SCHEMA ${NewSchema}|ALTER TABLE ${Catalog.NewSchema.Table} RENAME TO ${NewTable}</value>
           </prop>
         </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE ${TableName} RENAME COLUMN ${OldName} TO ${Column}</value>
+            <value>ALTER TABLE ${TableName} RENAME COLUMN ${Column} TO ${NewColumn}</value>
           </prop>
         </node>
         <node oor:name="AlterColumnTypeCommand" oor:op="replace">
@@ -1206,7 +1207,7 @@
         </node>
         <node oor:name="JavaDriverClassPath" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>%origin%/driver/sqlite</value>
+            <value>%origin%/driver/sqlite-jdbc-3.50.2.1-SNAPSHOT.jar</value>
           </prop>
         </node>
         <node oor:name="JavaDriverClass" oor:op="replace">
@@ -1264,12 +1265,12 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT SUBSTR(sql, (INSTR(sql, ' AS SELECT ') + 4)) FROM sqlite_schema WHERE name = ${View}</value>
+            <value>SELECT SUBSTR(sql, (INSTR(sql, ' AS SELECT ') + 4)) FROM sqlite_schema WHERE name = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="RenameTableCommands" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">ALTER TABLE ${Catalog.Schema.Table} RENAME TO ${NewCatalog.NewSchema.NewTable}</value>
+            <value oor:separator="|">ALTER TABLE ${TableName} RENAME TO ${NewCatalog.NewSchema.NewTable}</value>
           </prop>
         </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
@@ -1356,27 +1357,17 @@
             <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128|TRIGGER|512</value>
           </prop>
         </node>
+        <node oor:name="SystemProperties" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">derby.stream.error.method=io.github.prrvchr.uno.driver.logger.DerbySystemLogger.getLogger|derby.stream.error.logSeverityLevel=50000</value>
+          </prop>
+        </node>
       </node>
 
       <node oor:name="MetaData">
         <node oor:name="SupportsDCLQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
-          </prop>
-        </node>
-        <node oor:name="LogLevel" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:string">
-            <value>50000</value>
-          </prop>
-        </node>
-        <node oor:name="LoggerLevels" oor:op="replace">
-          <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">50000|40000|40000|30000|30000|20000|20000|0</value>
-          </prop>
-        </node>
-        <node oor:name="SystemProperties10" oor:op="replace">
-          <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">derby.stream.error.method=io.github.prrvchr.uno.logging.derby.DerbyLoggerBridge.bridge|derby.stream.error.logSeverityLevel=${LogLevel}</value>
           </prop>
         </node>
         <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
@@ -1391,12 +1382,12 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT SUBSTR(VIEWDEFINITION, (LOCATE(' AS SELECT ', VIEWDEFINITION) + 4)), CHECKOPTION FROM SYS.SYSVIEWS INNER JOIN SYS.SYSTABLES ON SYS.SYSVIEWS.TABLEID = SYS.SYSTABLES.TABLEID INNER JOIN SYS.SYSSCHEMAS ON SYS.SYSTABLES.SCHEMAID = SYS.SYSSCHEMAS.SCHEMAID WHERE SYS.SYSSCHEMAS.SCHEMANAME = ${Schema} AND SYS.SYSTABLES.TABLENAME = ${View}</value>
+            <value>SELECT SUBSTR(VIEWDEFINITION, (LOCATE(' AS SELECT ', VIEWDEFINITION) + 4)), CHECKOPTION FROM SYS.SYSVIEWS INNER JOIN SYS.SYSTABLES ON SYS.SYSVIEWS.TABLEID = SYS.SYSTABLES.TABLEID INNER JOIN SYS.SYSSCHEMAS ON SYS.SYSTABLES.SCHEMAID = SYS.SYSSCHEMAS.SCHEMAID WHERE SYS.SYSSCHEMAS.SCHEMANAME = ${RawSchema} AND SYS.SYSTABLES.TABLENAME = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="RenameTableCommands" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">RENAME TABLE ${Catalog.Schema.Table} TO ${NewTable}</value>
+            <value oor:separator="|">RENAME TABLE ${TableName} TO ${NewTable}</value>
           </prop>
         </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
@@ -1518,7 +1509,7 @@
         </node>
         <node oor:name="AddColumnCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE ${TableName} ADD ${ColumnProperties}</value>
+            <value>ALTER TABLE ${TableName} ADD ${ColumnDescription}</value>
           </prop>
         </node>
         <node oor:name="DropColumnCommand" oor:op="replace">
@@ -1563,7 +1554,7 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ${View}</value>
+            <value>SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="AlterColumnTypeCommand" oor:op="replace">
@@ -1573,7 +1564,7 @@
         </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE ${TableName} ALTER COLUMN ${OldName} TO ${Column}</value>
+            <value>ALTER TABLE ${TableName} ALTER COLUMN ${Column} TO ${NewColumn}</value>
           </prop>
         </node>
         <node oor:name="GetUsersQuery" oor:op="replace">
@@ -1672,11 +1663,6 @@
             <value>GENERATED ALWAYS AS IDENTITY</value>
           </prop>
         </node>
-        <node oor:name="RowVersionCreation" oor:op="replace">
-          <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">GENERATED ALWAYS AS ROW START|GENERATED ALWAYS AS ROW END</value>
-          </prop>
-        </node>
         <node oor:name="AutoRetrievingStatement" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>SELECT * FROM %s WHERE %s</value>
@@ -1706,9 +1692,14 @@
             <value>DROP TABLE ${TableName} CASCADE CONSTRAINTS</value>
           </prop>
         </node>
+        <node oor:name="DropColumnCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER TABLE ${TableName} DROP ${Column} CASCADE CONSTRAINTS</value>
+          </prop>
+        </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE ${TableName} RENAME COLUMN ${OldName} TO ${Column}</value>
+            <value>ALTER TABLE ${TableName} RENAME COLUMN ${Column} TO ${NewColumn}</value>
           </prop>
         </node>
         <node oor:name="AlterColumnTypeCommand" oor:op="replace">
@@ -1728,7 +1719,7 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT TEXT FROM SYS.ALL_VIEWS WHERE OWNER = ${Schema} AND VIEW_NAME = ${View}</value>
+            <value>SELECT TEXT FROM SYS.ALL_VIEWS WHERE OWNER = ${RawSchema} AND VIEW_NAME = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="AlterViewCommands" oor:op="replace">
@@ -1796,6 +1787,321 @@
         <node oor:name="AlterUserCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER USER ${User} IDENTIFIED BY ${RawPwd}</value>
+          </prop>
+        </node>
+      </node>
+    </node>
+
+<!-- SQL Server Driver ********************************************************************************* -->
+
+    <node oor:name="xdbc:sqlserver:*" oor:op="replace">
+      <prop oor:name="ParentURLPattern">
+        <value>xdbc:*</value>
+      </prop>
+      <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
+        <value xml:lang="en-US">SQL Server pure Java</value>
+      </prop>
+
+      <!-- Properties node is for connection properties -->
+      <!-- To be accessible by Base, the properties must be listed in the DriverBase.getPropertyInfo() method. -->
+      <node oor:name="Properties">
+        <node oor:name="UseCatalogInView" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>false</value>
+          </prop>
+        </node>
+        <node oor:name="PrivilegesSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8</value>
+          </prop>
+        </node>
+        <node oor:name="GenerateASBeforeCorrelationName" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>false</value>
+          </prop>
+        </node>
+        <node oor:name="SystemSchemaSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = db_accessadmin|null|Column(1) = db_backupoperator|null|Column(1) = db_datareader|null|Column(1) = db_datawriter|null|Column(1) = db_ddladmin|null|Column(1) = db_denydatareader|null|Column(1) = db_denydatawriter|null|Column(1) = db_owner|null|Column(1) = db_securityadmin|null|Column(1) = guest|null|Column(1) = INFORMATION_SCHEMA|null|Column(1) = sys|null</value>
+          </prop>
+        </node>
+        <node oor:name="SystemTableSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(2) = INFORMATION_SCHEMA|null|Column(2) = sys|null</value>
+          </prop>
+        </node>
+<!--    <node oor:name="TypeInfoSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = NUMBER|Column(6) = PRECISION,SCALE|Column(1) = NUMBER|Column(12) = 1|Column(1) = VARCHAR2|Column(6) = LENGTH|Column(1) = NVARCHAR2|Column(6) = LENGTH|Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6|Column(1) = TIME WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIME WITH TIME ZONE|Column(14) = 0|Column(1) = TIME WITH TIME ZONE|Column(15) = 6|Column(1) = TIMESTAMP WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIMESTAMP WITH TIME ZONE|Column(14) = 0|Column(1) = TIMESTAMP WITH TIME ZONE|Column(15) = 6</value>
+          </prop>
+        </node> -->
+        <node oor:name="AddIndexAppendix" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="JavaDriverClassPath" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>%origin%/driver/mssql-jdbc-13.2.0.jre17.jar</value>
+          </prop>
+        </node>
+        <node oor:name="JavaDriverClass" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>com.microsoft.sqlserver.jdbc.SQLServerDriver</value>
+          </prop>
+        </node>
+        <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="AutoRetrievingStatement" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT * FROM %s WHERE %s</value>
+          </prop>
+        </node>
+      </node>
+
+      <!-- MetaData node is for the driver properties -->
+      <node oor:name="MetaData">
+        <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>false</value>
+          </prop>
+        </node>
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>EXEC sp_rename '${RawTableName}.${RawColumn}', '${RawNewColumn}', 'COLUMN'</value>
+          </prop>
+        </node>
+        <node oor:name="AlterColumnTypeCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER TABLE ${TableName} ALTER COLUMN ${Column} ${Type}</value>
+          </prop>
+        </node>
+        <node oor:name="AddColumnCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER TABLE ${TableName} ADD ${ColumnDescription}</value>
+          </prop>
+        </node>
+        <node oor:name="DropIndexCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>DROP INDEX ${Name} ON ${TableName}</value>
+          </prop>
+        </node>
+        <node oor:name="SupportsColumnDescription" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="ColumnDescriptionCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>IF EXISTS(SELECT value FROM fn_listextendedproperty('ColumnDescription', 'SCHEMA', '${RawSchema}', 'TABLE', '${RawTable}', 'COLUMN', '${RawColumn}')) EXECUTE sp_updateextendedproperty @name = 'ColumnDescription', @level0type = 'SCHEMA', @level1type = N'TABLE', @level2type = N'COLUMN', @level0name=N'${RawSchema}', @level1name=N'${RawTable}', @level2name = N'${RawColumn}', @value = '${RawDescription}' ELSE EXECUTE sp_addextendedproperty @name = 'ColumnDescription', @level0type = 'SCHEMA', @level1type = N'TABLE', @level2type = N'COLUMN', @level0name=N'${RawSchema}', @level1name=N'${RawTable}', @level2name = N'${RawColumn}', @value = '${RawDescription}'</value>
+          </prop>
+        </node>
+        <node oor:name="ColumnDescriptionQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT value FROM fn_listextendedproperty('ColumnDescription', 'SCHEMA', '${RawSchema}', 'TABLE', '${RawTable}', 'COLUMN', '${RawColumn}')</value>
+          </prop>
+        </node>
+        <node oor:name="ViewDefinitionQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT SUBSTRING(VIEW_DEFINITION, (CHARINDEX(' AS SELECT ', VIEW_DEFINITION) + 4)) FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ${RawSchema} AND TABLE_NAME = ${RawView}</value>
+          </prop>
+        </node>
+        <node oor:name="RenameTableCommands" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">EXEC sp_rename '${RawTableName}', '${RawNewTable}'</value>
+          </prop>
+        </node>
+        <node oor:name="SupportsAlterIdentity" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="GetUsersQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT name FROM sys.server_principals WHERE type = 'S' AND is_disabled = 0</value>
+          </prop>
+        </node>
+        <node oor:name="GetGroupsQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>sp_helprole</value>
+          </prop>
+        </node>
+        <node oor:name="GetUserGroupsQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT DP1.name FROM sys.database_role_members AS DRM RIGHT OUTER JOIN sys.database_principals AS DP1 ON DRM.role_principal_id = DP1.principal_id LEFT OUTER JOIN sys.database_principals AS DP2 ON DRM.member_principal_id = DP2.principal_id WHERE DP1.type = 'R' AND DP2.name = ${User}</value>
+          </prop>
+        </node>
+        <node oor:name="GetGroupUsersQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT DP1.name FROM sys.database_role_members AS DRM RIGHT OUTER JOIN sys.database_principals AS DP1 ON DRM.member_principal_id = DP1.principal_id LEFT OUTER JOIN sys.database_principals AS DP2 ON DRM.role_principal_id = DP2.principal_id WHERE DP1.type = 'S' AND DP2.name = ${Group}</value>
+          </prop>
+        </node>
+        <node oor:name="GetGroupRolesQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT DP1.name FROM sys.database_role_members AS DRM RIGHT OUTER JOIN sys.database_principals AS DP1 ON DRM.role_principal_id = DP1.principal_id LEFT OUTER JOIN sys.database_principals AS DP2 ON DRM.member_principal_id = DP2.principal_id WHERE DP1.type = 'R' AND DP2.name = ${Group}</value>
+          </prop>
+        </node>
+        <node oor:name="TablePrivilegesQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT permission_name FROM sys.database_permissions DPE INNER JOIN sys.database_principals DPR on DPE.grantee_principal_id = DPR.principal_id WHERE DPE.class = 1 AND DPE.major_id = object_id(${TableName}) and DPE.minor_id = 0 AND DPR.name = ${Grantee}</value>
+          </prop>
+        </node>
+        <node oor:name="GrantablePrivilegesQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT permission_name FROM sys.database_permissions DPE INNER JOIN sys.database_principals DPR on DPE.grantee_principal_id = DPR.principal_id WHERE DPE.class = 1 AND DPE.major_id = object_id(${TableName}) and DPE.minor_id = 0 AND DPR.name = ${Grantee}</value>
+          </prop>
+        </node>
+        <node oor:name="CreateUserCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>CREATE LOGIN ${RawUser} WITH PASSWORD = ${Password}; CREATE USER ${RawUser} FOR LOGIN ${RawUser}</value>
+          </prop>
+        </node>
+        <node oor:name="AlterUserCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER LOGIN ${RawUser} WITH PASSWORD = ${Password}</value>
+          </prop>
+        </node>
+        <node oor:name="CreateRoleCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>CREATE ROLE ${RawRole}</value>
+          </prop>
+        </node>
+        <node oor:name="DropRoleCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>DROP ROLE ${RawRole}</value>
+          </prop>
+        </node>
+        <node oor:name="GrantRoleCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER ROLE ${Grantor} ADD MEMBER ${Grantee}</value>
+          </prop>
+        </node>
+        <node oor:name="RevokeRoleCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER ROLE ${Grantor} DROP MEMBER ${Grantee}</value>
+          </prop>
+        </node>
+      </node>
+    </node>
+
+<!-- MS Access Driver ********************************************************************************* -->
+
+    <node oor:name="xdbc:ucanaccess:*" oor:op="replace">
+      <prop oor:name="ParentURLPattern">
+        <value>xdbc:*</value>
+      </prop>
+      <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
+        <value xml:lang="en-US">MS Access pure Java</value>
+      </prop>
+
+      <!-- Properties node is for connection properties -->
+      <!-- To be accessible by Base, the properties must be listed in the DriverBase.getPropertyInfo() method. -->
+      <node oor:name="Properties">
+        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(5) = DBA|Column(5) = SA</value>
+          </prop>
+        </node>
+        <node oor:name="TypeInfoSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6|Column(1) = TIME WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIME WITH TIME ZONE|Column(14) = 0|Column(1) = TIME WITH TIME ZONE|Column(15) = 6|Column(1) = TIMESTAMP WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIMESTAMP WITH TIME ZONE|Column(14) = 0|Column(1) = TIMESTAMP WITH TIME ZONE|Column(15) = 6</value>
+          </prop>
+        </node>
+        <node oor:name="SystemSchemaSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = INFORMATION_SCHEMA|null|Column(1) = SYSTEM_LOBS|null</value>
+          </prop>
+        </node>
+        <node oor:name="AddIndexAppendix" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="JavaDriverClassPath" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>%origin%/driver/ucanaccess</value>
+          </prop>
+        </node>
+        <node oor:name="JavaDriverClass" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>net.ucanaccess.jdbc.UcanaccessDriver</value>
+          </prop>
+        </node>
+        <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="AutoIncrementCreation" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>GENERATED BY DEFAULT AS IDENTITY</value>
+          </prop>
+        </node>
+        <node oor:name="RowVersionCreation" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">GENERATED ALWAYS AS ROW START|GENERATED ALWAYS AS ROW END</value>
+          </prop>
+        </node>
+        <node oor:name="AutoRetrievingStatement" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT * FROM %s WHERE %s</value>
+          </prop>
+        </node>
+        <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+      </node>
+
+      <!-- MetaData node is for the driver properties -->
+      <node oor:name="MetaData">
+        <node oor:name="SupportsDCLQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>false</value>
+          </prop>
+        </node>
+        <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>false</value>
+          </prop>
+        </node>
+        <node oor:name="DropTableCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>DROP TABLE ${TableName} CASCADE</value>
+          </prop>
+        </node>
+        <node oor:name="AlterColumnTypeCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER TABLE ${TableName} ALTER COLUMN ${Column} SET DATA TYPE ${Type}</value>
+          </prop>
+        </node>
+        <node oor:name="SupportsColumnDescription" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="ViewDefinitionQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ${RawCatalog} AND TABLE_SCHEMA = ${RawSchema} AND TABLE_NAME = ${RawView}</value>
+          </prop>
+        </node>
+        <node oor:name="RenameTableCommands" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">ALTER TABLE ${TableName} RENAME TO ${NewTable}</value>
+          </prop>
+        </node>
+        <node oor:name="SystemVersioningCommands" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">PERIOD FOR SYSTEM_TIME(${ColumnNames})|WITH SYSTEM VERSIONING</value>
+          </prop>
+        </node>
+        <node oor:name="SupportsAlterIdentity" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
           </prop>
         </node>
       </node>
@@ -1887,7 +2193,7 @@
         </node>
         <node oor:name="AddColumnCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE ${TableName} ADD ${ColumnProperties}</value>
+            <value>ALTER TABLE ${TableName} ADD ${ColumnDescription}</value>
           </prop>
         </node>
         <node oor:name="DropColumnCommand" oor:op="replace">
@@ -1932,7 +2238,7 @@
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ${View}</value>
+            <value>SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ${RawView}</value>
           </prop>
         </node>
         <node oor:name="AlterColumnTypeCommand" oor:op="replace">
@@ -1942,7 +2248,7 @@
         </node>
         <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE ${TableName} ALTER COLUMN ${OldName} TO ${Column}</value>
+            <value>ALTER TABLE ${TableName} ALTER COLUMN ${Column} TO ${NewColumn}</value>
           </prop>
         </node>
         <node oor:name="GetUsersQuery" oor:op="replace">
@@ -1980,3 +2286,4 @@
 
   </node>
 </oor:component-data>
+

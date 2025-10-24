@@ -31,9 +31,9 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.container.BiMap;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.RoleContainer;
 

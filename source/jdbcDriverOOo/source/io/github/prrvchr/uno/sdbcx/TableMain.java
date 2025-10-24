@@ -30,10 +30,10 @@ import java.util.Map;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertySetAdapter.PropertySetter;
 
 
 public abstract class TableMain
@@ -62,7 +62,7 @@ public abstract class TableMain
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
         short attribute;
         PropertySetter catalogSetter, schemaSetter;
 
@@ -80,14 +80,14 @@ public abstract class TableMain
             };
         }
 
-        properties.put(PropertyIds.CATALOGNAME.getName(),
+        properties.put(PropertyID.CATALOGNAME,
             new PropertyWrapper(Type.STRING, attribute,
                 () -> {
                     return mCatalogName;
                 },
                 catalogSetter));
 
-        properties.put(PropertyIds.SCHEMANAME.getName(),
+        properties.put(PropertyID.SCHEMANAME,
             new PropertyWrapper(Type.STRING, attribute,
                 () -> {
                     return mSchemaName;
@@ -106,8 +106,8 @@ public abstract class TableMain
         return mSchemaName;
     }
 
-    protected NamedComponents getNamedComponents() {
-        return new NamedComponents(mCatalogName, mSchemaName, getName());
+    protected NamedComponent getNamedComponents() {
+        return new NamedComponent(mCatalogName, mSchemaName, getName());
     }
 
 }

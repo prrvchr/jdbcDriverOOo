@@ -30,18 +30,18 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.star.awt.FontDescriptor;
-import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
+import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.Provider;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
 
@@ -73,7 +73,7 @@ public final class Table
                  String type,
                  String remarks) {
         super(SERVICE, SERVICES, connection, sensitive, catalog, schema, name, type, remarks);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties();
     }
 
     // XXX: To keep access to logger in protected mode we need this access
@@ -86,16 +86,25 @@ public final class Table
         return (Connection) mConnection;
     }
 
+    // com.sun.star.sdbcx.XDataDescriptorFactory
+    public XPropertySet createDataDescriptor() {
+        TableDescriptor descriptor = new TableDescriptor(true);
+        synchronized (this) {
+            UnoHelper.copyProperties(this, descriptor);
+        }
+        return descriptor;
+    }
+
     @Override
     protected ColumnContainer getColumnContainer(List<ColumnDescription> descriptions)
             throws ElementExistException {
         return new ColumnContainer(this, isCaseSensitive(), descriptions);
     }
 
-    private void registerProperties(HashMap<String, PropertyWrapper> properties) {
-        short bound = PropertyAttribute.BOUND;
+    private void registerProperties() {
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<>();
 
-        properties.put(PropertyIds.APPLYFILTER.getName(),
+        properties.put(PropertyID.APPLYFILTER,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mApplyFilter;
@@ -104,7 +113,7 @@ public final class Table
                     mApplyFilter = (boolean) value;
                 }));
 
-        properties.put(PropertyIds.FILTER.getName(),
+        properties.put(PropertyID.FILTER,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mFilter;
@@ -113,7 +122,7 @@ public final class Table
                     mFilter = (String) value;
                 }));
 
-        properties.put(PropertyIds.FONTDESCRIPTOR.getName(),
+        properties.put(PropertyID.FONTDESCRIPTOR,
             new PropertyWrapper(new Type(FontDescriptor.class),
                 () -> {
                     return mFontDescriptor;
@@ -122,7 +131,7 @@ public final class Table
                     mFontDescriptor = (FontDescriptor) value;
                 }));
 
-        properties.put(PropertyIds.GROUPBY.getName(),
+        properties.put(PropertyID.GROUPBY,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mGroupBy;
@@ -131,7 +140,7 @@ public final class Table
                     mGroupBy = (String) value;
                 }));
 
-        properties.put(PropertyIds.HAVINGCLAUSE.getName(),
+        properties.put(PropertyID.HAVINGCLAUSE,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mHavingClause;
@@ -140,13 +149,13 @@ public final class Table
                     mHavingClause = (String) value;
                 }));
 
-        registerProperties(properties, bound);
+        registerProperties(properties);
     }
 
-    private void registerProperties(Map<String, PropertyWrapper> properties, short bound) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
 
-        properties.put(PropertyIds.ORDER.getName(),
-            new PropertyWrapper(Type.STRING, bound,
+        properties.put(PropertyID.ORDER,
+            new PropertyWrapper(Type.STRING,
                 () -> {
                     return mOrder;
                 },
@@ -154,7 +163,7 @@ public final class Table
                     mOrder = (String) value;
                 }));
 
-        properties.put(PropertyIds.ROWHEIGHT.getName(),
+        properties.put(PropertyID.ROWHEIGHT,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mRowHeight;
@@ -163,7 +172,7 @@ public final class Table
                     mRowHeight = (int) value;
                 }));
 
-        properties.put(PropertyIds.TEXTCOLOR.getName(),
+        properties.put(PropertyID.TEXTCOLOR,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mTextColor;
@@ -176,7 +185,7 @@ public final class Table
     }
 
     @Override
-    protected NamedComponents getNamedComponents() {
+    protected NamedComponent getNamedComponents() {
         return super.getNamedComponents();
     }
 
@@ -200,10 +209,11 @@ public final class Table
         try {
             System.out.println("scb.Table.getPrivileges() 1");
             if (mPrivileges == 0) {
-                Provider provider = getConnection().getProvider();
-                int privileges = PrivilegesHelper.getTablePrivileges(provider, getNamedComponents());
+                java.sql.DatabaseMetaData md = getConnection().getProvider().getConnection().getMetaData();
+                ConfigDCL config = getConnection().getProvider().getConfigDCL();
+                int privileges = config.getTablePrivileges(md, getNamedComponents());
                 if (privileges == 0) {
-                    privileges = provider.getConfigDCL().getMockPrivileges();
+                    privileges = config.getMockPrivileges();
                 }
                 mPrivileges = privileges;
             }
@@ -211,7 +221,7 @@ public final class Table
             return mPrivileges;
         } catch (java.sql.SQLException e) {
             System.out.println("scb.Table.getPrivileges() 2 ERROR ******************");
-            throw UnoHelper.getWrappedException(e);
+            throw DBTools.getWrappedException(e, this);
         }
     }
 

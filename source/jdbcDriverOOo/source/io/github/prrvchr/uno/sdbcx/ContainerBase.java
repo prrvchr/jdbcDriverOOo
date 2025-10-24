@@ -46,9 +46,9 @@ import com.sun.star.util.XRefreshable;
 
 import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.container.BiMapMain;
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -125,8 +125,7 @@ public abstract class ContainerBase<T extends Descriptor>
         try {
             removeElement(index);
         } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-            throw new SQLException(e.getMessage());
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -139,8 +138,7 @@ public abstract class ContainerBase<T extends Descriptor>
         try {
             removeElement(name, true);
         } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-            throw new SQLException(e.getMessage());
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -171,9 +169,8 @@ public abstract class ContainerBase<T extends Descriptor>
             }
 
             broadcastElementInserted(element, name);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new SQLException(e.getMessage());
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -190,8 +187,8 @@ public abstract class ContainerBase<T extends Descriptor>
     }
 
     // XXX: For all container but TableContainerMain has its own method
-    protected String getElementName(XPropertySet descriptor) {
-        return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+    protected String getElementName(XPropertySet descriptor) throws java.sql.SQLException {
+        return DBTools.getDescriptorStringValue(descriptor, PropertyID.NAME);
     }
 
     protected void replaceElement(String oldname, String newname) {

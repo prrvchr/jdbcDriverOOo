@@ -59,11 +59,11 @@ import com.sun.star.uno.XComponentContext;
 
 
 public class EventLogger {
-    protected XComponentContext m_xContext;
-    private static XLoggerPool m_xPool;
-    private static String m_service = "io.github.prrvchr.jdbcDriverOOo.LoggerPool";
-    private String m_name;
-    private XLogger m_xLogger;
+    private static XLoggerPool sPOOL;
+    private static String sSERVICE = "io.github.prrvchr.jdbcDriverOOo.LoggerPool";
+    protected XComponentContext mContext;
+    private String mName;
+    private XLogger mLogger;
     
     // The constructor method:
     public EventLogger(XComponentContext context)
@@ -83,60 +83,55 @@ public class EventLogger {
      */
     public EventLogger(XComponentContext context,
                        String name) {
-        m_xContext = context;
-        m_name = name;
-        if (m_xPool == null) {
-            m_xPool = _getLoggerPool();
+        mContext = context;
+        mName = name;
+        if (sPOOL == null) {
+            sPOOL = getLoggerPool();
         }
         if (!name.isEmpty()) {
-            m_xLogger = m_xPool.getNamedLogger(name);
-        }
-        else {
-            m_xLogger = m_xPool.getDefaultLogger();
+            mLogger = sPOOL.getNamedLogger(name);
+        } else {
+            mLogger = sPOOL.getDefaultLogger();
         }
     }
 
     /**
-     * Returns the name of the logger
+     * Returns the name of the logger.
+     * @return the name of the logger
      */
     public String getName() {
-        return m_name;
+        return mName;
     }
 
     /// Returns the current log level threshold of the logger.
     public int getLogLevel() {
+        int level = LogLevel.OFF;
         try {
-            if (m_xLogger != null) {
-                return m_xLogger.getLevel();
+            if (mLogger != null) {
+                level = mLogger.getLevel();
             }
-        }
-        catch (com.sun.star.uno.RuntimeException exception) {
-        }
-        return LogLevel.OFF;
+        } catch (Throwable e) { }
+        return level;
     }
 
     /// Sets a new log level threshold of the logger.
     void setLogLevel(int level) {
         try {
-            if (m_xLogger != null) {
-                m_xLogger.setLevel(level);
+            if (mLogger != null) {
+                mLogger.setLevel(level);
             }
-        }
-        catch (com.sun.star.uno.RuntimeException exception) {
-        }
+        } catch (Throwable e) { }
     }
 
     /// Determines whether an event with the given level would be logged.
     public boolean isLoggable(int level) {
-        if (m_xLogger == null) {
-            return false;
+        boolean loggable = false;
+        if (mLogger != null) {
+            try {
+                loggable = mLogger.isLoggable(level);
+            } catch (Throwable e) { }
         }
-        try {
-            return m_xLogger.isLoggable(level);
-        }
-        catch (com.sun.star.uno.RuntimeException exception) {
-        }
-        return false;
+        return loggable;
     }
 
     /**
@@ -146,54 +141,56 @@ public class EventLogger {
      * initialize themselves from the configuration, where usually, a default log handler
      * is specified. In this case, the logger will create and use this handler.
      *
+     * @param logHandler the handler to add
+     *
      * @return
      *   true if and only if the addition was successful (as far as this can be detected
      *   from outside the <code>XLogger</code>'s implementation.
      */
     public boolean addLogHandler(XLogHandler logHandler) {
-        try {
-            if (m_xLogger != null) {
-                m_xLogger.addLogHandler(logHandler);
-                return true;
-            }
+        boolean added = false;
+        if (mLogger != null) {
+            try {
+                mLogger.addLogHandler(logHandler);
+                added = true;
+            } catch (Throwable e) { }
         }
-        catch (com.sun.star.uno.RuntimeException exception) {
-        }
-        return false;
+        return added;
     }
 
     /** removes the given log handler from the logger's set of handlers.
+     *
+     * @param logHandler the handler to remove
      *
      * @return
      *   true if and only if the addition was successful (as far as this can be detected
      *   from outside the <code>XLogger</code>'s implementation.
      */
     public boolean removeLogHandler(XLogHandler logHandler) {
-        try {
-            if (m_xLogger != null) {
-                m_xLogger.removeLogHandler(logHandler);
-                return true;
-            }
+        boolean removed = false;
+        if (mLogger != null) {
+            try {
+                mLogger.removeLogHandler(logHandler);
+                removed = true;
+            } catch (Throwable e) { }
         }
-        catch (com.sun.star.uno.RuntimeException exception) {
-        }
-        return false;
+        return removed;
     }
 
     /**
      * Logs a given message with its arguments, without the caller's class and method.
      * @param level the log level
      * @param message the message to log
-     * @param arguments the arguments to log, which are converted to strings and replace $1$, $2$, up to $n$ in the message
+     * @param arguments the arguments to log, which are converted to strings
+     *        and replace $1$, $2$, up to $n$ in the message
      * @return whether logging succeeded
      */
-    public boolean log(int level,
-                       String message,
-                       Object... arguments) {
+    public boolean log(int level, String message, Object... arguments) {
+        boolean logged = false;
         if (isLoggable(level)) {
-            return _log(level, null, null, message, arguments);
+            logged = log(level, null, null, message, arguments);
         }
-        return false;
+        return logged;
     }
 
     /**
@@ -202,8 +199,7 @@ public class EventLogger {
      * @param exception the exception
      * @return whether logging succeeded
      */
-    public boolean log(int level,
-                       Throwable exception) {
+    public boolean log(int level, Throwable exception) {
         return log(level, "", exception);
     }
 
@@ -214,17 +210,16 @@ public class EventLogger {
      * @param exception the exception
      * @return whether logging succeeded
      */
-    public boolean log(int level,
-                       String message,
-                       Throwable exception) {
+    public boolean log(int level, String message, Throwable exception) {
+        boolean logged = false;
         if (isLoggable(level)) {
             StringWriter stringWriter = new StringWriter();
             PrintWriter printerWriter = new PrintWriter(stringWriter);
             exception.printStackTrace(printerWriter);
             message += "\n" + stringWriter.getBuffer().toString();
-            return _log(level, null, null, message);
+            logged = log(level, null, null, message);
         }
-        return false;
+        return logged;
     }
 
     /**
@@ -232,17 +227,17 @@ public class EventLogger {
      * taken from a (relatively costly!) stack trace.
      * @param level the log level
      * @param message the message to log
-     * @param arguments the arguments to log, which are converted to strings and replace $1$, $2$, up to $n$ in the message
+     * @param arguments the arguments to log, which are converted to strings
+     *        and replace $1$, $2$, up to $n$ in the message
      * @return whether logging succeeded
      */
-    public boolean logp(int level,
-                        String message,
-                        Object...arguments) {
+    public boolean logp(int level, String message, Object...arguments) {
+        boolean logged = false;
         if (isLoggable(level)) {
             StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
-            return _log(level, caller.getClassName(), caller.getMethodName(), message, arguments);
+            logged = log(level, caller.getClassName(), caller.getMethodName(), message, arguments);
         }
-        return false;
+        return logged;
     }
 
     /**
@@ -251,8 +246,7 @@ public class EventLogger {
      * @param exception the exception
      * @return whether logging succeeded
      */
-    public boolean logp(int level,
-                        Throwable exception) {
+    public boolean logp(int level, Throwable exception) {
         return logp(level, "", exception);
     }
 
@@ -263,56 +257,49 @@ public class EventLogger {
      * @param exception the exception
      * @return whether logging succeeded
      */
-    public boolean logp(int level,
-                        String message,
-                        Throwable exception) {
+    public boolean logp(int level, String message, Throwable exception) {
+        boolean logged = false;
         if (isLoggable(level)) {
             StringWriter stringWriter = new StringWriter();
             PrintWriter printerWriter = new PrintWriter(stringWriter);
             exception.printStackTrace(printerWriter);
             message += "\n" + stringWriter.getBuffer().toString();
             StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
-            return _log(level, caller.getClassName(), caller.getMethodName(), message);
+            logged = log(level, caller.getClassName(), caller.getMethodName(), message);
         }
-        return false;
+        return logged;
     }
 
-    protected boolean _log(int level,
-                           String clazz,
-                           String method,
-                           String message,
-                           Object... arguments) {
-        if (m_xLogger == null) {
-            return false;
-        }
-        if (arguments.length > 0) {
-            try {
-                message = String.format(message, arguments);
+    protected boolean log(int level, String clazz, String method, String message, Object... arguments) {
+        boolean logged = false;
+        if (mLogger != null) {
+            if (arguments.length > 0) {
+                try {
+                    message = String.format(message, arguments);
+                } catch (java.lang.Exception e) {
+                    System.out.println("EventLogger._log ERROR with message: " + message);
+                    // pass
+                }
             }
-            catch (java.lang.Exception e){
-                System.out.println("EventLogger._log ERROR with message: " + message);
-                // pass
+            if (clazz != null && method != null) {
+                mLogger.logp(level, clazz, method, message);
+            } else {
+                mLogger.log(level, message);
             }
+            logged = true;
         }
-        if (clazz != null && method != null) {
-            m_xLogger.logp(level, clazz, method, message);
-        }
-        else {
-            m_xLogger.log(level, message);
-        }
-        return true;
+        return logged;
     }
 
-    private XLoggerPool _getLoggerPool() {
+    private XLoggerPool getLoggerPool() {
         XLoggerPool pool = null;
         try {
-            Object object = m_xContext.getServiceManager().createInstanceWithContext(m_service, m_xContext);
+            Object object = mContext.getServiceManager().createInstanceWithContext(sSERVICE, mContext);
             pool = UnoRuntime.queryInterface(XLoggerPool.class, object);
-        }
-        catch (Exception e) {}
+        } catch (Exception e) { }
         if (pool == null) {
-            throw new DeploymentException("component context fails to supply singleton com.sun.star.logging.LoggerPool of type com.sun.star.logging.XLoggerPool",
-                                          m_xContext);
+            String msg = "Error: Component context fails to supply singleton css.logging.LoggerPool";
+            throw new DeploymentException(msg, mContext);
         }
         return pool;
     }

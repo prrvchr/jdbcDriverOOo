@@ -47,10 +47,10 @@ class OptionsManager():
         self._listener = TabListener(self)
         window.addEventListener(EventListener(self))
         self._model = OptionsModel(ctx)
-        self._view = OptionsView(ctx, window, self._listener, *self._model.getTabTitles())
-        restart = OptionsManager._restart
-        self._tab1 = Tab1Manager(ctx, self._view.getTab1(), restart, 0, 'Driver')
-        self._tab2 = Tab2Manager(ctx, self._view.getTab2(), restart)
+        url, instrumented, title1, title2 = self._model.getViewData()
+        self._view = OptionsView(ctx, window, self._listener, OptionsManager._restart, url, instrumented, title1, title2)
+        self._tab1 = Tab1Manager(ctx, self._view.getTab1(), instrumented, 'Driver')
+        self._tab2 = Tab2Manager(ctx, self._view.getTab2())
         self._tab1.initView()
         self._model.loadDriver()
 
@@ -73,8 +73,7 @@ class OptionsManager():
         reboot |= self._tab2.saveSetting()
         if reboot:
             OptionsManager._restart = True
-            self._tab1.setRestart(True)
-            self._tab2.setRestart(True)
+            self._view.setWarning(True, self._model.isInstrumented())
 
     def loadSetting(self):
         self._tab1.loadSetting()

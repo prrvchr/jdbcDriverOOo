@@ -39,46 +39,44 @@ public class Array
     extends WeakBase
     implements XArray {
 
-    private Object[] m_Array = null;
-    private String m_Type = null;
+    private Object[] mArray = null;
+    private String mType = null;
 
     // The constructor method:
     public Array(java.sql.Array array)
         throws SQLException {
         try {
-            m_Array = (Object[]) array.getArray();
-            m_Type = array.getBaseTypeName();
-        }
-        catch (java.sql.SQLException e) {
+            mArray = (Object[]) array.getArray();
+            mType = array.getBaseTypeName();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
         
     }
     public Array(Object[] array,
                  String type) {
-        m_Array = array;
-        m_Type = type;
+        mArray = array;
+        mType = type;
     }
 
     @Override
     public Object[] getArray(XNameAccess map)
         throws SQLException {
-        return m_Array;
+        return mArray;
     }
 
     @Override
     public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
         throws SQLException {
-        return Arrays.copyOfRange(m_Array, index, index + count);
+        return Arrays.copyOfRange(mArray, index, index + count);
     }
 
     @Override
     public int getBaseType()
         throws SQLException {
         try {
-            return UnoHelper.getConstantValue(DataType.class, m_Type);
-        }
-        catch (java.sql.SQLException e) {
+            return UnoHelper.getConstantValue(DataType.class, mType);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -86,7 +84,7 @@ public class Array
     @Override
     public String getBaseTypeName()
         throws SQLException {
-        return m_Type;
+        return mType;
     }
 
     @Override
@@ -100,6 +98,5 @@ public class Array
         throws SQLException {
         return null;
     }
-
 
 }

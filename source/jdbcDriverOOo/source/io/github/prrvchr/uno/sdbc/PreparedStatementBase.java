@@ -26,16 +26,16 @@
 package io.github.prrvchr.uno.sdbc;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Map;
 
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 public abstract class PreparedStatementBase
     extends PreparedStatementMain {
@@ -56,9 +56,9 @@ public abstract class PreparedStatementBase
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
 
-        properties.put(PropertyIds.USEBOOKMARKS.getName(),
+        properties.put(PropertyID.USEBOOKMARKS,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS,
@@ -78,7 +78,7 @@ public abstract class PreparedStatementBase
 
     @Override
     protected PreparedStatement getJdbcStatement()
-        throws java.sql.SQLException {
+        throws SQLException {
         checkDisposed();
         if (mStatement == null) {
             PreparedStatement statement;

@@ -29,7 +29,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 
 public final class IndexColumns
     extends ContainerBase<IndexColumn> {
@@ -79,7 +79,7 @@ public final class IndexColumns
             boolean isascending = true;
             final int COLUMN_NAME = 9;
             final int ASC_OR_DESC = 10;
-            NamedComponents component = mIndex.getTable().getNamedComponents();
+            NamedComponent component = mIndex.getTable().getNamedComponents();
             ConfigSQL config = getConnection().getProvider().getConfigSQL();
             String catalog = config.getMetaDataIdentifier(component.getCatalog());
             String schema = config.getMetaDataIdentifier(component.getSchema());
@@ -100,7 +100,7 @@ public final class IndexColumns
 
     @SuppressWarnings("unused")
     private IndexColumn createIndex(java.sql.DatabaseMetaData metadata,
-                                    NamedComponents table,
+                                    NamedComponent table,
                                     String name,
                                     boolean isascending) throws java.sql.SQLException {
         IndexColumn index = null;

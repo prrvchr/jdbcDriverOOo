@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.driver.config;
 
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,7 +36,6 @@ import java.util.Map;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
@@ -75,6 +75,7 @@ public class ConfigDDL extends ConfigSQL {
     private static final String DROP_INDEX_COMMAND = "DropIndexCommand";
     private static final String TABLE_DESCRIPTION_COMMAND = "TableDescriptionCommand";
     private static final String COLUMN_DESCRIPTION_COMMAND = "ColumnDescriptionCommand";
+    private static final String COLUMN_DESCRIPTION_QUERY = "ColumnDescriptionQuery";
     private static final String CREATE_INDEX_COMMAND = "CreateIndexCommand";
 
     private static final String ALTER_VIEW_COMMANDS = "AlterViewCommands";
@@ -91,7 +92,7 @@ public class ConfigDDL extends ConfigSQL {
                      final String url,
                      final DatabaseMetaData metadata,
                      final String subProtocol)
-        throws SQLException, java.sql.SQLException {
+        throws SQLException {
         super(config, opts, infos, url, metadata, subProtocol, false);
     }
 
@@ -365,6 +366,19 @@ public class ConfigDDL extends ConfigSQL {
         return query;
     }
 
+    public boolean hasColumnDescriptionQuery() {
+        return getColumnDescriptionQuery() != null;
+    }
+
+    public String getColumnDescriptionQuery(final Map<String, Object> keys) {
+        String query = null;
+        String command = getColumnDescriptionQuery();
+        if (command != null) {
+            query = format(command, keys);
+        }
+        return query;
+    }
+
     public String getAddIndexCommand(final Map<String, Object> keys,
                                      final boolean unique) {
         String command = null;
@@ -376,12 +390,22 @@ public class ConfigDDL extends ConfigSQL {
         return format(command, keys);
     }
 
-    public String getSystemVersioningColumnQuery(final List<String> columns)
-        throws java.sql.SQLException {
+    public String getDropIndexCommand(final Map<String, Object> keys,
+                                      final boolean unique) {
+        String command = null;
+        if (unique) {
+            command = getDropConstraintCommand();
+        } else {
+            command = getDropIndexCommand();
+        }
+        return format(command, keys);
+    }
+
+    public String getSystemVersioningColumnQuery(final Map<String, Object> keys)
+        throws SQLException {
         String query = null;
         String command = getSystemVersioningColumnCommand();
         if (command != null) {
-            Map<String, Object> keys = Map.of("ColumnNames", getIdentifiersAsString(columns));
             query = format(command, keys);
         }
         return query;
@@ -507,6 +531,10 @@ public class ConfigDDL extends ConfigSQL {
 
     private String getColumnDescriptionCommand() {
         return getPropertyString(COLUMN_DESCRIPTION_COMMAND);
+    }
+
+    private String getColumnDescriptionQuery() {
+        return getPropertyString(COLUMN_DESCRIPTION_QUERY);
     }
 
     private String[] getSystemVersioningCommands() {

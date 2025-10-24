@@ -31,13 +31,15 @@ import java.util.Iterator;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.logging.LogLevel;
 
+import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.container.BiMap;
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.RoleHelper;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdbcx.ContainerSuper;
 
@@ -113,7 +115,9 @@ public class UserContainer
         throws SQLException {
         String query = null;
         try {
-            query = RoleHelper.getCreateUserCommand(mConnection.getProvider(), descriptor, name, isCaseSensitive());
+            ConfigDCL config = mConnection.getProvider().getConfigDCL();
+            NamedSupport support = mConnection.getProvider().getNamedSupport();
+            query = RoleHelper.getCreateUserCommand(config, support, descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_CREATE_USER_QUERY, name, query);
             return DBTools.executeSQLQuery(mConnection.getProvider(), query);
@@ -140,7 +144,9 @@ public class UserContainer
         throws SQLException {
         String query = null;
         try {
-            query = RoleHelper.getDropUserCommand(mConnection.getProvider(), name, isCaseSensitive());
+            ConfigDCL config = mConnection.getProvider().getConfigDCL();
+            NamedSupport support = mConnection.getProvider().getNamedSupport();
+            query = RoleHelper.getDropUserCommand(config, support, name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer.removeDataBaseElement() 1 SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
             if (DBTools.executeSQLQuery(mConnection.getProvider(), query)) {

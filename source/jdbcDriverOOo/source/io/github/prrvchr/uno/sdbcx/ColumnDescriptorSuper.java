@@ -30,8 +30,8 @@ import java.util.Map;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 public abstract class ColumnDescriptorSuper
     extends ColumnDescriptorBase {
@@ -50,33 +50,33 @@ public abstract class ColumnDescriptorSuper
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
 
         // FIXME: Although these properties are not in the UNO API, they are claimed by
         // FIXME: LibreOffice/Base and necessary to obtain tables whose contents can be edited in Base
-        properties.put(PropertyIds.CATALOGNAME.getName(),
+        properties.put(PropertyID.CATALOGNAME,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mTable.getCatalogName();
                 },
                 null));
 
-        properties.put(PropertyIds.SCHEMANAME.getName(),
+        properties.put(PropertyID.SCHEMANAME,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mTable.getSchemaName();
                 },
                 null));
 
-        properties.put(PropertyIds.TABLENAME.getName(),
+        properties.put(PropertyID.TABLENAME,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mTable.getName();
                 },
                 null));
 
-        properties.put(PropertyIds.AUTOINCREMENTCREATION.getName(),
+        properties.put(PropertyID.AUTOINCREMENTCREATION,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mAutoIncrementCreation;

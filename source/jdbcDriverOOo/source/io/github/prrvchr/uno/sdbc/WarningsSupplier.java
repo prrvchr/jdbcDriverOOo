@@ -45,7 +45,7 @@ public final class WarningsSupplier {
     public static void clearWarnings(final Wrapper wrapper,
                                      final XInterface component)
         throws SQLException {
-        // FIXME: Statement performs lazy loading and the wrapper can be null!!!
+        // XXX: Statement performs lazy loading and the wrapper can be null!!!
         if (wrapper != null) {
             try {
                 if (wrapper.isWrapperFor(ResultSet.class)) {
@@ -66,44 +66,77 @@ public final class WarningsSupplier {
     }
 
     public static Object getWarnings(final Wrapper wrapper,
+                                     final java.sql.SQLWarning w,
                                      final XInterface component)
         throws SQLException {
-        java.sql.SQLWarning warning = null;
-        // FIXME: Statement performs lazy loading and the wrapper can be null!!!
-        if (wrapper != null) {
-            try {
-                if (wrapper.isWrapperFor(ResultSet.class)) {
-                    warning = wrapper.unwrap(ResultSet.class).getWarnings();
-                } else if (wrapper.isWrapperFor(CallableStatement.class)) {
-                    warning = wrapper.unwrap(CallableStatement.class).getWarnings();
-                } else if (wrapper.isWrapperFor(PreparedStatement.class)) {
-                    warning = wrapper.unwrap(PreparedStatement.class).getWarnings();
-                } else if (wrapper.isWrapperFor(Statement.class)) {
-                    warning = wrapper.unwrap(Statement.class).getWarnings();
-                } else if (wrapper.isWrapperFor(Connection.class)) {
-                    warning = wrapper.unwrap(Connection.class).getWarnings();
-                }
-            } catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, component);
-            }
-        }
-        return _getWarning(warning, component);
-    }
-
-    private static Object _getWarning(java.sql.SQLWarning w, XInterface component) {
         Object warning = Any.VOID;
-        if (w != null) {
-            warning = _getWarnings(w, component);
+        try {
+            java.sql.SQLWarning w1 = getWrappedWarnings(wrapper);
+            if (w1 != null) {
+                w.setNextWarning(w1);
+            }
+            warning = getWarnings(w, component);
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, component);
         }
         return warning;
     }
 
-    private static SQLWarning _getWarnings(java.sql.SQLWarning w, XInterface component) {
-        SQLWarning warning = new SQLWarning(w.getMessage());
-        warning.Context = component;
-        warning.SQLState = w.getSQLState();
+    public static Object getWarnings(final Wrapper wrapper,
+                                     final XInterface component)
+        throws SQLException {
+        Object warning = Any.VOID;
+        try {
+            java.sql.SQLWarning w = getWrappedWarnings(wrapper);
+            if (w != null) {
+                warning = getWarnings(w, component);
+            }
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, component);
+        }
+        return warning;
+    }
+
+    private static SQLWarning getWarnings(final java.sql.SQLWarning w,
+                                          final XInterface component) {
+        SQLWarning warning;
+        String msg = w.getLocalizedMessage();
+        if (msg != null) {
+            warning = new SQLWarning(msg);
+        } else {
+            warning = new SQLWarning();
+        }
+        if (component != null) {
+            warning.Context = component;
+        }
+        String state = w.getSQLState();
+        if (state != null) {
+            warning.SQLState = w.getSQLState();
+        }
         warning.ErrorCode = w.getErrorCode();
-        warning.NextException = _getWarning(w.getNextWarning(), component);
+        if (w.getNextWarning() != null) {
+            warning.NextException = getWarnings(w.getNextWarning(), component);
+        }
+        return warning;
+    }
+
+    private static java.sql.SQLWarning getWrappedWarnings(final Wrapper wrapper)
+        throws java.sql.SQLException {
+        java.sql.SQLWarning warning = null;
+        // XXX: Statement performs lazy loading and the wrapper can be null!!!
+        if (wrapper != null) {
+            if (wrapper.isWrapperFor(ResultSet.class)) {
+                warning = wrapper.unwrap(ResultSet.class).getWarnings();
+            } else if (wrapper.isWrapperFor(CallableStatement.class)) {
+                warning = wrapper.unwrap(CallableStatement.class).getWarnings();
+            } else if (wrapper.isWrapperFor(PreparedStatement.class)) {
+                warning = wrapper.unwrap(PreparedStatement.class).getWarnings();
+            } else if (wrapper.isWrapperFor(Statement.class)) {
+                warning = wrapper.unwrap(Statement.class).getWarnings();
+            } else if (wrapper.isWrapperFor(Connection.class)) {
+                warning = wrapper.unwrap(Connection.class).getWarnings();
+            }
+        }
         return warning;
     }
 

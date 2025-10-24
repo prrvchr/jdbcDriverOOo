@@ -40,8 +40,8 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -58,7 +58,7 @@ public abstract class CallableStatementBase
                                  String[] services,
                                  ConnectionBase connection,
                                  String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         super(service, services, connection);
         mQuery = new QueryHelper(connection.getProvider(), sql);
         System.out.println("sdbc.BaseCallableStatement() 1: '" + sql + "'");
@@ -198,7 +198,7 @@ public abstract class CallableStatementBase
             Date date = new Date();
             java.sql.Date value = getJdbcStatement().getDate(index);
             if (value != null) {
-                date = UnoHelper.getUnoDate(value.toLocalDate());
+                date = UnoHelper.getDate(value.toLocalDate());
             }
             return date;
         } catch (java.sql.SQLException e) {
@@ -247,7 +247,7 @@ public abstract class CallableStatementBase
         try {
             return DBTools.getObject(getJdbcStatement().getObject(index));
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getLoggedSQLException(this, getLogger(), e);
+            throw DBTools.getLoggedSQLException(e, this, getLogger());
         }
     }
 
@@ -293,7 +293,7 @@ public abstract class CallableStatementBase
             Time time = new Time();
             java.sql.Time value = getJdbcStatement().getTime(index);
             if (value != null) {
-                time = UnoHelper.getUnoTime(value.toLocalTime());
+                time = UnoHelper.getTime(value.toLocalTime());
             }
             return time;
         } catch (java.sql.SQLException e) {
@@ -307,7 +307,7 @@ public abstract class CallableStatementBase
             DateTime datetime = new DateTime();
             java.sql.Timestamp value = getJdbcStatement().getTimestamp(index);
             if (value != null) {
-                datetime = UnoHelper.getUnoDateTime(value.toLocalDateTime());
+                datetime = UnoHelper.getDateTime(value.toLocalDateTime());
             }
             return datetime;
         } catch (java.sql.SQLException e) {

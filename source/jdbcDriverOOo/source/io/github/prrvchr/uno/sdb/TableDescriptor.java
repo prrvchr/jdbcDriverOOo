@@ -32,8 +32,8 @@ import com.sun.star.awt.FontDescriptor;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbcx.TableDescriptorSuper;
 
 
@@ -65,11 +65,11 @@ public final class TableDescriptor
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
-        short bound = PropertyAttribute.BOUND;
+
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.APPLYFILTER.getName(),
+        properties.put(PropertyID.APPLYFILTER,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mApplyFilter;
@@ -78,7 +78,7 @@ public final class TableDescriptor
                     mApplyFilter = (boolean) value;
                 }));
 
-        properties.put(PropertyIds.FILTER.getName(),
+        properties.put(PropertyID.FILTER,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mFilter;
@@ -87,7 +87,7 @@ public final class TableDescriptor
                     mFilter = (String) value;
                 }));
 
-        properties.put(PropertyIds.FONTDESCRIPTOR.getName(),
+        properties.put(PropertyID.FONTDESCRIPTOR,
             new PropertyWrapper(new Type(FontDescriptor.class),
                 () -> {
                     return mFontDescriptor;
@@ -96,7 +96,7 @@ public final class TableDescriptor
                     mFontDescriptor = (FontDescriptor) value;
                 }));
 
-        properties.put(PropertyIds.GROUPBY.getName(),
+        properties.put(PropertyID.GROUPBY,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mGroupBy;
@@ -105,7 +105,7 @@ public final class TableDescriptor
                     mGroupBy = (String) value;
                 }));
 
-        properties.put(PropertyIds.HAVINGCLAUSE.getName(),
+        properties.put(PropertyID.HAVINGCLAUSE,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mHavingClause;
@@ -114,14 +114,13 @@ public final class TableDescriptor
                     mHavingClause = (String) value;
                 }));
 
-        registerProperties(properties, bound, readonly);
+        registerProperties(properties, readonly);
     }
 
-    private void registerProperties(Map<String, PropertyWrapper> properties, short bound, short readonly) {
+    private void registerProperties(Map<PropertyID, PropertyWrapper> properties, short readonly) {
 
-
-        properties.put(PropertyIds.ORDER.getName(),
-            new PropertyWrapper(Type.STRING, bound,
+        properties.put(PropertyID.ORDER,
+            new PropertyWrapper(Type.STRING,
                 () -> {
                     return mOrder;
                 },
@@ -129,7 +128,7 @@ public final class TableDescriptor
                     mOrder = (String) value;
                 }));
 
-        properties.put(PropertyIds.PRIVILEGES.getName(),
+        properties.put(PropertyID.PRIVILEGES,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     System.out.println("sdb.Table.getPrivileges() 1 Privileges: " + mPrivileges);
@@ -139,7 +138,7 @@ public final class TableDescriptor
                     mPrivileges = (int) value;
                 }));
 
-        properties.put(PropertyIds.ROWHEIGHT.getName(),
+        properties.put(PropertyID.ROWHEIGHT,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mRowHeight;
@@ -148,7 +147,7 @@ public final class TableDescriptor
                     mRowHeight = (int) value;
                 }));
 
-        properties.put(PropertyIds.TEXTCOLOR.getName(),
+        properties.put(PropertyID.TEXTCOLOR,
             new PropertyWrapper(Type.LONG,
                 () -> {
                     return mTextColor;

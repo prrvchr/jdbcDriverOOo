@@ -1162,7 +1162,7 @@ public class CachedRowSetImpl
         }
 
         Row row = (Row) getCurrentRow();
-        if (!row.getInserted()) {
+        if (!row.getInserted() && !row.getCreated()) {
             throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.illegalop").toString());
         }
 
@@ -4009,7 +4009,7 @@ public class CachedRowSetImpl
      * @return <code>true</code> if a row has been created;
      *         <code>false</code> otherwise
      * @throws SQLException if the cursor is on the insert row or not
-     *            not on a valid row
+     *          on a valid row
      *
      */
     public boolean rowCreated() throws SQLException {
@@ -4028,7 +4028,7 @@ public class CachedRowSetImpl
      * @return <code>true</code> if a row has been inserted and inserts are detected;
      *         <code>false</code> otherwise
      * @throws SQLException if the cursor is on the insert row or not
-     *            not on a valid row
+     *          on a valid row
      *
      * @see DatabaseMetaData#insertsAreDetected
      */
@@ -4038,6 +4038,7 @@ public class CachedRowSetImpl
         if (onInsertRow) {
             throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.invalidop").toString());
         }
+
         Row row = (Row) getCurrentRow();
         return row.getInserted() || row.getCreated();
     }
@@ -4052,16 +4053,17 @@ public class CachedRowSetImpl
      * @return <code>true</code> if (1)the current row is blank, indicating that
      *         the row has been deleted, and (2)deletions are detected;
      *         <code>false</code> otherwise
-     * @throws SQLException if the cursor is on a valid row in this rowset
+     * @throws SQLException if the cursor is on the insert row or not
+     *          on a valid row
      * @see DatabaseMetaData#deletesAreDetected
      */
     public boolean rowDeleted() throws SQLException {
         // make sure the cursor is on a valid row
-
-        if (isAfterLast() || isBeforeFirst() || onInsertRow) {
-
-            throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.invalidcp").toString());
+        checkCursor();
+        if (onInsertRow) {
+            throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.invalidop").toString());
         }
+
         Row row = (Row) getCurrentRow();
         return row.getDeleted() || row.getRemoved();
     }
@@ -4076,16 +4078,17 @@ public class CachedRowSetImpl
      * @return <code>true</code> if (1)the current row is blank, indicating that
      *         the row has been deleted, and (2)deletions are detected;
      *         <code>false</code> otherwise
-     * @throws SQLException if the cursor is on a valid row in this rowset
+     * @throws SQLException if the cursor is on the insert row or not
+     *          on a valid row
      * @see DatabaseMetaData#deletesAreDetected
      */
     public boolean rowRemoved() throws SQLException {
         // make sure the cursor is on a valid row
-
-        if (isAfterLast() || isBeforeFirst() || onInsertRow) {
-
-            throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.invalidcp").toString());
+        checkCursor();
+        if (onInsertRow) {
+            throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.invalidop").toString());
         }
+
         return ((Row) getCurrentRow()).getRemoved();
     }
     /**

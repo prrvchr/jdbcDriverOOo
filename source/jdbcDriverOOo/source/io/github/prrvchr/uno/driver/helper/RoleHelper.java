@@ -49,17 +49,21 @@ import java.util.Map;
 
 import com.sun.star.beans.XPropertySet;
 
-import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.config.ParameterDCL;
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public class RoleHelper {
 
     /** creates a SQL CREATE USER statement.
      *
-     * @param provider
-     *    The driver provider.
+     * @param config
+     *    The DCL configuration.
+     * @param support
+     *    The named component support.
      * @param descriptor
      *    The descriptor of the new user.
      * @param user
@@ -71,20 +75,23 @@ public class RoleHelper {
      *   The CREATE USER statement.
      * @throws java.sql.SQLException 
      */
-    public static String getCreateUserCommand(Provider provider,
+    public static String getCreateUserCommand(ConfigDCL config,
+                                              NamedSupport support,
                                               XPropertySet descriptor,
                                               String user,
                                               boolean sensitive)
         throws java.sql.SQLException {
-        String password = DBTools.getDescriptorStringValue(descriptor, PropertyIds.PASSWORD);
-        Map<String, Object> arguments = ParameterDCL.getUserArguments(provider, user, password, sensitive);
-        return provider.getConfigDCL().getCreateUserCommand(arguments);
+        String password = DBTools.getDescriptorStringValue(descriptor, PropertyID.PASSWORD);
+        Map<String, Object> arguments = ParameterDCL.getUserArguments(support, user, password, sensitive);
+        return config.getCreateUserCommand(arguments);
     }
 
     /** creates a SQL DROP USER statement.
      *
-     * @param provider
-     *    The driver provider.
+     * @param config
+     *    The DCL configuration.
+     * @param support
+     *    The named component support.
      * @param name
      *    The name of the user.
      * @param sensitive
@@ -94,18 +101,21 @@ public class RoleHelper {
      *   The DROP USER statement.
      * @throws java.sql.SQLException 
      */
-    public static String getDropUserCommand(Provider provider,
+    public static String getDropUserCommand(ConfigDCL config,
+                                            NamedSupport support,
                                             String name,
                                             boolean sensitive)
         throws java.sql.SQLException {
-        name = provider.enquoteIdentifier(name, sensitive);
-        return provider.getConfigDCL().getDropUserCommand(name);
+        name = support.enquoteIdentifier(name, sensitive);
+        return config.getDropUserCommand(name);
     }
 
     /** creates a SQL ALTER USER SET PASSWORD statement.
      *
-     * @param provider
-     *    The driver provider.
+     * @param config
+     *    The DCL configuration.
+     * @param support
+     *    The named component support.
      * @param user
      *    The name of the user.
      * @param password
@@ -117,19 +127,22 @@ public class RoleHelper {
      *   The ALTER USER SET PASSWORD statement.
      * @throws java.sql.SQLException 
      */
-    public static String getChangeUserPasswordCommand(Provider provider,
+    public static String getChangeUserPasswordCommand(ConfigDCL config,
+                                                      NamedSupport support,
                                                       String user,
                                                       String password,
                                                       boolean sensitive)
         throws java.sql.SQLException {
-        Map<String, Object> arguments = ParameterDCL.getUserArguments(provider, user, password, sensitive);
-        return provider.getConfigDCL().getAlterUserCommand(arguments);
+        Map<String, Object> arguments = ParameterDCL.getUserArguments(support, user, password, sensitive);
+        return config.getAlterUserCommand(arguments);
     }
 
     /** creates a SQL CREATE ROLE statement.
      *
-     * @param provider
-     *    The driver provider.
+     * @param config
+     *    The DCL configuration.
+     * @param support
+     *    The named component support.
      * @param descriptor
      *    The descriptor of the new group.
      * @param name
@@ -141,19 +154,22 @@ public class RoleHelper {
      *   The CREATE ROLE statement.
      * @throws java.sql.SQLException 
      */
-    public static String getCreateGroupCommand(Provider provider,
+    public static String getCreateGroupCommand(ConfigDCL config,
+                                               NamedSupport support,
                                                XPropertySet descriptor,
                                                String name,
                                                boolean sensitive)
         throws java.sql.SQLException {
-        name = provider.enquoteIdentifier(name, sensitive);
-        return provider.getConfigDCL().getCreateRoleCommand(name);
+        Map<String, Object> arguments = ParameterDCL.getGroupArguments(support, name, sensitive);
+        return config.getCreateRoleCommand(arguments);
     }
 
     /** creates a SQL DROP ROLE statement.
      *
-     * @param provider
-     *    The driver provider.
+     * @param config
+     *    The DCL configuration.
+     * @param support
+     *    The named component support.
      * @param name
      *    The name of the role.
      * @param sensitive
@@ -163,18 +179,21 @@ public class RoleHelper {
      *   The DROP ROLE statement.
      * @throws java.sql.SQLException 
      */
-    public static String getDropGroupCommand(Provider provider,
+    public static String getDropGroupCommand(ConfigDCL config,
+                                             NamedSupport support,
                                              String name,
                                              boolean sensitive)
         throws java.sql.SQLException {
-        name = provider.enquoteIdentifier(name, sensitive);
-        return provider.getConfigDCL().getDropRoleCommand(name);
+        Map<String, Object> arguments = ParameterDCL.getGroupArguments(support, name, sensitive);
+        return config.getDropRoleCommand(arguments);
     }
 
     /** creates a SQL GRANT ROLE statement.
      *
-     * @param provider
-     *    The driver provider.
+     * @param config
+     *    The DCL configuration.
+     * @param support
+     *    The named component support.
      * @param grantor
      *    The granted role.
      * @param role
@@ -188,21 +207,24 @@ public class RoleHelper {
      *   The GRANT ROLE statement.
      * @throws java.sql.SQLException 
      */
-    public static String getGrantRoleCommand(Provider provider,
+    public static String getGrantRoleCommand(ConfigDCL config,
+                                             NamedSupport support,
                                              String grantor,
                                              String role,
                                              String grantee,
                                              boolean sensitive)
         throws java.sql.SQLException {
-        grantor = provider.enquoteIdentifier(grantor, sensitive);
-        grantee = provider.enquoteIdentifier(grantee, sensitive);
-        return provider.getConfigDCL().getGrantRoleCommand(grantor, role, grantee);
+        grantor = support.enquoteIdentifier(grantor, sensitive);
+        grantee = support.enquoteIdentifier(grantee, sensitive);
+        return config.getGrantRoleCommand(grantor, role, grantee);
     }
 
     /** creates a SQL REVOKE ROLE statement.
      *
-     * @param provider
-     *    The driver provider.
+     * @param config
+     *    The DCL configuration.
+     * @param support
+     *    The named component support.
      * @param grantor
      *    The granted role.
      * @param role
@@ -216,15 +238,16 @@ public class RoleHelper {
      *   The REVOKE ROLE statement.
      * @throws java.sql.SQLException 
      */
-    public static String getRevokeRoleCommand(Provider provider,
+    public static String getRevokeRoleCommand(ConfigDCL config,
+                                              NamedSupport support,
                                               String grantor,
                                               String role,
                                               String grantee,
                                               boolean sensitive)
         throws java.sql.SQLException {
-        grantor = provider.enquoteIdentifier(grantor, sensitive);
-        grantee = provider.enquoteIdentifier(grantee, sensitive);
-        return provider.getConfigDCL().getRevokeRoleCommand(grantor, role, grantee);
+        grantor = support.enquoteIdentifier(grantor, sensitive);
+        grantee = support.enquoteIdentifier(grantee, sensitive);
+        return config.getRevokeRoleCommand(grantor, role, grantee);
     }
 
 }

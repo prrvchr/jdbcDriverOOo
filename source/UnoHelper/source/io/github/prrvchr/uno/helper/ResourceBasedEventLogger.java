@@ -56,14 +56,14 @@ import com.sun.star.uno.XComponentContext;
 
 public class ResourceBasedEventLogger
     extends EventLogger {
-    private String m_basename;
-    private String m_identifier;
-    private String m_path;
-    private OfficeResourceBundle m_Bundle;
+    private String mBasename;
+    private String mIdentifier;
+    private String mPath;
+    private OfficeResourceBundle mBundle;
 
     // The constructor method:
     public ResourceBasedEventLogger(ResourceBasedEventLogger logger) {
-        this(logger.m_xContext, logger.m_identifier, logger.m_path, logger.m_basename, logger.getName());
+        this(logger.mContext, logger.mIdentifier, logger.mPath, logger.mBasename, logger.getName());
     }
     public ResourceBasedEventLogger(XComponentContext context,
                                     String identifier,
@@ -71,13 +71,12 @@ public class ResourceBasedEventLogger
                                     String basename,
                                     String logger) {
         super(context, logger);
-        m_identifier = identifier;
-        m_path = path;
-        m_basename = basename;
+        mIdentifier = identifier;
+        mPath = path;
+        mBasename = basename;
         try {
-            m_Bundle = new OfficeResourceBundle(context, identifier, path, basename);
-        }
-        catch (NullPointerException e) {
+            mBundle = new OfficeResourceBundle(context, identifier, path, basename);
+        } catch (NullPointerException e) {
             throw new RuntimeException(e);
         }
     }
@@ -88,19 +87,19 @@ public class ResourceBasedEventLogger
      * @param message the message to log
      * @return whether logging succeeded
      */
-    public boolean log(int level,
-                       String message) {
+    public boolean log(int level, String message) {
+        boolean logged = false;
         if (isLoggable(level)) {
-            return _log(level, null, null, message);
+            logged = log(level, null, null, message);
         }
-        return false;
+        return logged;
     }
 
     /**
      * Logs a given message with its arguments, with the caller's class and method
      * taken from a (relatively costly!) stack trace.
      * @param level the log level
-     * @param class name who log this message
+     * @param cls name who log this message
      * @param method name who log this message
      * @param message the message to log
      * @return whether logging succeeded
@@ -109,26 +108,29 @@ public class ResourceBasedEventLogger
                         String cls,
                         String method,
                         String message) {
+        boolean logged = false;
         if (isLoggable(level)) {
-            return _log(level, cls, method, message);
+            logged = log(level, cls, method, message);
         }
-        return false;
+        return logged;
     }
 
     /**
      * Logs a given resource bundle id with its arguments, without the caller's class and method.
      * @param level the log level
      * @param id the resource ID of the message to log
-     * @param arguments the arguments to log, which are converted to strings and replace $1$, $2$, up to $n$ in the message
+     * @param arguments the arguments to log, which are converted to strings and
+     *        replace $1$, $2$, up to $n$ in the message
      * @return whether logging succeeded
      */
     public boolean logrb(int level,
                          int id,
                          Object... arguments) {
+        boolean logged = false;
         if (isLoggable(level)) {
-            return _log(level, null, null, loadStringMessage(id), arguments);
+            logged = log(level, null, null, loadStringMessage(id), arguments);
         }
-        return false;
+        return logged;
     }
 
     /**
@@ -136,17 +138,19 @@ public class ResourceBasedEventLogger
      * taken from a (relatively costly!) stack trace.
      * @param level the log level
      * @param id the resource ID of the message to log
-     * @param arguments the arguments to log, which are converted to strings and replace $1$, $2$, up to $n$ in the message
+     * @param arguments the arguments to log, which are converted to strings and
+     *        replace $1$, $2$, up to $n$ in the message
      * @return whether logging succeeded
      */
     public boolean logprb(int level,
                         int id,
                         Object... arguments) {
+        boolean logged = false;
         if (isLoggable(level)) {
             StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
-            return _log(level, caller.getClassName(), caller.getMethodName(), loadStringMessage(id), arguments);
+            logged = log(level, caller.getClassName(), caller.getMethodName(), loadStringMessage(id), arguments);
         }
-        return false;
+        return logged;
     }
 
 
@@ -154,10 +158,11 @@ public class ResourceBasedEventLogger
      * Logs a given message with its arguments, with the caller's class and method
      * taken from a (relatively costly!) stack trace.
      * @param level the log level
-     * @param class name who log this message
+     * @param cls name who log this message
      * @param method name who log this message
      * @param id the resource string id to log
-     * @param arguments the arguments to log, which are converted to strings and replace $1$, $2$, up to $n$ in the message
+     * @param arguments the arguments to log, which are converted to strings and
+     *        replace $1$, $2$, up to $n$ in the message
      * @return whether logging succeeded
      */
     public boolean logprb(int level,
@@ -165,20 +170,22 @@ public class ResourceBasedEventLogger
                           String method,
                           int id,
                           Object...arguments) {
+        boolean logged = false;
         if (isLoggable(level)) {
-            return _log(level, cls, method, loadStringMessage(id), arguments);
+            logged = log(level, cls, method, loadStringMessage(id), arguments);
         }
-        return false;
+        return logged;
     }
 
     protected boolean logprb(int level,
                              StackTraceElement caller,
                              int id,
                              Object... arguments) {
+        boolean logged = false;
         if (isLoggable(level)) {
-            return _log(level, caller.getClassName(), caller.getMethodName(), loadStringMessage(id), arguments);
+            logged = log(level, caller.getClassName(), caller.getMethodName(), loadStringMessage(id), arguments);
         }
-        return false;
+        return logged;
     }
 
     public String getStringResource(int id, Object... arguments) {
@@ -186,8 +193,7 @@ public class ResourceBasedEventLogger
         if (arguments.length > 0) {
             try {
                 message = String.format(message, arguments);
-            }
-            catch (java.lang.Exception e) {
+            } catch (java.lang.Exception e) {
                 // pass
             }
         }
@@ -197,12 +203,12 @@ public class ResourceBasedEventLogger
     private String loadStringMessage(int id) {
         String message;
         try {
-            message = m_Bundle.loadString(id);
-        }
-        catch (MissingResourceException | Exception e) {
+            message = mBundle.loadString(id);
+        } catch (MissingResourceException | Exception e) {
             StringWriter writer = new StringWriter();
             e.printStackTrace(new PrintWriter(writer));
-            message = String.format("<invalid event resource: '%s:%d'>\n%s", m_basename, id, writer.getBuffer().toString());
+            String pattern = "<invalid event resource: '%s:%d'>\n%s";
+            message = String.format(pattern, mBasename, id, writer.getBuffer().toString());
         }
         return message;
     }

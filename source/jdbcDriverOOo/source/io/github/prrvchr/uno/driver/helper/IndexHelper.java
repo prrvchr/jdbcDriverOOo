@@ -34,26 +34,24 @@ import java.util.List;
 import com.sun.star.sdbc.IndexType;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.sdbcx.Index;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
 public class IndexHelper {
 
-    public static String[] readIndexes(Provider provider,
-                                       NamedComponents component,
+    public static String[] readIndexes(ConfigSQL config,
+                                       DatabaseMetaData metadata,
+                                       NamedComponent component,
                                        boolean qualified)
         throws java.sql.SQLException {
         List<String> names = new ArrayList<>();
-        DatabaseMetaData metadata = provider.getConnection().getMetaData();
         String separator = metadata.getCatalogSeparator();
-        ConfigSQL config = provider.getConfigSQL();
-        try (java.sql.ResultSet result = metadata.getIndexInfo(config.getMetaDataIdentifier(component.getCatalog()),
-                                                               config.getMetaDataIdentifier(component.getSchema()),
-                                                               config.getMetaDataIdentifier(component.getTable()),
-                                                               false, false)) {
+        String catalog = config.getMetaDataIdentifier(component.getCatalog());
+        String schema = config.getMetaDataIdentifier(component.getSchema());
+        String table = config.getMetaDataIdentifier(component.getTable());
+        try (java.sql.ResultSet result = metadata.getIndexInfo(catalog, schema, table, false, false)) {
             String name;
             String previous = "";
             final int INDEX_QUALIFIER = 5;
@@ -83,7 +81,7 @@ public class IndexHelper {
     }
 
     public static boolean isPrimaryKeyIndex(java.sql.DatabaseMetaData metadata,
-                                            NamedComponents table,
+                                            NamedComponent table,
                                             String name)
         throws java.sql.SQLException {
         boolean primary = false;
@@ -98,16 +96,16 @@ public class IndexHelper {
         return primary;
     }
 
-    public static Index createIndex(Provider provider,
+    public static Index createIndex(ConfigSQL config,
                                     DatabaseMetaData metadata,
                                     TableSuper table,
-                                    NamedComponents component,
+                                    NamedComponent component,
                                     String qualifier,
                                     String subname,
                                     boolean sensitive)
         throws SQLException {
         Index index = null;
-        IndexProperties properties = getIndexProperties(provider, metadata, component, qualifier, subname);
+        IndexProperties properties = getIndexProperties(config, metadata, component, qualifier, subname);
         if (properties != null) {
             Boolean primary = isPrimaryKeyIndex(metadata, component, subname);
             index = new Index(table, sensitive, subname, qualifier, properties.isUnique(),
@@ -117,9 +115,9 @@ public class IndexHelper {
         
     }
 
-    public static IndexProperties getIndexProperties(Provider provider,
+    public static IndexProperties getIndexProperties(ConfigSQL config,
                                                      DatabaseMetaData metadata,
-                                                     NamedComponents table,
+                                                     NamedComponent table,
                                                      String qualifier,
                                                      String subname)
         throws java.sql.SQLException {
@@ -130,7 +128,6 @@ public class IndexHelper {
         final int INDEX_NAME = 6;
         final int TYPE = 7;
         final int COLUMN_NAME = 9;
-        ConfigSQL config = provider.getConfigSQL();
         String catalog = config.getMetaDataIdentifier(table.getCatalog());
         String schema = config.getMetaDataIdentifier(table.getSchema());
         String name = config.getMetaDataIdentifier(table.getTable());

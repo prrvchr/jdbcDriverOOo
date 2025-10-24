@@ -24,13 +24,13 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
+<!DOCTYPE oor:component-schema SYSTEM "component-schema.dtd">
 <oor:component-schema
-  xml:lang="en-US"
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   oor:package="io.github.prrvchr"
-  oor:name="jdbcDriverOOo">
+  oor:name="jdbcDriverOOo"
+  xml:lang="en-US">
   <component>
     <prop oor:name="ApiLevel" oor:type="xs:short"/>
     <prop oor:name="CachedRowSet" oor:type="xs:short"/>
@@ -41,3 +41,4 @@
     <prop oor:name="AdminGridOrders" oor:type="xs:string"/>
   </component>
 </oor:component-schema>
+

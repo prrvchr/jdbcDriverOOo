@@ -54,7 +54,8 @@ import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
+import io.github.prrvchr.uno.driver.provider.DBTools;
 import io.github.prrvchr.uno.driver.resultset.ResultSetWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
@@ -68,29 +69,30 @@ public class GeneratedKeys {
     // XXX: Method called from sdbc.CallableStatement.getGeneratedValues()
     // XXX: Method called from sdbc.PreparedStatement.getGeneratedValues()
     // XXX: Method called from sdbc.Statement.getGeneratedValues()
-    public static final java.sql.ResultSet getGeneratedResult(Provider provider,
+    public static final java.sql.ResultSet getGeneratedResult(ConfigSQL config,
                                                               Statement statement,
                                                               QueryHelper query)
         throws SQLException {
         java.sql.ResultSet result = null;
         try {
-            if (provider.getConfigSQL().isAutoRetrievingEnabled()) {
-                DatabaseMetaData metadata = provider.getConnection().getMetaData();
+            if (config.isAutoRetrievingEnabled()) {
+                DatabaseMetaData metadata = statement.getConnection().getMetaData();
                 String[] columns = getTableColumns(metadata, query);
                 if (columns != null) {
                     result = statement.getGeneratedKeys();
                     if (!isResultSetValid(result.getMetaData(), columns)) {
                         List<String> keys = getTableKeys(metadata, query);
-                        Map<String, Map<Object, Integer>> predicates = getKeyPredicates(provider, result, keys);
-                        result = getGeneratedResult(provider, predicates, query.getTableIdentifier());
+                        Map<String, Map<Object, Integer>> predicates = getKeyPredicates(config, result, keys);
+                        result = getGeneratedResult(config, statement.getConnection(),
+                                                    predicates, query.getTableIdentifier());
                     }
                 }
             }
             if (result == null) {
-                result = getDefaultGeneratedResult(provider, query);
+                result = getDefaultGeneratedResult(config, statement.getConnection(), query);
             }
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e);
+            throw DBTools.getSQLException(e);
         }
         return result;
     }
@@ -98,29 +100,30 @@ public class GeneratedKeys {
     // XXX: Method called from sdbcx.CallableStatementSuper.getGeneratedValues()
     // XXX: Method called from sdbcx.PreparedStatementSuper.getGeneratedValues()
     // XXX: Method called from sdbcx.StatementSuper.getGeneratedValues()
-    public static final java.sql.ResultSet getGeneratedResult(Provider provider,
+    public static final java.sql.ResultSet getGeneratedResult(ConfigSQL config,
                                                               ConnectionSuper connection,
                                                               Statement statement,
                                                               QueryHelper query)
         throws SQLException {
         java.sql.ResultSet result = null;
         try {
-            if (provider.getConfigSQL().isAutoRetrievingEnabled()) {
+            if (config.isAutoRetrievingEnabled()) {
                 String[] columns = getTableColumns(connection, query);
                 if (columns != null) {
                     result = statement.getGeneratedKeys();
                     if (!isResultSetValid(result.getMetaData(), columns)) {
                         List<String> keys = getTableKeys(connection, query);
-                        Map<String, Map<Object, Integer>> predicates = getKeyPredicates(provider, result, keys);
-                        result = getGeneratedResult(provider, predicates, query.getTableIdentifier());
+                        Map<String, Map<Object, Integer>> predicates = getKeyPredicates(config, result, keys);
+                        result = getGeneratedResult(config, statement.getConnection(),
+                                                    predicates, query.getTableIdentifier());
                     }
                 }
             }
             if (result == null) {
-                result = getDefaultGeneratedResult(provider, query);
+                result = getDefaultGeneratedResult(config, statement.getConnection(), query);
             }
         } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e);
+            throw UnoHelper.getSQLException(e, connection);
         }
         return result;
     }
@@ -231,7 +234,8 @@ public class GeneratedKeys {
         return keys;
     }
 
-    private static ResultSet getGeneratedResult(Provider provider,
+    private static ResultSet getGeneratedResult(ConfigSQL config,
+                                                java.sql.Connection connection,
                                                 Map<String, Map<Object, Integer>> predicates,
                                                 String table)
         throws SQLException {
@@ -245,8 +249,8 @@ public class GeneratedKeys {
                     params.putAll(entry.getValue());
                 }
                 // XXX: If we want to follow the UNO API we must return all the columns of the table
-                String query = provider.getConfigSQL().getGeneratedKeyQuery(table, whereClause.toString());
-                PreparedStatement prepared = provider.getConnection().prepareStatement(query);
+                String query = config.getGeneratedKeyQuery(table, whereClause.toString());
+                PreparedStatement prepared = connection.prepareStatement(query);
                 setStatementParams(prepared, params);
                 // XXX: The statement will be wrapped in order to be closed correctly when closing the ResultSet.
                 resultset = new ResultSetWrapper(prepared);
@@ -257,7 +261,7 @@ public class GeneratedKeys {
         }
     }
 
-    private static Map<String, Map<Object, Integer>> getKeyPredicates(Provider provider,
+    private static Map<String, Map<Object, Integer>> getKeyPredicates(ConfigSQL config,
                                                                       ResultSet result,
                                                                       List<String> keys)
         throws java.sql.SQLException {
@@ -274,7 +278,7 @@ public class GeneratedKeys {
                     if (!keys.contains(name) && i < keys.size()) {
                         name = keys.get(index++);
                     }
-                    predicate.add(provider.enquoteIdentifier(name) + " = ?");
+                    predicate.add(config.enquoteIdentifier(name) + " = ?");
                     int type = metadata.getColumnType(i);
                     params.put(getResultSetValue(result, i, type), type);
                 }
@@ -359,7 +363,7 @@ public class GeneratedKeys {
     }
 
     private static void setStatementParams(PreparedStatement statement,
-                                      Map<Object, Integer> params)
+                                           Map<Object, Integer> params)
         throws java.sql.SQLException {
         int index = 1;
         for (Entry<Object, Integer> entry : params.entrySet()) {
@@ -374,10 +378,12 @@ public class GeneratedKeys {
         }
     }
 
-    private static ResultSet getDefaultGeneratedResult(Provider provider, QueryHelper query)
+    private static ResultSet getDefaultGeneratedResult(ConfigSQL config,
+                                                       java.sql.Connection connection,
+                                                       QueryHelper query)
         throws java.sql.SQLException {
-        String sql = provider.getConfigSQL().getEmptyResultSetQuery(query.getTableIdentifier());
-        return provider.getStatement().executeQuery(sql);
+        String sql = config.getEmptyResultSetQuery(query.getTableIdentifier());
+        return new ResultSetWrapper(connection.createStatement(), sql);
     }
 
 }

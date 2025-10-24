@@ -33,10 +33,12 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class PreparedStatement
@@ -48,9 +50,9 @@ public final class PreparedStatement
     // The constructor method:
     public PreparedStatement(Connection connection,
                              String sql)
-        throws SQLException {
+        throws java.sql.SQLException {
         super(SERVICE, SERVICES, connection, sql);
-        registerProperties(new HashMap<String, PropertyWrapper>());
+        registerProperties(new HashMap<PropertyID, PropertyWrapper>());
         System.out.println("sdbcx.PreparedStatement() 1: '" + sql + "'");
     }
 
@@ -58,30 +60,34 @@ public final class PreparedStatement
     @Override
     public XResultSet getResultSet()
         throws SQLException {
-        XResultSet resultset = null;
-        java.sql.ResultSet rs = getJdbcResultSet();
-        Provider provider = getConnectionInternal().getProvider();
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        if (mUseBookmarks && provider.getConfigSQL().useCachedRowSet(rs, mQuery)) {
-            CachedRowSet crs = ResultSetHelper.getCachedRowSet(provider, rs, mQuery);
-            if (!crs.isReadOnly()) {
-                RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
-                String services = String.join(", ", rowset.getSupportedServiceNames());
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
-                                   services, rowset.getLogger().getObjectId());
-                resultset = rowset;
-            } else {
-                rs = getJdbcResultSet();
+        try {
+            XResultSet resultset = null;
+            java.sql.ResultSet rs = getJdbcResultSet();
+            Provider provider = getConnectionInternal().getProvider();
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            if (mUseBookmarks && provider.getConfigSQL().useCachedRowSet(rs, mQuery)) {
+                CachedRowSet crs = ResultSetHelper.getCachedRowSet(provider, rs, mQuery);
+                if (!crs.isReadOnly()) {
+                    RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
+                    String services = String.join(", ", rowset.getSupportedServiceNames());
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                       services, rowset.getLogger().getObjectId());
+                    resultset = rowset;
+                } else {
+                    rs = getJdbcResultSet();
+                }
             }
+            if (resultset == null) {
+                ResultSet result =  new ResultSet(getConnectionInternal(), rs, this);
+                String services = String.join(", ", result.getSupportedServiceNames());
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                   services, result.getLogger().getObjectId());
+                resultset = result;
+            }
+            return resultset;
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
-        if (resultset == null) {
-            ResultSet result =  new ResultSet(getConnectionInternal(), rs, this);
-            String services = String.join(", ", result.getSupportedServiceNames());
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
-                               services, result.getLogger().getObjectId());
-            resultset = result;
-        }
-        return resultset;
     }
 
     @Override

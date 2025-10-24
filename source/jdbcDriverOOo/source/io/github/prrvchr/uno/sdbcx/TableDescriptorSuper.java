@@ -31,10 +31,11 @@ import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.Type;
-import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+
+import com.sun.star.sdbcx.XColumnsSupplier;
 
 
 public abstract class TableDescriptorSuper
@@ -56,9 +57,9 @@ public abstract class TableDescriptorSuper
         System.out.println("sdbcx.TableDescriptorSuper()");
     }
 
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
 
-        properties.put(PropertyIds.DESCRIPTION.getName(),
+        properties.put(PropertyID.DESCRIPTION,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mDescription;
@@ -67,7 +68,7 @@ public abstract class TableDescriptorSuper
                     mDescription = (String) value;
                 }));
 
-        properties.put(PropertyIds.TYPE.getName(),
+        properties.put(PropertyID.TYPE,
             new PropertyWrapper(Type.STRING,
                 () -> {
                     return mType;

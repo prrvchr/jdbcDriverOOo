@@ -5,7 +5,7 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: jdbcDriver checkstyle
+    Checkstyle-Configuration: jdbcDriverOOo checkstyle
     Description: none
 -->
 <module name="Checker">
@@ -58,7 +58,7 @@
       <property name="tokens" value="LITERAL_WHILE, LITERAL_DO, LITERAL_FOR, LITERAL_IF, LITERAL_SWITCH, LITERAL_CASE, LITERAL_CATCH, QUESTION, LAND, LOR, LITERAL_WHEN"/>
     </module>
     <module name="JavaNCSS">
-      <property name="methodMaximum" value="70"/>
+      <property name="methodMaximum" value="80"/>
     </module>
     <module name="NPathComplexity"/>
     <module name="TodoComment">

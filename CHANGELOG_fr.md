@@ -417,7 +417,31 @@ La prise en charge d'un pilote supplémentaire comme celui d'Oracle me demande b
 
 Si vous utilisez plusieurs comptes pour vous connecter à une base de données, vous ne pourrez pas vous reconnecter à cette base de données à nouveau si vous l'aviez ouverte avec un compte autre que celui proposé puis fermée sans enregistrer le fichier. Vous devez redémarrer LibreOffice. Voir [tdf#167960][125].
 
-### Que reste-t-il à faire pour la version 1.5.6:
+### Ce qui a été fait pour la version 1.6.0:
+
+- La logique de nommage des éléments nécessitant des noms composés, tels que les tables, les vues et les colonnes, a été modifiée:
+  - Les règles de nommage [ComposeRule][126] ont été étendues avec deux nouvelles règles:
+    - `InSelectDefinitions` définit la règle de nommage lors de la composition des requêtes SQL. Deux paramètres, issus du fichier de configuration, `UseCatalogInSelect` et `UseSchemaInSelect`, permettent d'influencer le comportement de cette règle.
+    - `InViewDefinitions` définit la règle de nommage lors de la composition d'une vue. Deux nouveaux paramètres, issus du fichier de configuration, `UseCatalogInView` et `UseSchemaInView`, permettent d'influencer le comportement de cette règle.
+  - En l'absence de paramètres dans le fichier de configuration, ces deux nouvelles règles suivront la règle `InTableDefinitions`.
+  - La règle `InViewDefinitions` a été ajoutée pour permettre la création de vues dans SQL Server.
+  - Une règle `ComposeRule` permet d'obtenir un support de nommage [NamedSupport][127], qui peut fournir un nom unique suivant cette règle à partir d'une composition de nom [NamedComponent][128] et inversement. Toute cette logique est désormais regroupée dans le fichier [ComponentHelper][129].
+
+- Intégration du [pilote JDBC SQL Server][130] `mssql-jdbc-13.2.0.jre17.jar`. Cette intégration a nécessité les modifications suivantes du code sous-jacent:
+  - Utilisation du paramètre `UseCatalogInView` dans le fichier `Drivers.xcu` avec un valeur fausse.
+  - Utilisation de la nouvelle règle de nommage `InViewDefinitions` lors de la création d'une vue afin d'exclure le nom du catalogue du le nom de la vue.
+  - Avec ces modifications, le catalogue, qui est en fait le nom de la base de données sous SQL Server, ne sera pas utilisé pour nommer les identifiants des requêtes SQL gérant la création des vues, comme l'exige le pilote JDBC de SQL Server.
+  - Recompilation du pilote SQL Server 13.2.0 sous Java 17 avec la correction du [dysfonctionnement#2745][131] pour permettre l'utilisation de la gestion des relations dans LibreOffice Base.
+
+- Test du pilote [JDBC UCanAccess][132] permettant la lecture et l'écriture de fichiers Microsoft Access. Ce pilote est inclus dans cette nouvelle version, mais son intégration reste à finaliser.
+
+- Si l'instrumentation Java n'est pas installée, jdbcDriverOOo fonctionnera en mode dégradé, avec de nombreuses fonctionnalités désactivées. Un message d'avertissement SQL sera émis à la connexion, et toutes les extensions utilisant jdbcDriverOOo afficheront un message d'avertissement dans leur boîte de dialogue Options.
+
+- Correction du problème d'utilisation de plusieurs comptes de connexion avec Base [tdf#167960][125]. Un correctif [fix#189732][132] sera disponible avec LibreOffice 26.2.x et rendra Base véritablement multi-utilisateur.
+
+- A été testé sous LibreOfficeDev 26.2.
+
+### Que reste-t-il à faire pour la version 1.6.0:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -548,3 +572,11 @@ Si vous utilisez plusieurs comptes pour vous connecter à une base de données, 
 [123]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167920>
 [124]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>
 [125]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167960>
+[126]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/provider/ComposeRule.java>
+[127]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#176>
+[128]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java#218>
+[129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/ComponentHelper.java>
+[130]: <https://github.com/prrvchr/mssql-jdbc>
+[131]: <https://github.com/microsoft/mssql-jdbc/issues/2745>
+[132]: <https://github.com/spannm/ucanaccess>
+[133]: <https://gerrit.libreoffice.org/c/core/+/189732>

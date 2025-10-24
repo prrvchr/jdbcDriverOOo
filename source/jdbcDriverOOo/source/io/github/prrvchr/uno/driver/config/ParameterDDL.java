@@ -25,29 +25,34 @@
 */
 package io.github.prrvchr.uno.driver.config;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.KeyRule;
-import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
-import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import io.github.prrvchr.uno.driver.helper.TableHelper.ColumnProperties;
 
 
 public class ParameterDDL extends ParameterBase {
 
     public static String setCreateTable(final Map<String, Object> arguments,
+                                        final NamedSupport support,
+                                        final XPropertySet property,
                                         final String type,
-                                        final String table,
-                                        final Collection<String> columns) {
+                                        final Collection<String> columns,
+                                        final boolean sensitive)
+        throws SQLException {
         // XXX: ${TableType} table type
         arguments.put("TableType", type);
         // XXX: ${TableName} unquoted / quoted full table name
-        arguments.put("TableName", table);
+        arguments.put("TableName", ComponentHelper.composeTableName(support, property, sensitive));
         // XXX: ${ColumnDescriptions} unquoted schema name
         arguments.put("ColumnDescriptions", String.join(getSeparator(), columns));
         // XXX: ${Versioning} versioning will be set during query build
@@ -56,44 +61,79 @@ public class ParameterDDL extends ParameterBase {
         return versioning;
     }
 
-    public static Map<String, Object> getTableDescription(String table, String description) {
+    public static Map<String, Object> getSystemVersioningColumnParameter(final NamedSupport support,
+                                                                         final List<String> columns) {
+        return Map.of("ColumnNames", getIdentifiersAsString(support, columns));
+    }
+
+    public static Map<String, Object> getTableDescription(final String table, final String description) {
         return Map.of("TableName", table, "Description", description);
     }
 
-    public static Map<String, Object> getColumnDescription(String column, String description) {
-        return Map.of("ColumnName", column, "Description", description);
+    public static Map<String, Object> getColumnDescription(final NamedSupport support,
+                                                           final NamedComponent component,
+                                                           final String column,
+                                                           final String description,
+                                                           final boolean sensitive)
+        throws SQLException {
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("RawSchema", component.getSchemaName());
+        arguments.put("RawTable", component.getTableName());
+        arguments.put("RawColumn", column);
+        arguments.put("ColumnName", ComponentHelper.composeColumnName(support, component, column, sensitive));
+        arguments.put("Description", support.enquoteLiteral(description));
+        arguments.put("RawDescription", description);
+        return arguments;
     }
 
-    public static Map<String, Object> getDropTable(String table) {
+    public static Map<String, Object> getColumnDescription(final NamedSupport support,
+                                                           final NamedComponent component,
+                                                           final String column,
+                                                           final boolean sensitive)
+        throws SQLException {
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("RawSchema", component.getSchemaName());
+        arguments.put("RawTable", component.getTableName());
+        arguments.put("RawColumn", column);
+        arguments.put("ColumnName", ComponentHelper.composeColumnName(support, component, column, sensitive));
+        return arguments;
+    }
+
+
+    public static Map<String, Object> getDropTable(final String table) {
         return Map.of("TableName", table);
     }
 
-    public static Map<String, Object> getCreateView(String view,
-                                                             String select) {
+    public static Map<String, Object> getCreateView(final String view,
+                                                    final String select) {
         return Map.of("ViewName", view, "SelectCommand", select);
     }
 
-    public static Map<String, Object> getDropView(String view) {
+    public static Map<String, Object> getDropView(final String view) {
         return Map.of("ViewName", view);
     }
 
-    public static Map<String, Object> getAddColumn(String table, String column) {
-        return Map.of("TableName", table, "ColumnDescription", column);
+    public static Map<String, Object> getAddColumn(final NamedSupport support,
+                                                   final NamedComponent component,
+                                                   final ColumnProperties column,
+                                                   final boolean sensitive) {
+        return Map.of("TableName", ComponentHelper.composeTableName(support, component, sensitive),
+                      "ColumnDescription", getColumnDescription(support, column));
     }
 
-    public static Map<String, Object> getDropColumn(String table, String column) {
+    public static Map<String, Object> getDropColumn(final String table, final String column) {
         return Map.of("TableName", table, "Column", column);
     }
 
     public static Map<String, Object> getAddIndex(final String table,
                                                   final String name,
-                                                  String[] columns) {
+                                                  final String[] columns) {
         return getCreateConstraint(table, name, columns);
     }
 
     public static Map<String, Object> getCreateConstraint(final String table,
                                                           final String name,
-                                                          String[] columns) {
+                                                          final String[] columns) {
         Map<String, Object> arguments = new HashMap<>();
         arguments.put("TableName", table);
         arguments.put("Name", name);
@@ -101,15 +141,15 @@ public class ParameterDDL extends ParameterBase {
         return arguments;
     }
 
-    public static Map<String, Object> getDropConstraint(String table, String name) {
+    public static Map<String, Object> getDropConstraint(final String table, final String name) {
         return Map.of("TableName", table, "Name", name);
     }
 
-    public static void setCreateConstraint(Map<String, Object> arguments,
-                                           String table,
-                                           String[] columns,
-                                           int update,
-                                           int delete) {
+    public static void setCreateConstraint(final Map<String, Object> arguments,
+                                           final String table,
+                                           final String[] columns,
+                                           final int update,
+                                           final int delete) {
         arguments.put("ReferencedTable", table);
         arguments.put("RelatedColumns", String.join(getSeparator(), columns));
         arguments.put("UpdateRule", getKeyRuleString(true, update));
@@ -151,113 +191,133 @@ public class ParameterDDL extends ParameterBase {
         return keyRule;
     }
 
-    public static Map<String, Object> getRenameTable(Provider provider,
-                                                     NamedComponents newtable,
-                                                     NamedComponents oldtable,
-                                                     String fullname,
-                                                     boolean reversed,
-                                                     ComposeRule rule,
-                                                     boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+    public static Map<String, Object> getRenameTable(final NamedSupport support,
+                                                     final NamedComponent newtable,
+                                                     final NamedComponent oldtable,
+                                                     final String fullname,
+                                                     final boolean reversed,
+                                                     final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
-        // XXX: ${Catalog.Schema.Table} quoted / unquoted full old table name
-        arguments.put("Catalog.Schema.Table", DBTools.quoteTableName(provider, fullname, rule, sensitive));
+        // XXX: ${TableName} quoted / unquoted full old table name
+        arguments.put("TableName", ComponentHelper.quoteTableName(support, fullname, sensitive));
+        arguments.put("RawTableName", fullname);
         // XXX: ${NewSchema} quoted / unquoted new schema name
-        arguments.put("NewSchema", provider.enquoteIdentifier(newtable.getSchemaName(), sensitive));
+        arguments.put("NewSchema", support.enquoteIdentifier(newtable.getSchemaName(), sensitive));
         // XXX: ${Catalog.NewSchema.Table} quoted / unquoted full old table name overwritten with the new schema name
-        arguments.put("Catalog.NewSchema.Table",
-                      DBTools.buildName(provider, oldtable.getCatalogName(), newtable.getSchemaName(),
-                                        oldtable.getTableName(), rule, sensitive));
+        arguments.put("Catalog.NewSchema.Table", ComponentHelper.buildName(support, oldtable.getCatalogName(),
+                                                                                    newtable.getSchemaName(),
+                                                                                    oldtable.getTableName(),
+                                                                                    sensitive));
         // XXX: ${Table} quoted / unquoted old table name
-        arguments.put("Table", provider.enquoteIdentifier(oldtable.getTableName(), sensitive));
+        arguments.put("Table", support.enquoteIdentifier(oldtable.getTableName(), sensitive));
         // XXX: ${NewTable} quoted / unquoted new table name
-        arguments.put("NewTable", provider.enquoteIdentifier(newtable.getTableName(), sensitive));
+        arguments.put("NewTable", support.enquoteIdentifier(newtable.getTableName(), sensitive));
+        arguments.put("RawNewTable", newtable.getTableName());
         // XXX: ${Catalog.Schema.NewTable} quoted / unquoted full old table name overwritten with the new table name
-        arguments.put("Catalog.Schema.NewTable",
-                      DBTools.buildName(provider, oldtable.getCatalogName(), oldtable.getSchemaName(),
-                                        newtable.getTableName(), rule, sensitive));
+        arguments.put("Catalog.Schema.NewTable", ComponentHelper.buildName(support, oldtable.getCatalogName(),
+                                                                                    oldtable.getSchemaName(),
+                                                                                    newtable.getTableName(),
+                                                                                    sensitive));
         // XXX: ${NewCatalog} quoted / unquoted new catalog name
-        arguments.put("NewCatalog", provider.enquoteIdentifier(newtable.getCatalogName(), sensitive));
+        arguments.put("NewCatalog", support.enquoteIdentifier(newtable.getCatalogName(), sensitive));
         // XXX: ${NewCatalog.Schema.Table} quoted / unquoted full old table name overwritten with the new catalog name
-        arguments.put("NewCatalog.Schema.Table",
-                      DBTools.buildName(provider, newtable.getCatalogName(), oldtable.getSchemaName(),
-                                        oldtable.getTableName(), rule, sensitive));
+        arguments.put("NewCatalog.Schema.Table", ComponentHelper.buildName(support, newtable.getCatalogName(),
+                                                                                    oldtable.getSchemaName(),
+                                                                                    oldtable.getTableName(),
+                                                                                    sensitive));
         // XXX: ${NewCatalog.NewSchema.NewTable} quoted / unquoted full new table name
-        arguments.put("NewCatalog.NewSchema.NewTable",
-                      DBTools.buildName(provider, newtable.getCatalogName(), newtable.getSchemaName(),
-                                        newtable.getTableName(), rule, sensitive));
+        arguments.put("NewCatalog.NewSchema.NewTable", ComponentHelper.buildName(support, newtable.getCatalogName(),
+                                                                                          newtable.getSchemaName(),
+                                                                                          newtable.getTableName(),
+                                                                                          sensitive));
         if (reversed) {
-            Object argument = arguments.get("Catalog.Schema.Table");
-            arguments.put("Catalog.Schema.Table", arguments.get("Catalog.Schema.NewTable"));
+            Object argument = arguments.get("TableName");
+            arguments.put("TableName", arguments.get("Catalog.Schema.NewTable"));
             arguments.put("Catalog.Schema.NewTable", arguments.get("Catalog.NewSchema.Table"));
             arguments.put("Catalog.NewSchema.NewTable", argument);
         }
         return arguments;
     }
 
-    public static Map<String, Object> getAlterView(Provider provider,
-                                                   NamedComponents table,
-                                                   String fullname,
-                                                   String command,
-                                                   ComposeRule rule,
-                                                   boolean sensitive)
-        throws java.sql.SQLException, SQLException {
-        Map<String, Object> arguments = getViewDefinition(provider, table, fullname, rule, sensitive);
+    public static Map<String, Object> getAlterView(final NamedSupport support,
+                                                   final NamedComponent view,
+                                                   final String command,
+                                                   final boolean sensitive) {
+        Map<String, Object> arguments = getViewDefinition(support, view, sensitive);
         arguments.put("SelectCommand", command);
         return arguments;
     }
 
-    public static Map<String, Object> getViewDefinition(Provider provider,
-                                                        NamedComponents table,
-                                                        String fullname,
-                                                        ComposeRule rule,
-                                                        boolean sensitive)
-        throws java.sql.SQLException {
+    public static Map<String, Object> getViewDefinition(final NamedSupport support,
+                                                        final NamedComponent view,
+                                                        final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${ViewName} quoted / unquoted  full view name
-        arguments.put("ViewName", DBTools.quoteTableName(provider, fullname, rule, sensitive));
+        arguments.put("ViewName", ComponentHelper.buildName(support, view, sensitive));
         // XXX: ${Catalog} quoted / unquoted  catalog view name
-        arguments.put("Catalog", provider.enquoteIdentifier(table.getCatalogName(), sensitive));
+        arguments.put("Catalog", support.enquoteIdentifier(view.getCatalogName(), sensitive));
         // XXX: ${Schema} quoted / unquoted  schema view name
-        arguments.put("Schema", provider.enquoteIdentifier(table.getSchemaName(), sensitive));
+        arguments.put("Schema", support.enquoteIdentifier(view.getSchemaName(), sensitive));
         // XXX: ${View} quoted / unquoted  view name
-        arguments.put("View", provider.enquoteIdentifier(table.getTableName(), sensitive));
+        arguments.put("View", support.enquoteIdentifier(view.getTableName(), sensitive));
+        arguments.put("RawCatalog", view.getCatalogName());
+        arguments.put("RawSchema", view.getSchemaName());
+        arguments.put("RawView", view.getTableName());
         return arguments;
     }
 
-    public static Map<String, Object> getColumnProperties(String tablename,
-                                                          String table,
-                                                          String oldIdentifier,
-                                                          String newIdentifier,
-                                                          String columnType,
-                                                          String defaultValue,
-                                                          boolean notNull,
-                                                          boolean isAutoincrement,
-                                                          String autoincrement,
-                                                          String columndescription) {
+    public static Map<String, Object> getColumnProperties(final NamedSupport support,
+                                                          final NamedComponent component,
+                                                          final ColumnProperties column,
+                                                          final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
-        arguments.put("TableName", tablename);
-        arguments.put("Table", table);
-        arguments.put("OldName", oldIdentifier);
-        arguments.put("Column", newIdentifier);
-        arguments.put("Type", columnType);
-        if (!defaultValue.isBlank()) {
-            arguments.put("Default", "DEFAULT " + defaultValue);
+        arguments.put("TableName", ComponentHelper.composeTableName(support, component, sensitive));
+        arguments.put("RawTableName", ComponentHelper.composeTableName(support, component, false));
+        arguments.put("Table", support.enquoteIdentifier(component.getTable(), sensitive));
+        arguments.put("RawTable", component.getTable());
+        arguments.put("Column", support.enquoteIdentifier(column.getName(), sensitive));
+        String name = support.enquoteIdentifier(column.getNewName(), sensitive);
+        arguments.put("NewColumn", name);
+        arguments.put("RawColumn", column.getName());
+        arguments.put("RawNewColumn", column.getNewName());
+        arguments.put("Type", column.getType());
+        if (!column.getDefaultValue().isBlank()) {
+            arguments.put("Default", "DEFAULT " + column.getDefaultValue());
         } else {
             arguments.put("Default", "");
         }
-        if (notNull) {
+        if (column.getNotNull()) {
             arguments.put("Nullable", "NOT NULL");
         } else {
             arguments.put("Nullable", "");
         }
-        if (isAutoincrement) {
-            arguments.put("Autoincrement", autoincrement);
+        if (column.isAutoIncrement()) {
+            arguments.put("Autoincrement", column.getAutoIncrement());
         } else {
             arguments.put("Autoincrement", "");
         }
-        arguments.put("ColumnDescription", columndescription);
+        arguments.put("ColumnDescription", getColumnDescription(support, column));
         return arguments;
+    }
+
+    public static String getColumnDescription(final NamedSupport support,
+                                              final ColumnProperties column) {
+        // XXX: We try to construct the Column part needed for Table creation
+        StringBuilder builder = new StringBuilder(support.enquoteIdentifier(column.getNewName()));
+        builder.append(" ");
+        builder.append(column.getType());
+        if (!column.getDefaultValue().isBlank()) {
+            builder.append(" DEFAULT ");
+            builder.append(column.getDefaultValue());
+        }
+        if (column.getNotNull()) {
+            builder.append(" NOT NULL");
+        }
+        if (column.isAutoIncrement()) {
+            builder.append(" ");
+            builder.append(column.getAutoIncrement());
+        }
+        return builder.toString();
     }
 
 }

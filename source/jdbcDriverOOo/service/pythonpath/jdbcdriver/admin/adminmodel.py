@@ -83,6 +83,7 @@ class AdminModel(unohelper.Base):
         return column
 
     def dispose(self):
+        self._grid.saveColumnSettings()
         self._grid.dispose()
 
     def getSelectedIdentifier(self):
@@ -178,9 +179,7 @@ class AdminModel(unohelper.Base):
             self._grid.refresh()
 
     def dropGrantee(self):
-        print("AdminModel.dropGrantee() 1")
         self._grid.getGrantees().dropByName(self._grantee)
-        print("AdminModel.dropGrantee() 2")
         return self.getGrantees()
 
     def setUserPassword(self, pwd):

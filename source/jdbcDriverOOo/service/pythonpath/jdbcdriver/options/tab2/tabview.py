@@ -35,10 +35,9 @@ import traceback
 
 
 class TabView():
-    def __init__(self, ctx, window, handler, restart, xdl):
+    def __init__(self, ctx, window, handler, xdl):
         self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, xdl)
         self._window.setVisible(True)
-        self.setRestart(restart)
 
 # TabView getter methods
     def getWindow(self):
@@ -69,11 +68,8 @@ class TabView():
     def setDefaultFocus(self):
         self._getEditDriver().setFocus()
 
-    def setStep(self, step, restart):
+    def setStep(self, step):
         self._window.Model.Step = step
-        # XXX: If we change the step, we have to restore the visibility of the controls
-        # XXX: because it was lost (ie: after setting the new step everything is visible).
-        self.setRestart(restart)
 
     def enableConfirm(self, enable):
         self._getConfirm().Model.Enabled = enable
@@ -119,9 +115,6 @@ class TabView():
         self._getRemoveDriver().Model.Enabled = enabled
         self._getUpdateDriver().Model.Enabled = enabled
 
-    def setRestart(self, enabled):
-        self._getRestart().setVisible(enabled)
-
 # TabView private control methods
     def _getDrivers(self):
         return self._window.getControl('ListBox1')
@@ -152,7 +145,4 @@ class TabView():
 
     def _getVersion(self):
         return self._window.getControl('Label6')
-
-    def _getRestart(self):
-        return self._window.getControl('Label8')
 

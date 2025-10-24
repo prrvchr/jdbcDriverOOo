@@ -50,3 +50,4 @@
     <dlg:button dlg:id="CommandButton3" dlg:tab-index="9" dlg:disabled="true" dlg:left="137" dlg:top="95" dlg:width="38" dlg:height="15" dlg:help-text="&amp;DriverDialog.CommandButton3.HelpText" dlg:value="&amp;DriverDialog.CommandButton3.Label" dlg:button-type="ok"/>
   </dlg:bulletinboard>
 </dlg:window>
+

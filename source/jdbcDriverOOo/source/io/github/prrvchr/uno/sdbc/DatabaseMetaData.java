@@ -40,15 +40,12 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.AnyConverter;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
-import io.github.prrvchr.uno.driver.helper.DBException;
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.helper.StandardSQLState;
+import io.github.prrvchr.uno.driver.logger.ConnectionLog;
+import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.DBTools;
+import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
-import io.github.prrvchr.uno.driver.resultset.RowSetData;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -76,15 +73,23 @@ public class DatabaseMetaData
         return mLogger;
     }
 
+    private Provider getProvider() {
+        return mConnection.getProvider();
+    }
+
+    private ConfigSQL getConfig() {
+        return mConnection.getProvider().getConfigSQL();
+    }
+
     // com.sun.star.sdbc.XDatabaseMetaData2
     @Override
     public PropertyValue[] getConnectionInfo() {
-        return mConnection.getProvider().getConfigSQL().getConnectionInfo();
+        return getConfig().getConnectionInfo();
     }
 
     @Override
     public String getURL() throws SQLException {
-        return mConnection.getProvider().getConfigSQL().getURL();
+        return getConfig().getURL();
     }
 
     @Override
@@ -183,8 +188,7 @@ public class DatabaseMetaData
     @Override
     public XResultSet getCatalogs() throws SQLException {
         try {
-            RowSetData filter = mConnection.getProvider().getConfigSQL().getSytemCatalogFilter();
-            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getCatalogs(), filter);
+            java.sql.ResultSet rs = getConfig().getMetaDataCatalogs(mMetadata.getCatalogs());
             return getResultSet(rs, "getCatalogs");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -355,9 +359,15 @@ public class DatabaseMetaData
     @Override
     public XResultSet getImportedKeys(Object catalog, String schema, String table) throws SQLException {
         try {
+            System.out.println("DatabaseMetaData.getImportedKeys() 1");
+            java.sql.ResultSet rs = mMetadata.getImportedKeys(getPattern(catalog), getPattern(schema), table);
+            System.out.println("DatabaseMetaData.getImportedKeys() 2");
+            DBTools.printResultSet(rs);
+            rs.close();
             java.sql.ResultSet resultset = mMetadata.getImportedKeys(getPattern(catalog), getPattern(schema), table);
             return getResultSet(resultset, "getImportedKeys");
         } catch (java.sql.SQLException e) {
+            e.printStackTrace();
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -366,7 +376,8 @@ public class DatabaseMetaData
     public XResultSet getIndexInfo(Object catalog, String schema, String table, boolean unique, boolean approximate)
         throws SQLException {
         try {
-            ConfigSQL config = mConnection.getProvider().getConfigSQL();
+            System.out.println("DatabaseMetaData.getIndexInfo() 1");
+            ConfigSQL config = getConfig();
             java.sql.ResultSet resultset = mMetadata.getIndexInfo(config.getMetaDataIdentifier(getPattern(catalog)),
                                                                   config.getMetaDataIdentifier(getPattern(schema)),
                                                                   config.getMetaDataIdentifier(table),
@@ -577,6 +588,7 @@ public class DatabaseMetaData
     @Override
     public XResultSet getPrimaryKeys(Object catalog, String schema, String table) throws SQLException {
         try {
+            System.out.println("DatabaseMetaData.getPrimaryKeys() 1");
             java.sql.ResultSet resultset = mMetadata.getPrimaryKeys(getPattern(catalog), getPattern(schema), table);
             return getResultSet(resultset, "getPrimaryKeys");
         } catch (java.sql.SQLException e) {
@@ -650,8 +662,7 @@ public class DatabaseMetaData
     @Override
     public XResultSet getSchemas() throws SQLException {
         try {
-            RowSetData filter = mConnection.getProvider().getConfigSQL().getSytemSchemaFilter();
-            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getSchemas(), filter);
+            java.sql.ResultSet rs = getConfig().getMetaDataSchemas(mMetadata.getSchemas());
             return getResultSet(rs, "getSchemas");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -702,19 +713,18 @@ public class DatabaseMetaData
         throws SQLException {
         try {
             System.out.println("DatabaseMetaData.getTablePrivileges() **********************************");
-            java.sql.ResultSet rs = PrivilegesHelper.getTablePrivilegesResultSet(mConnection.getProvider(),
-                                                                                 mMetadata,
-                                                                                 getPattern(catalog),
-                                                                                 getPattern(schema),
-                                                                                 table);
+            ConfigSQL config = getProvider().getConfigSQL();
+            java.sql.ResultSet rs = config.getMetaDataTablePrivileges(mMetadata,
+                                                                      getPattern(catalog),
+                                                                      getPattern(schema),
+                                                                      table);
             DBTools.printResultSet(rs);
             rs.close();
             XResultSet resultset = null;
-            rs = PrivilegesHelper.getTablePrivilegesResultSet(mConnection.getProvider(),
-                                                              mMetadata,
-                                                              getPattern(catalog),
-                                                              getPattern(schema),
-                                                              table);
+            rs = config.getMetaDataTablePrivileges(mMetadata,
+                                                   getPattern(catalog),
+                                                   getPattern(schema),
+                                                   table);
             if (rs != null) {
                 resultset = getResultSet(rs, "getTablePrivileges");
             }
@@ -728,9 +738,8 @@ public class DatabaseMetaData
     public XResultSet getTableTypes()
         throws SQLException {
         try {
-            RowSetData data = mConnection.getProvider().getConfigSQL().getTableTypeData();
-            java.sql.ResultSet resultset = ResultSetHelper.getCustomDataResultSet(mMetadata.getTableTypes(), data);
-            return getResultSet(resultset, "getTableTypes");
+            java.sql.ResultSet rs = getConfig().getMetaDataTableTypes(mMetadata.getTableTypes());
+            return getResultSet(rs, "getTableTypes");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -740,15 +749,12 @@ public class DatabaseMetaData
     public XResultSet getTables(Object catalog, String schema, String table, String[] types)
         throws SQLException {
         try {
-            types = mConnection.getProvider().getConfigSQL().getTableTypes(types);
-            RowSetData data = mConnection.getProvider().getConfigSQL().getTableData();
-            RowSetData filter = mConnection.getProvider().getConfigSQL().getSytemTableFilter();
-            RowSetData rewrite = mConnection.getProvider().getConfigSQL().getRewriteTableData();
-            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getTables(getPattern(catalog),
-                                                                                               getPattern(schema),
-                                                                                               table,
-                                                                                               getPattern(types)),
-                                                                           data, filter, rewrite);
+            types = getConfig().getTableTypes(types);
+            java.sql.ResultSet rs = mMetadata.getTables(getPattern(catalog),
+                                                        getPattern(schema),
+                                                        table,
+                                                        getPattern(types));
+            rs = getConfig().getMetaDataTables(rs);
             return getResultSet(rs, "getTables");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -774,8 +780,7 @@ public class DatabaseMetaData
             //java.sql.ResultSet result = mMetadata.getTypeInfo();
             //DBTools.printResultSet(result);
             //result.close();
-            RowSetData data = mConnection.getProvider().getConfigSQL().getTypeInfoData();
-            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getTypeInfo(), data);
+            java.sql.ResultSet rs = getConfig().getMetaDataTypeInfo(mMetadata.getTypeInfo());
             return getResultSet(rs, "getTypeInfo");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -1225,7 +1230,9 @@ public class DatabaseMetaData
     @Override
     public boolean supportsIntegrityEnhancementFacility() throws SQLException {
         try {
-            return mMetadata.supportsIntegrityEnhancementFacility();
+            boolean support = mMetadata.supportsIntegrityEnhancementFacility();
+            System.out.println("DatabaseMetaData.supportsIntegrityEnhancementFacility() 1 support: " + support);
+            return support;
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1588,10 +1595,11 @@ public class DatabaseMetaData
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET, method);
         if (result == null) {
             System.out.println("sdbc.DatabaseMetaData._getResultSet() ERROR method: " + method);
-            String message = mLogger.getStringResource(Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET_ERROR,
+            String msg = mLogger.getStringResource(Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET_ERROR,
                                                        method);
-            mLogger.logp(LogLevel.SEVERE, message);
-            throw DBException.getSQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR);
+            mLogger.logp(LogLevel.SEVERE, msg);
+            java.sql.SQLException e = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text());
+            throw UnoHelper.getSQLException(e, this);
         }
         ResultSet resultset = new ResultSet(mConnection, result, null, method);
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATED_RESULTSET_ID,

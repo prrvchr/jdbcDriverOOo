@@ -29,7 +29,7 @@
 
 from com.sun.star.sdbcx.PrivilegeObject import TABLE
 
-from ..grid import GridModel as GridModelBase
+from .grid import GridModel as GridModelBase
 
 from ..unotool import createService
 from ..unotool import getPropertyValueSet

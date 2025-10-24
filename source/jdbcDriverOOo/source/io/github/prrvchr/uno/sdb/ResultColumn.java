@@ -34,8 +34,8 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbcx.ColumnBase;
 
 
@@ -104,67 +104,67 @@ public final class ResultColumn
     }
 
     private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        Map<PropertyID, PropertyWrapper> properties = new HashMap<PropertyID, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
 
         // XXX: com.sun.star.sdb.ResultColumn properties
-        properties.put(PropertyIds.ISSEARCHABLE.getName(),
+        properties.put(PropertyID.ISSEARCHABLE,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsSearchable;
                 },
                 null));
 
-        properties.put(PropertyIds.ISSIGNED.getName(),
+        properties.put(PropertyID.ISSIGNED,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsSigned;
                 },
                 null));
 
-        properties.put(PropertyIds.ISCASESENSITIVE.getName(),
+        properties.put(PropertyID.ISCASESENSITIVE,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsCaseSensitive;
                 },
                 null));
 
-        properties.put(PropertyIds.ISREADONLY.getName(),
+        properties.put(PropertyID.ISREADONLY,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsReadOnly;
                 },
                 null));
 
-        properties.put(PropertyIds.ISWRITABLE.getName(),
+        properties.put(PropertyID.ISWRITABLE,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsWritable;
                 },
                 null));
 
-        properties.put(PropertyIds.ISDEFINITELYWRITABLE.getName(),
+        properties.put(PropertyID.ISDEFINITELYWRITABLE,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
                     return mIsDefinitelyWritable;
                 },
                 null));
 
-        properties.put(PropertyIds.DISPLAYSIZE.getName(),
+        properties.put(PropertyID.DISPLAYSIZE,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mDisplaySize;
                 },
                 null));
 
-        properties.put(PropertyIds.LABEL.getName(),
+        properties.put(PropertyID.LABEL,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mLabel;
                 },
                 null));
 
-        properties.put(PropertyIds.SERVICENAME.getName(),
+        properties.put(PropertyID.SERVICENAME,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mServiceName;
@@ -173,56 +173,56 @@ public final class ResultColumn
 
 
        // XXX: com.sun.star.sdb.ColumnSettings properties
-        properties.put(PropertyIds.ALIGN.getName(),
+        properties.put(PropertyID.ALIGN,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mAlign;
                 },
                 null));
 
-        properties.put(PropertyIds.CONTROLDEFAULT.getName(),
+        properties.put(PropertyID.CONTROLDEFAULT,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mControlDefault;
                 },
                 null));
 
-        properties.put(PropertyIds.CONTROLMODEL.getName(),
+        properties.put(PropertyID.CONTROLMODEL,
             new PropertyWrapper(Type.ANY, readonly,
                 () -> {
                     return mControlModel;
                 },
                 null));
 
-        properties.put(PropertyIds.FORMATKEY.getName(),
+        properties.put(PropertyID.FORMATKEY,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mFormatKey;
                 },
                 null));
 
-        properties.put(PropertyIds.HELPTEXT.getName(),
+        properties.put(PropertyID.HELPTEXT,
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
                     return mHelpText;
                 },
                 null));
 
-        properties.put(PropertyIds.HIDDEN.getName(),
+        properties.put(PropertyID.HIDDEN,
             new PropertyWrapper(Type.BOOLEAN,
                 () -> {
                     return mHidden;
                 },
                 null));
 
-        properties.put(PropertyIds.POSITION.getName(),
+        properties.put(PropertyID.POSITION,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mPosition;
                 },
                 null));
 
-        properties.put(PropertyIds.WIDTH.getName(),
+        properties.put(PropertyID.WIDTH,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mWidth;
@@ -230,7 +230,7 @@ public final class ResultColumn
                 null));
 
         // XXX: Does this property really needed?
-        properties.put(PropertyIds.RELATIVEPOSITION.getName(),
+        properties.put(PropertyID.RELATIVEPOSITION,
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
                     return mRelativePosition;

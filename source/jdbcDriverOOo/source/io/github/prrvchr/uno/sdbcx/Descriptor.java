@@ -31,11 +31,11 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertySet;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertySet;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.driver.property.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.helper.ServiceInfo;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public abstract class Descriptor
@@ -82,7 +82,7 @@ public abstract class Descriptor
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
         short attribute;
         PropertySetter setter;
 
@@ -96,7 +96,7 @@ public abstract class Descriptor
             };
         }
 
-        properties.put(PropertyIds.NAME.getName(),
+        properties.put(PropertyID.NAME,
             new PropertyWrapper(Type.STRING, attribute,
                 () -> {
                     return getName();
