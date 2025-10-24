@@ -419,25 +419,27 @@ If you use multiple accounts to connect to a database, you will not be able to r
 
 ### What has been done for version 1.6.0:
 
-The naming logic for elements requiring compound names, such as tables, views, and columns, has been modified:
-- The naming rules [ComposeRule][126] have been extended with two new rules:
-  - `InSelectDefinitions` defines the naming rule when composing SQL queries. Two parameters from the configuration file, `UseCatalogInSelect` and `UseSchemaInSelect`, allow you to influence the behavior of this rule.
-  - `InViewDefinitions` defines the naming rule when composing a view. Two new parameters from the configuration file, `UseCatalogInView` and `UseSchemaInView`, allow you to influence the behavior of this rule.
-- In the absence of parameters in the configuration file, these two new rules will follow the `InTableDefinitions` rule.
-- The `InViewDefinitions` rule has been added to allow the creation of views in SQL Server.
-- A `ComposeRule` rule allows for [NamedSupport][127] naming support, which can provide a unique name following this rule from a [NamedComponent][128] name composition, and vice versa. All this logic is now grouped into the [ComponentHelper][129] file.
+- The naming logic for elements requiring compound names, such as tables, views, and columns, has been modified:
+  - The naming rules [ComposeRule][126] have been extended with two new rules:
+    - `InSelectDefinitions` defines the naming rule when composing SQL queries. Two parameters from the configuration file, `UseCatalogInSelect` and `UseSchemaInSelect`, allow you to influence the behavior of this rule.
+    - `InViewDefinitions` defines the naming rule when composing a view. Two new parameters from the configuration file, `UseCatalogInView` and `UseSchemaInView`, allow you to influence the behavior of this rule.
+  - In the absence of parameters in the configuration file, these two new rules will follow the `InTableDefinitions` rule.
+  - The `InViewDefinitions` rule has been added to allow the creation of views in SQL Server.
+  - A `ComposeRule` rule allows for [NamedSupport][127] naming support, which can provide a unique name following this rule from a [NamedComponent][128] name composition, and vice versa. All this logic is now grouped into the [ComponentHelper][129] file.
 
-Integration of the [SQL Server JDBC driver][130] `mssql-jdbc-13.2.0.jre11.jar`. This integration required the following modifications to the underlying code:
-- Using `UseCatalogInView` parameters in `Drivers.xcu` file with false value.
-- Use of the new `InViewDefinitions` naming rule when creating a view to exclude the catalog name from the view name.
-- With these changes, the catalog, which is actually the database name in SQL Server, will not be used to name the identifiers of SQL queries managing view creation, as required by the SQL Server JDBC driver.
-- Recompilation of SQL Server 13.2.0 driver under Java 17 with correction of [issue#2745][131] to allow the use of relationship management in LibreOffice Base.
+- Integration of the [SQL Server JDBC driver][130] `mssql-jdbc-13.2.0.jre11.jar`. This integration required the following modifications to the underlying code:
+  - Using `UseCatalogInView` parameters in `Drivers.xcu` file with false value.
+  - Use of the new `InViewDefinitions` naming rule when creating a view to exclude the catalog name from the view name.
+  - With these changes, the catalog, which is actually the database name in SQL Server, will not be used to name the identifiers of SQL queries managing view creation, as required by the SQL Server JDBC driver.
+  - Recompilation of SQL Server 13.2.0 driver under Java 17 with correction of [issue#2745][131] to allow the use of relationship management in LibreOffice Base.
 
-Testing of the [UCanAccess JDBC driver][132] allowing reading and writing of Microsoft Access files. This driver is included in this new version, but its integration remains to be finalized.
+- Testing of the [UCanAccess JDBC driver][132] allowing reading and writing of Microsoft Access files. This driver is included in this new version, but its integration remains to be finalized.
 
-If Java instrumentation is not installed, jdbcDriverOOo will operate in degraded mode, with many features disabled. A SQL warning message will be issued upon connection, and all extensions using jdbcDriverOOo will display a warning message in their Options dialog.
+- If Java instrumentation is not installed, jdbcDriverOOo will operate in degraded mode, with many features disabled. A SQL warning message will be issued upon connection, and all extensions using jdbcDriverOOo will display a warning message in their Options dialog.
 
-Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. A fix [fix#189732][133] will be available with LibreOffice 26.2.x and will make Base truly multi-user.
+- Fixed the issue with using multiple login accounts with Base [tdf#167960][125]. A fix [fix#189732][133] will be available with LibreOffice 26.2.x and will make Base truly multi-user.
+
+- Has been tested under LibreOfficeDev 26.2.
 
 ### What remains to be done for version 1.6.0:
 
