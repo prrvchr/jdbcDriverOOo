@@ -328,28 +328,25 @@ def setProgress(callback, caller, value):
     data = {'call': 'progress', 'value': value}
     callback.addCallback(caller, getNamedValueSet(data))
 
-def getDialog(ctx, identifier, xdl, handler=None, window=None):
+def getDialog(ctx, identifier, xdl, handler=None, parent=None):
     dialog = None
     provider = createService(ctx, 'com.sun.star.awt.DialogProvider2')
     url = getDialogUrl(identifier, xdl)
-    if handler is None and window is None:
+    if handler is None and parent is None:
         dialog = provider.createDialog(url)
-        toolkit = createService(ctx, 'com.sun.star.awt.Toolkit')
-        dialog.createPeer(toolkit, None)
-    elif handler is not None and window is None:
+    elif handler is not None and parent is None:
         dialog = provider.createDialogWithHandler(url, handler)
-        toolkit = createService(ctx, 'com.sun.star.awt.Toolkit')
-        dialog.createPeer(toolkit, None)
     else:
-        args = getNamedValueSet({'ParentWindow': window, 'EventHandler': handler})
-        dialog = provider.createDialogWithArguments(url, args)
+        properties = getNamedValueSet({'ParentWindow': parent, 'EventHandler': handler})
+        dialog = provider.createDialogWithArguments(url, properties)
+    dialog.createPeer(getToolKit(ctx), parent)
     return dialog
 
 def findFrame(ctx, name, flags=GLOBAL):
     return getDesktop(ctx).findFrame(name, flags)
 
 def getDialogPosSize(ctx, extension, xdl, point=None, unit=APPFONT):
-    dialog = getDialog(ctx, extension, xdl, None, None)
+    dialog = getDialog(ctx, extension, xdl)
     size = dialog.convertSizeToPixel(Size(dialog.Model.Width, dialog.Model.Height), unit)
     if point:
         position = dialog.convertPointToPixel(point, unit)
@@ -373,8 +370,6 @@ def getTopWindow(ctx, name, rectangle=None, parent=None, modal=TOP, attrs=BORDER
         descriptor.Bounds = rectangle
     descriptor.WindowAttributes = attrs
     arguments['ContainerWindow'] = getToolKit(ctx).createWindow(descriptor)
-    #if rectangle:
-    #    arguments['PosSize'] = rectangle
     frame = createService(ctx, service).createInstanceWithArguments(getNamedValueSet(arguments))
     desktop = getDesktop(ctx)
     frame.setCreator(desktop)
@@ -537,14 +532,6 @@ def _getUniqueName(frames, name):
     if count > 0:
         name = '%s - %s' % (name, (count +1))
     return name
-
-def getParentWindow(ctx):
-    desktop = getDesktop(ctx)
-    try:
-        parent = desktop.getCurrentFrame().getContainerWindow()
-    except:
-        parent = None
-    return parent
 
 def getDateTime(utc=True):
     if utc:
