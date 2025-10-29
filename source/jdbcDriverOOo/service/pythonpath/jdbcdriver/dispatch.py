@@ -99,7 +99,7 @@ class Dispatch(unohelper.Base,
         state.IsEnabled = True
         #state.State = True
         listener.statusChanged(state)
-        self._listeners.append(listener);
+        self._listeners.append(listener)
 
     def removeStatusListener(self, listener, url):
         if listener in self._listeners:

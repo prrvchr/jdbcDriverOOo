@@ -441,7 +441,10 @@ If you use multiple accounts to connect to a database, you will not be able to r
 
 - Has been tested under LibreOfficeDev 26.2.
 
-### What remains to be done for version 1.6.0:
+### What has been done for version 1.6.1:
+
+
+### What remains to be done for version 1.6.1:
 
 - Add new languages for internationalization...
 
