@@ -79,7 +79,6 @@ class Wizard(unohelper.Base,
         self._currentPath = -1
         self._multiPaths = False
         self._controller = None
-        self._listeners = []
         self._closed = False
         self._model = WizardModel(ctx)
         title = self._model.getRoadmapTitle()
