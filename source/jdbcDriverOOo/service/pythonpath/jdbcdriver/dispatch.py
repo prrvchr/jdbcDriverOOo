@@ -71,24 +71,23 @@ class Dispatch(unohelper.Base,
     def dispatch(self, url, arguments):
         state = FAILURE
         result = None
-        parent = self._frame.getContainerWindow()
         close, connection = self._getConnection(url.Path)
         if connection is None:
-            self._showDialog(parent, 'MessageBox.Connection')
+            self._showDialog('MessageBox.Connection')
         elif url.Path == 'ShowUsers':
             if self._supportAdministration(connection):
                 state, result = self._showUsers(connection, parent, connection.getGroups())
             elif self._supportXUsers(connection) and self._supportXGroups(connection):
-                self._showDialog(parent, 'MessageBox.AdminError')
+                self._showDialog('MessageBox.AdminError')
             else:
-                self._showDialog(parent, 'MessageBox.AdminSupport')
+                self._showDialog('MessageBox.AdminSupport')
         elif url.Path == 'ShowGroups':
             if self._supportAdministration(connection):
                 state, result = self._showGroups(connection, parent, connection.getGroups())
             elif self._supportXGroups(connection) and self._supportXUsers(connection):
-                self._showDialog(parent, 'MessageBox.AdminError')
+                self._showDialog('MessageBox.AdminError')
             else:
-                self._showDialog(parent, 'MessageBox.AdminSupport')
+                self._showDialog('MessageBox.AdminSupport')
         if close and connection is not None:
             connection.close()
         return state, result
@@ -165,8 +164,8 @@ class Dispatch(unohelper.Base,
             close = True
         return close, connection
 
-    def _showDialog(self, parent, template):
-        dialog = createMessageBox(parent, *self._getDialogData(template))
+    def _showDialog(self, template):
+        dialog = createMessageBox(self._ctx, *self._getDialogData(template))
         dialog.execute()
         dialog.dispose()
 

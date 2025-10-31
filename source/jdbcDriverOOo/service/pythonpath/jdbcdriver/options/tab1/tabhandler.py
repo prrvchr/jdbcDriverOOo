@@ -33,6 +33,7 @@ from com.sun.star.awt import XContainerWindowEventHandler
 
 import traceback
 
+
 class TabHandler(unohelper.Base,
                  XContainerWindowEventHandler):
     def __init__(self, manager):
@@ -49,9 +50,8 @@ class TabHandler(unohelper.Base,
                 self._manager.setClassPath(bool(event.Source.State))
                 handled = True
             return handled
-        except Exception as e:
-            msg = "TabHandler.callHandlerMethod() Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("TabHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
         return ('JavaLogger', 'ClassPath')
