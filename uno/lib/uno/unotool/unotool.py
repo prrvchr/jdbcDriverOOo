@@ -332,14 +332,16 @@ def getDialog(ctx, identifier, xdl, handler=None, parent=None):
     dialog = None
     provider = createService(ctx, 'com.sun.star.awt.DialogProvider2')
     url = getDialogUrl(identifier, xdl)
-    if handler is None and parent is None:
-        dialog = provider.createDialog(url)
-    elif handler is not None and parent is None:
-        dialog = provider.createDialogWithHandler(url, handler)
-    else:
+    if handler and parent:
         properties = getNamedValueSet({'ParentWindow': parent, 'EventHandler': handler})
         dialog = provider.createDialogWithArguments(url, properties)
-    dialog.createPeer(getToolKit(ctx), parent)
+    else:
+        if handler:
+            dialog = provider.createDialogWithHandler(url, handler)
+        else:
+            dialog = provider.createDialog(url)
+        toolkit = getToolKit(ctx)
+        dialog.createPeer(toolkit, toolkit.getDesktopWindow())
     return dialog
 
 def findFrame(ctx, name, flags=GLOBAL):
@@ -356,8 +358,7 @@ def getDialogPosSize(ctx, extension, xdl, point=None, unit=APPFONT):
     return Rectangle(position.X, position.Y, size.Width, size.Height)
 
 def getTopWindow(ctx, name, rectangle=None, parent=None, modal=TOP, attrs=BORDER | MOVEABLE | CLOSEABLE | NODECORATION):
-    service = 'com.sun.star.frame.TaskCreator'
-    arguments = {'FrameName': name}
+    frame = createService(ctx, 'com.sun.star.frame.Frame')
     descriptor = uno.createUnoStruct('com.sun.star.awt.WindowDescriptor')
     descriptor.Type = modal
     descriptor.WindowServiceName = 'window'
@@ -369,11 +370,10 @@ def getTopWindow(ctx, name, rectangle=None, parent=None, modal=TOP, attrs=BORDER
         attrs |= SHOW
         descriptor.Bounds = rectangle
     descriptor.WindowAttributes = attrs
-    arguments['ContainerWindow'] = getToolKit(ctx).createWindow(descriptor)
-    frame = createService(ctx, service).createInstanceWithArguments(getNamedValueSet(arguments))
-    desktop = getDesktop(ctx)
-    frame.setCreator(desktop)
-    desktop.getFrames().append(frame)
+    window = getToolKit(ctx).createWindow(descriptor)
+    frame.initialize(window)
+    frame.setName(name)
+    getDesktop(ctx).getFrames().append(frame)
     return frame
 
 def getTopWindowPosition(window):
@@ -404,15 +404,10 @@ def getFileUrl(ctx, title, path, filters=(), multi=False):
             filepicker.setCurrentFilter(name)
     filepicker.setMultiSelectionMode(multi)
     if filepicker.execute() == OK:
-        url = filepicker.getFiles()[0]
         if multi:
-            try:
-                urls = filepicker.getSelectedFiles()
-            except:
-                urls = filepicker.getFiles()
-                if len(urls) > 1:
-                    urls = [url + u for u in urls[1:]]
-            url = urls
+            url = filepicker.getSelectedFiles()
+        else:
+            url = filepicker.getSelectedFiles()[0]
         path = filepicker.getDisplayDirectory()
     filepicker.dispose()
     return url, path
@@ -450,11 +445,9 @@ def executeFrameDispatch(ctx, frame, url, listener=None, /, *properties):
         else:
             dispatcher.dispatch(url, properties)
 
-def createMessageBox(peer, box, button, title, message):
-    return getMessageBox(peer.getToolkit(), peer, box, button, title, message)
-
-def getMessageBox(toolkit, peer, box, button, title, message):
-    return toolkit.createMessageBox(peer, box, button, title, message)
+def createMessageBox(ctx, box, button, title, message):
+    toolkit = getToolKit(ctx)
+    return toolkit.createMessageBox(toolkit.getDesktopWindow(), box, button, title, message)
 
 def createService(ctx, name, *args, **kwargs):
     if args:

@@ -68,7 +68,6 @@ from .unotool import getLastNamedParts
 from .unotool import getLibreOfficeInfo
 from .unotool import getLibreOfficeVersion
 from .unotool import getMailMerge
-from .unotool import getMessageBox
 from .unotool import getMimeTypeFactory
 from .unotool import getMri
 from .unotool import getNamedValue
