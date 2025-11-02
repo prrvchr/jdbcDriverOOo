@@ -350,15 +350,12 @@ def findFrame(ctx, name, flags=GLOBAL):
 def getDialogPosSize(ctx, extension, xdl, point=None, unit=APPFONT):
     dialog = getDialog(ctx, extension, xdl)
     size = dialog.convertSizeToPixel(Size(dialog.Model.Width, dialog.Model.Height), unit)
-    if point:
-        position = dialog.convertPointToPixel(point, unit)
-    else:
-        position = Point(0, 0)
     dialog.dispose()
-    return Rectangle(position.X, position.Y, size.Width, size.Height)
+    if point is None:
+        point = Point(0, 0)
+    return Rectangle(point.X, point.Y, size.Width, size.Height)
 
 def getTopWindow(ctx, name, rectangle=None, parent=None, modal=TOP, attrs=BORDER | MOVEABLE | CLOSEABLE | NODECORATION):
-    frame = createService(ctx, 'com.sun.star.frame.Frame')
     descriptor = uno.createUnoStruct('com.sun.star.awt.WindowDescriptor')
     descriptor.Type = modal
     descriptor.WindowServiceName = 'window'
@@ -370,16 +367,17 @@ def getTopWindow(ctx, name, rectangle=None, parent=None, modal=TOP, attrs=BORDER
         attrs |= SHOW
         descriptor.Bounds = rectangle
     descriptor.WindowAttributes = attrs
-    window = getToolKit(ctx).createWindow(descriptor)
-    frame.initialize(window)
-    frame.setName(name)
+    # XXX: We use the TaskCreator UNO service instead of Frame
+    # XXX: in order to be able to assign a title to the window.
+    service = 'com.sun.star.frame.TaskCreator'
+    arguments = {'FrameName': name, 'ContainerWindow': getToolKit(ctx).createWindow(descriptor)}
+    frame = createService(ctx, service).createInstanceWithArguments(getNamedValueSet(arguments))
     getDesktop(ctx).getFrames().append(frame)
     return frame
 
 def getTopWindowPosition(window):
     size = window.getPosSize()
-    point = uno.createUnoStruct('com.sun.star.awt.Point', size.X, size.Y)
-    return window.convertPointToLogic(point, APPFONT)
+    return Point(size.X, size.Y)
 
 def saveTopWindowPosition(config, position, property):
     if config.hasByName(property):
