@@ -443,6 +443,7 @@ If you use multiple accounts to connect to a database, you will not be able to r
 
 ### What has been done for version 1.6.1:
 
+- All modal windows now open correctly in modal mode.
 
 ### What remains to be done for version 1.6.1:
 
