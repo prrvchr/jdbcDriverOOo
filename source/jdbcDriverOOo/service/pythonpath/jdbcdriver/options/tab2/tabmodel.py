@@ -35,6 +35,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.uno import Exception as UnoException
 
 from ...unotool import createService
+from ...unotool import getCallBack
 from ...unotool import getConfiguration
 from ...unotool import getNamedValueSet
 from ...unotool import getPathSettings
@@ -75,7 +76,7 @@ class TabModel():
         self._name = 'DriverTypeDisplayName'
         self._class = 'JavaDriverClass'
         self._classpath = 'JavaDriverClassPath'
-        self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
+        self._callback = getCallBack(ctx)
         self._package = 'vnd.sun.star.expand:$UNO_USER_PACKAGES_CACHE/uno_packages'
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._config = getConfiguration(ctx, path, True)

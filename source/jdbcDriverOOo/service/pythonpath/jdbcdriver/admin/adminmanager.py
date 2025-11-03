@@ -306,7 +306,7 @@ class AdminManager(unohelper.Base):
         return table, privileges, flags
 
     def _showDialogError(self, title, error):
-        msgbox = createMessageBox(self._ctx, ERRORBOX, 1, title, error.Message)
+        msgbox = createMessageBox(self._ctx, title, error.Message, ERRORBOX)
         msgbox.execute()
         msgbox.dispose()
 
@@ -359,7 +359,7 @@ class AdminManager(unohelper.Base):
         self._dialog.enableOk(enabled)
 
     def _dropGrantee(self, message, title):
-        dialog = createMessageBox(self._ctx, QUERYBOX, 2, title, message)
+        dialog = createMessageBox(self._ctx, title, message, QUERYBOX)
         if dialog.execute() == OK:
             grantees = self._model.dropGrantee()
             self._updateGrantee(grantees)

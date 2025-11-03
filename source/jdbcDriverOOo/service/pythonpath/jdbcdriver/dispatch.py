@@ -30,6 +30,8 @@
 import uno
 import unohelper
 
+from com.sun.star.awt.MessageBoxType import ERRORBOX
+
 from com.sun.star.frame import FeatureStateEvent
 
 from com.sun.star.frame import XNotifyingDispatch
@@ -170,9 +172,8 @@ class Dispatch(unohelper.Base,
         dialog.dispose()
 
     def _getDialogData(self, template):
-        box = uno.Enum('com.sun.star.awt.MessageBoxType', 'ERRORBOX')
         resolver = getStringResource(self._ctx, g_identifier, 'dialogs', 'MessageBox')
-        message = resolver.resolveString(template + '.Message')
         title = resolver.resolveString(template + '.Title')
-        return box, 1, title, message
+        message = resolver.resolveString(template + '.Message')
+        return title, message, ERRORBOX
 
