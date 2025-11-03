@@ -56,7 +56,6 @@ public final class TableContainer
 
     @Override
     protected XPropertySet createDescriptor() {
-        System.out.println("sdb.TableContainer.createDescriptor()");
         return new TableDescriptor(isCaseSensitive());
     }
 

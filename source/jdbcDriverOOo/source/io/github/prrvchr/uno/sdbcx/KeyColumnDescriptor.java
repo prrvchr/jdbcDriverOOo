@@ -46,7 +46,6 @@ public final class KeyColumnDescriptor
     public KeyColumnDescriptor(boolean sensitive) {
         super(SERVICE, SERVICES, sensitive);
         registerProperties();
-        System.out.println("sdbcx.descriptors.KeyColumnDescriptor()");
     }
 
     private void registerProperties() {

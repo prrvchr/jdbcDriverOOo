@@ -35,7 +35,6 @@ public final class IndexColumnDescriptorContainer
     public IndexColumnDescriptorContainer(Object lock,
                                           boolean sensitive) {
         super(lock, sensitive);
-        System.out.println("sdbcx.descriptors.IndexColumnDescriptorContainer()");
     }
 
     @Override

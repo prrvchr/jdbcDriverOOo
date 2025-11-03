@@ -72,7 +72,6 @@ public final class Key
                int delete,
                String[] columns) {
         super(SERVICE, SERVICES, sensitive, name);
-        System.out.println("sdbcx.Key() 1");
         mTable = table;
         mRefTable = refTable;
         mType = type;
@@ -136,7 +135,6 @@ public final class Key
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
     public XPropertySet createDataDescriptor() {
-        System.out.println("sdbcx.Key.createDataDescriptor() ***************************************************");
         return new KeyDescriptor(isCaseSensitive());
     }
 

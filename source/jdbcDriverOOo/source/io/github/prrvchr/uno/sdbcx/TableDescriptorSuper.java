@@ -54,7 +54,6 @@ public abstract class TableDescriptorSuper
                                 boolean sensitive) {
         super(service, services, sensitive);
         mKeys = new KeyDescriptorContainer(this, sensitive);
-        System.out.println("sdbcx.TableDescriptorSuper()");
     }
 
     protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
@@ -84,7 +83,6 @@ public abstract class TableDescriptorSuper
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
     public XNameAccess getColumns() {
-        System.out.println("sdbcx.descriptors.TableDescriptorBase.getColumns()");
         return mColumns;
     }
 
@@ -92,7 +90,6 @@ public abstract class TableDescriptorSuper
     // com.sun.star.sdbcx.XKeysSupplier:
     @Override
     public XIndexAccess getKeys() {
-        System.out.println("sdbcx.descriptors.TableDescriptorBase.getKeys()");
         return mKeys;
     }
 

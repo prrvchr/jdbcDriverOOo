@@ -74,7 +74,6 @@ public final class Index
                  boolean clustered,
                  String[] columns) {
         super(SERVICE, SERVICES, sensitive, name);
-        System.out.println("sdbcx.Index() 1");
         mTable = table;
         mCatalog = catalog;
         mIsUnique = unique;
@@ -139,7 +138,6 @@ public final class Index
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
     public XPropertySet createDataDescriptor() {
-        System.out.println("sdbcx.Index.createDataDescriptor() ***************************************************");
         IndexDescriptor descriptor = new IndexDescriptor(isCaseSensitive());
         UnoHelper.copyProperties(this, descriptor);
         try {

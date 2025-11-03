@@ -134,7 +134,6 @@ public class DBTools {
         String view = ComponentHelper.composeTableName(support, descriptor, sensitive);
         String command = getDescriptorStringValue(descriptor, PropertyID.COMMAND);
         String query = config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
-        System.out.println("DBTools.getCreateViewQuery() Query: " + query);
         return query;
     }
 
@@ -160,7 +159,6 @@ public class DBTools {
         throws java.sql.SQLException {
         String view = ComponentHelper.composeTableName(support, component, sensitive);
         String query = config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
-        System.out.println("DBTools.getViewCommand() Query: " + query);
         return query;
     }
 

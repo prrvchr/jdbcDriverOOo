@@ -79,7 +79,6 @@ public final class ViewContainer
             query = DBTools.getCreateViewQuery(provider.getConfigDDL(),
                                                provider.getNamedSupport(rule),
                                                descriptor, isCaseSensitive());
-            System.out.println("sdbcx.ViewContainer.createDataBaseElement() SQL: '" + query + "'");
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
             if (DBTools.executeSQLQuery(provider, query)) {
                 TableContainerMain<?> tables = getConnection().getTablesInternal();
@@ -98,7 +97,6 @@ public final class ViewContainer
     protected View createElement(String name)
         throws SQLException {
         try {
-            System.out.println("ViewContainer.createElement() 1 View name: " + name);
             ComposeRule rule = ComposeRule.InTableDefinitions;
             int option = CheckOption.NONE;
             String command = "";
@@ -113,8 +111,6 @@ public final class ViewContainer
                 for (int i = 0; i < values.size(); i++) {
                     options[i] = values.get(i).toString();
                 }
-                System.out.println("ViewContainer.createElement() 2 Query: " + query);
-                System.out.println("ViewContainer.createElement() 3 Options: " + String.join(", ", options));
                 if (query != null && !query.isBlank() && !values.isEmpty()) {
                     String value = "NONE";
                     try (PreparedStatement smt = getCreateViewStatement(provider.getConnection(), values, query);
@@ -130,7 +126,6 @@ public final class ViewContainer
                     option = getViewCheckOption(value);
                 }
             }
-            System.out.println("ViewContainer.createElement() 4 Command: " + command);
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEW);
             View view = new View(getConnection(), isCaseSensitive(), component.getCatalogName(),
                                  component.getSchemaName(), component.getTableName(), command, option);
@@ -192,7 +187,6 @@ public final class ViewContainer
             NamedSupport support = provider.getNamedSupport(rule);
             String table = ComponentHelper.buildName(support, view.getNamedComponents(), isCaseSensitive());
             query = provider.getConfigDDL().getDropViewCommand(ParameterDDL.getDropView(table));
-            System.out.println("ViewContainer.removeView() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);
             DBTools.executeSQLQuery(provider, query);
         } catch (SQLException e) {

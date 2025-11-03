@@ -37,7 +37,6 @@ public final class IndexDescriptorContainer
     public IndexDescriptorContainer(Object lock,
                                     boolean sensitive) {
         super(lock, sensitive);
-        System.out.println("sdbcx.descriptors.IndexDescriptorContainer()");
     }
 
     @Override

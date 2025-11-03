@@ -63,7 +63,6 @@ public final class CallableStatement
         throws java.sql.SQLException {
         super(SERVICE, SERVICES, connection, sql);
         registerProperties(new HashMap<PropertyID, PropertyWrapper>());
-        System.out.println("sdb.CallableStatement() 1");
     }
 
     protected ConnectionLog getLogger() {

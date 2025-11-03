@@ -118,7 +118,6 @@ public class UserContainer
             ConfigDCL config = mConnection.getProvider().getConfigDCL();
             NamedSupport support = mConnection.getProvider().getNamedSupport();
             query = RoleHelper.getCreateUserCommand(config, support, descriptor, name, isCaseSensitive());
-            System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_CREATE_USER_QUERY, name, query);
             return DBTools.executeSQLQuery(mConnection.getProvider(), query);
         } catch (SQLException e) {
@@ -147,23 +146,16 @@ public class UserContainer
             ConfigDCL config = mConnection.getProvider().getConfigDCL();
             NamedSupport support = mConnection.getProvider().getNamedSupport();
             query = RoleHelper.getDropUserCommand(config, support, name, isCaseSensitive());
-            System.out.println("sdbcx.UserContainer.removeDataBaseElement() 1 SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
-            if (DBTools.executeSQLQuery(mConnection.getProvider(), query)) {
-                // XXX: A user has just been deleted, they should also be deleted from any role they are a member of...
-                System.out.println("sdbcx.UserContainer.removeDataBaseElement() 2");
-                //mConnection.getGroupsInternal().removeRole(name);
-                System.out.println("sdbcx.UserContainer.removeDataBaseElement() 3");
-            }
+            DBTools.executeSQLQuery(mConnection.getProvider(), query);
+            // XXX: A user has just been deleted, they should also be deleted from any role they are a member of...
+            //mConnection.getGroupsInternal().removeRole(name);
         } catch (SQLException e) {
             e.printStackTrace();
             int resource = Resources.STR_LOG_USERS_REMOVE_USER_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
-        } catch (Throwable e) {
-            System.out.println("sdbcx.UserContainer.removeDataBaseElement() ERROR");
-            e.printStackTrace();
         }
     }
 
@@ -191,7 +183,6 @@ public class UserContainer
         while (users.hasNext()) {
             Groups groups = users.next().getGroupsInternal();
             if (groups.hasByName(name)) {
-                System.out.println("sdb.UserContainer.removeRole() Role: " + name);
                 groups.removeContainerElement(name, false);
             }
         }

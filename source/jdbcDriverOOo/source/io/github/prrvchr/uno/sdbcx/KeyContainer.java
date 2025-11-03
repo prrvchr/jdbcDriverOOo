@@ -182,7 +182,6 @@ public final class KeyContainer
     protected Key appendElement(XPropertySet descriptor)
         throws java.sql.SQLException {
         Key key = null;
-        System.out.println("sdbcx.KeyContainer.appendElement() 1");
         int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.TYPE);
         // XXX: For foreign keys, we check if the type between the foreign key and the primary key is the same.
         if (type == KeyType.FOREIGN) {
@@ -201,33 +200,24 @@ public final class KeyContainer
         boolean failed = true;
         ColumnSuper col1 = null;
         ColumnSuper col2 = null;
-        System.out.println("sdbcx.KeyContainer.appendElement() 2");
         Map<String, String> columns = new TreeMap<>();
         String table = KeyHelper.getKeyFromDescriptor(descriptor, columns);
-        System.out.println("sdbcx.KeyContainer.appendElement() 3 Table: " + table + " ************** ");
         ColumnContainerBase<?> columns1 = mTable.getColumnsInternal();
         TableContainerSuper<?> tables = mTable.getConnection().getTablesInternal();
-        System.out.println("sdbcx.KeyContainer.appendElement() 3");
         if (tables.hasByName(table)) {
             ColumnContainerBase<?> columns2 = tables.getElementByName(table).getColumnsInternal();
             for (String foreign : columns.keySet()) {
-                System.out.println("sdbcx.KeyContainer.appendElement() 3");
                 String column = columns.get(foreign);
-                System.out.println("sdbcx.KeyContainer.appendElement() 4");
                 if (column != null && columns1.hasByName(foreign) && columns2.hasByName(column)) {
-                    System.out.println("sdbcx.KeyContainer.appendElement() 5");
                     col1 = columns1.getElementByName(foreign);
                     col2 = columns2.getElementByName(column);
-                    System.out.println("sdbcx.KeyContainer.appendElement() 6");
                     if (col1.getTypeInternal() == col2.getTypeInternal()) {
-                        System.out.println("sdbcx.KeyContainer.appendElement() 7");
                         failed = false;
                     }
                 }
             }
         }
         if (failed) {
-            System.out.println("sdbcx.KeyContainer.appendElement() 8");
             int resource = Resources.STR_LOG_FKEY_ADD_INVALID_COLUMN_TYPE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName(),
                                                                                    col1.getTypeNameInternal(),
@@ -273,7 +263,6 @@ public final class KeyContainer
             query = ConstraintHelper.getCreateConstraintQuery(provider.getConfigDDL(),
                                                               provider.getNamedSupport(rule),
                                                               descriptor, table, key, isCaseSensitive());
-            System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
             getLogger().logprb(LogLevel.INFO, res1, key, name, query);
             return DBTools.executeSQLQuery(provider, query);
         } catch (java.sql.SQLException e) {
@@ -372,20 +361,17 @@ public final class KeyContainer
             String contraint = support.enquoteIdentifier(name, isCaseSensitive());
             query = provider.getConfigDDL().getDropConstraintCommand(ParameterDDL.getDropConstraint(table, contraint),
                                                                     type);
-            System.out.println("sdbcx.KeyContainer.removeDataBaseElement() Query: " + query);
             int resource = getRemoveKeyResource(type, false);
             table = ComponentHelper.composeTableName(support, mTable, false);
             getLogger().logprb(LogLevel.INFO, resource, name, table, query);
-            if (!DBTools.executeSQLQuery(provider, query)) {
-                System.out.println("sdbcx.KeyContainer.removeDataBaseElement() ERROR");
-                // XXX: If we delete a primary key we must also delete the corresponding index.
-                //if (type == KeyType.PRIMARY) {
-                //    mTable.getIndexesInternal().removePrimaryKeyIndex();
-                //} else if (type == KeyType.FOREIGN) {
-                //    // XXX: If we delete a foreign key we must also delete the corresponding index.
-                //    mTable.getIndexesInternal().removeForeignKeyIndex(name);
-                //}
-            }
+            DBTools.executeSQLQuery(provider, query);
+            // XXX: If we delete a primary key we must also delete the corresponding index.
+            //if (type == KeyType.PRIMARY) {
+            //    mTable.getIndexesInternal().removePrimaryKeyIndex();
+            //} else if (type == KeyType.FOREIGN) {
+            //    // XXX: If we delete a foreign key we must also delete the corresponding index.
+            //    mTable.getIndexesInternal().removeForeignKeyIndex(name);
+            //}
         } catch (java.sql.SQLException e) {
             int resource = getRemoveKeyResource(type, true);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, resource,
@@ -415,7 +401,6 @@ public final class KeyContainer
 
     @Override
     protected void refreshInternal() {
-        System.out.println("sdbcx.KeyContainer.refreshInternal() *********************************");
         mTable.refreshKeys();
     }
 

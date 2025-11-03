@@ -140,10 +140,6 @@ public abstract class ResultSetBase
         mIsBookmarkable = bookmark;
         mMethod = method;
         mLogger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.RESULTSET);
-        if (!method.isEmpty()) {
-            System.out.println("sdbc.ResultSetBase() 1 method: " + mMethod);
-        }
-
     }
 
     protected void checkCursor() throws java.sql.SQLException { }
@@ -204,7 +200,6 @@ public abstract class ResultSetBase
         properties.put(PropertyID.ISBOOKMARKABLE,
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
-                    System.out.println("ResultSetBase.IsBookmarkable() 1: " + mIsBookmarkable);
                     return mIsBookmarkable;
                 },
                 null));
@@ -271,7 +266,6 @@ public abstract class ResultSetBase
     protected int getResultSetConcurrency()
         throws WrappedTargetException {
         try {
-            System.out.println("ResultSetBase.getResultSetConcurrency() 1 type: " + mResult.getConcurrency());
             int concurrency = mResult.getConcurrency();
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
             return concurrency;
@@ -283,7 +277,6 @@ public abstract class ResultSetBase
     protected int getResultSetType()
         throws WrappedTargetException {
         try {
-            System.out.println("ResultSetBase.getResultSetType() 1 type: " + mResult.getType());
             int type = mResult.getType();
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, type);
             return type;
@@ -296,7 +289,6 @@ public abstract class ResultSetBase
     @Override
     public synchronized void dispose() {
         try {
-            System.out.println("sdbc.ResultSetBase.dispose() 1 method: " + mMethod);
             if (mResult != null) {
                 try {
                     if (!mResult.isClosed()) {

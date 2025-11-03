@@ -47,7 +47,6 @@ public final class IndexColumnDescriptor
     public IndexColumnDescriptor(boolean sensitive) {
         super(SERVICE, SERVICES, sensitive);
         registerProperties();
-        System.out.println("sdbcx.IndexColumnDescriptor() ***************************************************");
     }
 
     private void registerProperties() {

@@ -63,13 +63,11 @@ public abstract class PreparedStatementBase
                 () -> {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS,
                                        Boolean.toString(mUseBookmarks));
-                    System.out.println("PreparedStatementBase.getUseBookmark(): " + mUseBookmarks);
                     return mUseBookmarks;
                 },
                 value -> {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS,
                                        value.toString());
-                    System.out.println("PreparedStatementBase.setUseBookmark(): " + value);
                     mUseBookmarks = (boolean) value;
                 }));
 

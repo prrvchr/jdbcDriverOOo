@@ -48,7 +48,6 @@ public abstract class StatementSuper
                           String[] services,
                           ConnectionSuper connection) {
         super(service, services, connection);
-        System.out.println("sdbcx.Statement() 1");
     }
 
     @Override

@@ -53,7 +53,6 @@ public final class PreparedStatement
         throws java.sql.SQLException {
         super(SERVICE, SERVICES, connection, sql);
         registerProperties(new HashMap<PropertyID, PropertyWrapper>());
-        System.out.println("sdbcx.PreparedStatement() 1: '" + sql + "'");
     }
 
 

@@ -121,9 +121,6 @@ public abstract class TableContainerSuper<T extends TableSuper>
                 String query = provider.getConfigDDL().getTableDescriptionCommand(arguments);
                 queries.add(query);
             }
-            for (String query : queries) {
-                System.out.println("TableContainerSuper._createDataBaseElement() Queries: " + query);
-            }
             if (!queries.isEmpty()) {
                 for (String query : queries) {
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name, query);

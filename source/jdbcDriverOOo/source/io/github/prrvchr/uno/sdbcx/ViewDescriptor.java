@@ -48,7 +48,6 @@ public final class ViewDescriptor
     public ViewDescriptor(boolean sensitive) {
         super(SERVICE, SERVICES, sensitive);
         registerProperties();
-        System.out.println("sdbcx.descriptors.ViewDescriptor()");
     }
 
     private void registerProperties() {

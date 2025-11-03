@@ -37,22 +37,18 @@ public final class KeyDescriptorContainer
     public KeyDescriptorContainer(Object lock,
                                   boolean sensitive) {
         super(lock, sensitive);
-        System.out.println("sdbcx.descriptors.KeyDescriptorContainer()");
     }
 
     @Override
     protected XPropertySet createDescriptor() {
-        System.out.println("sdbcx.descriptors.KeyDescriptorContainer._createDescriptor() 1");
         return new KeyDescriptor(isCaseSensitive());
     }
 
     @Override
     protected KeyDescriptor appendElement(XPropertySet descriptor)
         throws java.sql.SQLException {
-        System.out.println("sdbcx.descriptors.KeyDescriptorContainer.appendElement() 1");
         XPropertySet newDescriptor = cloneDescriptor(descriptor);
         DBTools.cloneDescriptorColumns(descriptor, newDescriptor);
-        System.out.println("sdbcx.descriptors.KeyDescriptorContainer.appendElement() 2");
         return (KeyDescriptor) newDescriptor;
     }
 

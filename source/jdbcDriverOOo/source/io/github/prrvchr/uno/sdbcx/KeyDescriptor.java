@@ -56,7 +56,6 @@ public final class KeyDescriptor
         super(SERVICE, SERVICES, sensitive);
         mColumns = new KeyColumnDescriptorContainer(this, isCaseSensitive());
         registerProperties();
-        System.out.println("sdbcx.descriptors.KeyDescriptor()");
     }
 
     private void registerProperties() {
@@ -105,7 +104,6 @@ public final class KeyDescriptor
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
     public XNameAccess getColumns() {
-        System.out.println("sdbcx.descriptors.KeyDescriptor.getColumns()");
         return mColumns;
     }
 

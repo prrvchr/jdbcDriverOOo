@@ -753,17 +753,14 @@ public abstract class ConfigBase extends ParameterBase {
     }
  
     private void setSystemProperties(final XHierarchicalNameAccess config, final String subProtocol) {
-        System.out.println("ConfigBase.setSystemProperties() 1");
         Object[] properties = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
                                                                               SYSTEM_PROPERTIES);
         if (properties != null) {
-            System.out.println("ConfigBase.setSystemProperties() 2");
             StringJoiner buffer = new StringJoiner("\\n");
             for (Object property : properties) {
                 buffer.add(property.toString());
             }
             if (buffer.length() > 0) {
-                System.out.println("ConfigBase.setSystemProperties() 3 Buffer: " + buffer.toString());
                 try {
                     Properties p = new Properties(System.getProperties());
                     p.load(new StringReader(buffer.toString()));
@@ -774,6 +771,5 @@ public abstract class ConfigBase extends ParameterBase {
                 }
             }
         }
-        System.out.println("ConfigBase.setSystemProperties() 4");
     }
 }
