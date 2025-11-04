@@ -195,10 +195,8 @@ public class ResultSetHelper {
     }
 
     private static CachedRowSet getCachedRowSet() throws java.sql.SQLException {
-        System.out.println("ResultSet.getCachedRowSet() 1");
         CachedRowSet rowset = getRowSetFactory().createCachedRowSet();
         rowset.setSyncProvider(ROWSET_PROVIDER);
-        System.out.println("ResultSet.getCachedRowSet() 2 rowset: " + rowset);
         return rowset;
     }
 
