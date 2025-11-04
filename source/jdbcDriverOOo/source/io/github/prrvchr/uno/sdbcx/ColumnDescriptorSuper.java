@@ -46,7 +46,6 @@ public abstract class ColumnDescriptorSuper
                                  final boolean sensitive) {
         super(service, services, sensitive);
         mTable = table;
-        System.out.println("sdbcx.descriptors.ColumnDescriptorSuper()");
     }
 
     @Override

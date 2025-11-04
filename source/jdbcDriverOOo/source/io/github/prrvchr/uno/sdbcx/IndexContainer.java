@@ -73,7 +73,6 @@ public final class IndexContainer
                           String[] indexes) {
         super(SERVICE, SERVICES, table, sensitive, indexes);
         mTable = table;
-        System.out.println("sdbcx.IndexContainer() indexes: " + String.join(", ", indexes));
         mLogger = new ConnectionLog(table.getLogger(), LoggerObjectType.INDEXCONTAINER);
     }
 
@@ -122,7 +121,6 @@ public final class IndexContainer
     public void dropIndex(String name)
         throws java.sql.SQLException {
         synchronized (mLock) {
-            System.out.println("sdbcx.IndexContainer() dropByName: " + name);
             // XXX: we need to test if the index come from a foreign key
             // XXX: and if not then it's really an index
             boolean really = true;
@@ -213,7 +211,6 @@ public final class IndexContainer
                 Map<String, Object> arguments = ParameterDDL.getAddIndex(table, index,
                                                                          indexes.toArray(new String[0]));
                 query = provider.getConfigDDL().getAddIndexCommand(arguments, unique);
-                System.out.println("sdbcx.IndexContainer.createIndex() 1 Query: " + query);
                 table = ComponentHelper.composeTableName(support, mTable, false);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY, name, table, query);
                 created = DBTools.executeSQLQuery(provider, query);

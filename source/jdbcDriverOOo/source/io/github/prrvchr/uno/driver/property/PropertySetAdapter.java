@@ -146,9 +146,10 @@ public class PropertySetAdapter
         public boolean hasPropertyByName(String name) {
             boolean value = mPropertiesByName.containsKey(name);
             if (!value) {
+                @SuppressWarnings("unused")
                 String msg = "beans.PropertySetAdapter.hasPropertyByName() ERROR \n";
                 msg += mLock.getClass().getName() + " : " + name;
-                System.out.println(msg);
+                //System.out.println(msg);
             }
             return value;
         }

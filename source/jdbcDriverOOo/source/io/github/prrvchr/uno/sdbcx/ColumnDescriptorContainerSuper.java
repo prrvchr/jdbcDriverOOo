@@ -36,7 +36,6 @@ public abstract class ColumnDescriptorContainerSuper<T extends ColumnDescriptorS
                                           boolean sensitive) {
         super(table, sensitive);
         mTable = table;
-        System.out.println("sdbcx.ColumnDescriptorContainerSuper() ************************************");
     }
 
 }

@@ -35,7 +35,6 @@ public final class KeyColumnDescriptorContainer
     public KeyColumnDescriptorContainer(Object lock,
                                         boolean sensitive) {
         super(lock, sensitive);
-        System.out.println("sdbcx.descriptors.KeyColumnDescriptorContainer()");
     }
 
     @Override

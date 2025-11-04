@@ -28,7 +28,6 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.container.ContainerEvent;
 import com.sun.star.container.XContainerListener;
 import com.sun.star.lang.EventObject;
-import com.sun.star.uno.AnyConverter;
 
 
 public class TableListener
@@ -38,28 +37,26 @@ public class TableListener
 
     @Override
     public void disposing(EventObject event) {
-        System.out.println("TableListener.disposing()");
+        //System.out.println("TableListener.disposing()");
     }
 
     @Override
     public void elementInserted(ContainerEvent event) {
-        System.out.println("TableListener.elementInserted()");
+        //System.out.println("TableListener.elementInserted()");
     }
 
     @Override
     public void elementRemoved(ContainerEvent event) {
-        System.out.println("TableListener.elementRemoved() 1");
-        String name = AnyConverter.toString(event.Accessor);
-        TableSuper table = (TableSuper) event.Element;
-        System.out.println("TableListener.elementRemoved() 2 TableName:" + table.getName() +
-                           " - name: " + name);
+        //String name = AnyConverter.toString(event.Accessor);
+        //TableSuper table = (TableSuper) event.Element;
+        //System.out.println("TableListener.elementRemoved() 1 TableName:" + table.getName() +
+        //                   " - name: " + name);
         //table.getConnection().getTablesInternal().removeForeignKeyTables(table, name);
-        System.out.println("TableListener.elementRemoved() 3");
     }
 
     @Override
     public void elementReplaced(ContainerEvent event) {
-        System.out.println("TableListener.elementReplaced() 1");
+        //System.out.println("TableListener.elementReplaced() 1");
     }
 
 }

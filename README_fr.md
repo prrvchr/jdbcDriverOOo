@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.6.0][5]
+# version [1.6.1][5]
 
 ## Introduction:
 
@@ -321,7 +321,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-160>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-161>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -356,7 +356,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [41]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [42]: <img/jdbcDriverOOo.svg#middle>
 [43]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[44]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.6.0#right>
+[44]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.6.1#right>
 [45]: <img/jdbcDriverOOo-1_fr.png>
 [46]: <img/jdbcDriverOOo-2_fr.png>
 [47]: <img/jdbcDriverOOo-3_fr.png>

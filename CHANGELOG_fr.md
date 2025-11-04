@@ -441,7 +441,11 @@ Si vous utilisez plusieurs comptes pour vous connecter à une base de données, 
 
 - A été testé sous LibreOfficeDev 26.2.
 
-### Que reste-t-il à faire pour la version 1.6.0:
+### Ce qui a été fait pour la version 1.6.1:
+
+- Toutes les fenêtres modales s'ouvrent désormais correctement en mode modal.
+
+### Que reste-t-il à faire pour la version 1.6.1:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 

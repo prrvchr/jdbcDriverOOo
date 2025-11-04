@@ -69,7 +69,7 @@ class OptionsHandler(unohelper.Base,
                     self._manager.loadSetting()
                     handled = True
             return handled
-        except Exception as e:
+        except:
             print("OptionsHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):

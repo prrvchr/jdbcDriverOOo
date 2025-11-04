@@ -61,7 +61,6 @@ public final class TableDescriptor
         super(SERVICE, SERVICES, sensitive);
         mColumns = new ColumnDescriptorContainer(this, sensitive);
         registerProperties();
-        System.out.println("sdb.TableDescriptor()");
     }
 
     private void registerProperties() {

@@ -45,9 +45,8 @@ class EventListener(unohelper.Base,
     def disposing(self, source):
         try:
             self._manager.dispose()
-        except Exception as e:
-            msg = "OptionsHandler.disposing() Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("EventListener.disposing() ERROR: %s" % traceback.format_exc())
 
 
 class TabListener(unohelper.Base,

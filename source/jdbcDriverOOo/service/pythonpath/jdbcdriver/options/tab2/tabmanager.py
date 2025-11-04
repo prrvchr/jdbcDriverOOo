@@ -53,7 +53,7 @@ from ...unotool import getUrl
 
 from ...dbconfig import g_jar
 
-from threading import RLock
+from threading import Lock
 import traceback
 
 
@@ -61,7 +61,7 @@ class TabManager(unohelper.Base,
                  XCallback):
     def __init__(self, ctx, window):
         self._ctx = ctx
-        self._lock = RLock()
+        self._lock = Lock()
         self._disposed = False
         self._dialog = None
         xdl = 'Option2Dialog'
@@ -76,7 +76,7 @@ class TabManager(unohelper.Base,
 
 # XCallback
     def notify(self, data):
-        self._notify(getArgumentSet(data))
+        self._notify(getArgumentSet(data, False))
 
 # TabManager setter methods
     def dispose(self):

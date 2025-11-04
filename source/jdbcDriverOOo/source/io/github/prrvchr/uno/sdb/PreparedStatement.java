@@ -60,7 +60,6 @@ public final class PreparedStatement
         throws java.sql.SQLException {
         super(SERVICE, SERVICES, connection, sql);
         registerProperties(new HashMap<PropertyID, PropertyWrapper>());
-        System.out.println("sdb.PreparedStatement() 1: '" + sql + "'");
     }
 
     protected ConnectionLog getLogger() {
@@ -91,10 +90,8 @@ public final class PreparedStatement
             java.sql.ResultSet rs = getJdbcResultSet();
             Provider provider = getConnectionInternal().getProvider();
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            System.out.println("sdb.PreparedStatement.getResultSet() 1");
             if (mUseBookmarks && provider.getConfigSQL().useCachedRowSet(rs, mQuery)) {
                 CachedRowSet crs = ResultSetHelper.getCachedRowSet(provider, rs, mQuery);
-                System.out.println("sdb.PreparedStatement.getResultSet() 2 isReadOnly: " + crs.isReadOnly());
                 if (!crs.isReadOnly()) {
                     RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
                     String services = String.join(", ", rowset.getSupportedServiceNames());
@@ -106,7 +103,6 @@ public final class PreparedStatement
                 }
             }
             if (resultset == null) {
-                System.out.println("sdb.PreparedStatement.getResultSet() 3");
                 ResultSet result = new ResultSet(getConnectionInternal(), rs, this);
                 String services = String.join(", ", result.getSupportedServiceNames());
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,

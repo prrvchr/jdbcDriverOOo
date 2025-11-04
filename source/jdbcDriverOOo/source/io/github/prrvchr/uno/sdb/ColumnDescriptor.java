@@ -63,7 +63,6 @@ public final class ColumnDescriptor
                             boolean sensitive) {
         super(SERVICE, SERVICES, table, sensitive);
         registerProperties();
-        System.out.println("sdb.ColumnDescriptor()");
     }
 
     private void registerProperties() {

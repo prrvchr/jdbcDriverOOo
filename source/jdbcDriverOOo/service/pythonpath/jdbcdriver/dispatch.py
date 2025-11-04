@@ -30,6 +30,8 @@
 import uno
 import unohelper
 
+from com.sun.star.awt.MessageBoxType import ERRORBOX
+
 from com.sun.star.frame import FeatureStateEvent
 
 from com.sun.star.frame import XNotifyingDispatch
@@ -71,24 +73,23 @@ class Dispatch(unohelper.Base,
     def dispatch(self, url, arguments):
         state = FAILURE
         result = None
-        parent = self._frame.getContainerWindow()
         close, connection = self._getConnection(url.Path)
         if connection is None:
-            self._showDialog(parent, 'MessageBox.Connection')
+            self._showDialog('MessageBox.Connection')
         elif url.Path == 'ShowUsers':
             if self._supportAdministration(connection):
                 state, result = self._showUsers(connection, parent, connection.getGroups())
             elif self._supportXUsers(connection) and self._supportXGroups(connection):
-                self._showDialog(parent, 'MessageBox.AdminError')
+                self._showDialog('MessageBox.AdminError')
             else:
-                self._showDialog(parent, 'MessageBox.AdminSupport')
+                self._showDialog('MessageBox.AdminSupport')
         elif url.Path == 'ShowGroups':
             if self._supportAdministration(connection):
                 state, result = self._showGroups(connection, parent, connection.getGroups())
             elif self._supportXGroups(connection) and self._supportXUsers(connection):
-                self._showDialog(parent, 'MessageBox.AdminError')
+                self._showDialog('MessageBox.AdminError')
             else:
-                self._showDialog(parent, 'MessageBox.AdminSupport')
+                self._showDialog('MessageBox.AdminSupport')
         if close and connection is not None:
             connection.close()
         return state, result
@@ -99,7 +100,7 @@ class Dispatch(unohelper.Base,
         state.IsEnabled = True
         #state.State = True
         listener.statusChanged(state)
-        self._listeners.append(listener);
+        self._listeners.append(listener)
 
     def removeStatusListener(self, listener, url):
         if listener in self._listeners:
@@ -165,15 +166,14 @@ class Dispatch(unohelper.Base,
             close = True
         return close, connection
 
-    def _showDialog(self, parent, template):
-        dialog = createMessageBox(parent, *self._getDialogData(template))
+    def _showDialog(self, template):
+        dialog = createMessageBox(self._ctx, *self._getDialogData(template))
         dialog.execute()
         dialog.dispose()
 
     def _getDialogData(self, template):
-        box = uno.Enum('com.sun.star.awt.MessageBoxType', 'ERRORBOX')
         resolver = getStringResource(self._ctx, g_identifier, 'dialogs', 'MessageBox')
-        message = resolver.resolveString(template + '.Message')
         title = resolver.resolveString(template + '.Title')
-        return box, 1, title, message
+        message = resolver.resolveString(template + '.Message')
+        return title, message, ERRORBOX
 

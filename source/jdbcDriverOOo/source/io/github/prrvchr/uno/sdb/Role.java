@@ -237,7 +237,6 @@ public abstract class Role
                                  int res1,
                                  int res2)
         throws SQLException {
-        System.out.println("Role.grantPrivileges() 1 name: " + name);
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
             String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
@@ -247,7 +246,6 @@ public abstract class Role
                 query = PrivilegesHelper.getGrantPrivilegesCommand(mProvider.getConfigDCL(), support, table,
                                                                    privileges, mIsrole, getName(), isCaseSensitive());
                 getLogger().logprb(LogLevel.INFO, res1, privileges, getName(), name, query);
-                System.out.println("Role.grantPrivileges() 2 Query: " + query);
                 DBTools.executeSQLQuery(mConnection.getProvider(), query);
             } catch (java.sql.SQLException e) {
                 e.printStackTrace();

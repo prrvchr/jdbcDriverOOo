@@ -431,7 +431,6 @@ public class ComponentHelper {
             buffer.append(catalogSeparator);
             buffer.append(support.enquoteIdentifier(catalog, sensitive));
         }
-        System.out.println("DataBaseTools.composeTableName(): Name: " + buffer.toString());
         return buffer.toString();
     }
 

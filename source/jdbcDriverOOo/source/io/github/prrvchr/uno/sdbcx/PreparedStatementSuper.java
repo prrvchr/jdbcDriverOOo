@@ -46,7 +46,6 @@ public abstract class PreparedStatementSuper
                                   String sql)
         throws java.sql.SQLException {
         super(service, services, connection, sql);
-        System.out.println("sdbc.PreparedStatementSuper() 1: '" + sql + "'");
     }
 
     @Override

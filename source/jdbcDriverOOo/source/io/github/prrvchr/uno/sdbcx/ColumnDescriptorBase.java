@@ -52,7 +52,6 @@ public abstract class ColumnDescriptorBase
                                 String[] services,
                                 boolean sensitive) {
         super(service, services, sensitive);
-        System.out.println("sdbcx.ColumnDescriptorBase()");
     }
 
     @Override

@@ -155,7 +155,6 @@ public abstract class ContainerBase<T extends Descriptor>
     public void appendByDescriptor(XPropertySet descriptor)
         throws SQLException, ElementExistException {
         try {
-            System.out.println("ContainerBase.appendByDescriptor() 1");
             T element = appendElement(descriptor);
             if (element == null) {
                 String name = getElementName(descriptor);

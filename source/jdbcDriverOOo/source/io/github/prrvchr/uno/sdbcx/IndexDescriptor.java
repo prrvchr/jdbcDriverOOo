@@ -53,7 +53,6 @@ public final class IndexDescriptor
         super(SERVICE, SERVICES, sensitive);
         mColumns = new IndexColumnDescriptorContainer(this, isCaseSensitive());
         registerProperties();
-        System.out.println("sdbcx.descriptors.IndexDescriptor()");
     }
 
     private void registerProperties() {
@@ -92,7 +91,6 @@ public final class IndexDescriptor
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
     public IndexColumnDescriptorContainer getColumns() {
-        System.out.println("sdbcx.descriptors.IndexDescriptor.getColumns()");
         return mColumns;
     }
 

@@ -40,7 +40,6 @@ public final class ColumnDescriptor
                             final boolean sensitive) {
         super(SERVICE, SERVICES, table, sensitive);
         registerProperties(new HashMap<PropertyID, PropertyWrapper>());
-        System.out.println("sdbcx.descriptors.ColumnDescriptor()");
     }
 
 }

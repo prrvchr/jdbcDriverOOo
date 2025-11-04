@@ -53,7 +53,6 @@ public final class Statement
     public Statement(Connection connection) {
         super(SERVICE, SERVICES, connection);
         registerProperties(new HashMap<PropertyID, PropertyWrapper>());
-        System.out.println("sdbcx.Statement() 1");
     }
 
     protected ConnectionLog getLogger() {

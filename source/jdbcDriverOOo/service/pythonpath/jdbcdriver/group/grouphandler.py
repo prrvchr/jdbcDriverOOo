@@ -63,9 +63,8 @@ class DialogHandler(unohelper.Base,
                 self._manager.setPrivileges()
                 handled = True
             return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.format_exc()
-            print(msg)
+        except:
+            print("DialogHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
         return ('SetGrantee',

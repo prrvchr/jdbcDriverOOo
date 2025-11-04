@@ -64,7 +64,6 @@ class Driver():
                     level = getConfiguration(ctx, g_identifier).getByName('ApiLevel')
                     service = g_services[level]
                     try:
-                        print("jdbcDriverOOo.Driver() 1 **********************************")
                         cls._instance = createService(ctx, service)
                         logger.logprb(INFO, 'Driver', '__new__', 101, g_ImplementationName, service)
                     except UNOException as e:

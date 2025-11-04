@@ -78,7 +78,6 @@ public class GroupContainer
 
     @Override
     public void dispose() {
-        System.out.println("GroupContainer.dispose() ******************************************");
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_DISPOSING);
         super.dispose();
     }
