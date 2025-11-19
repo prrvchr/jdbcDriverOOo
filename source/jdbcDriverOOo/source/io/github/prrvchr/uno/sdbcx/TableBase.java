@@ -38,6 +38,7 @@ import com.sun.star.uno.Any;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.QueryCommand;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
@@ -187,7 +188,7 @@ public abstract class TableBase
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 getLogger().logprb(LogLevel.INFO, resource, newname, query);
-                changed &= DBTools.executeSQLQueries(mConnection.getProvider(), queries);
+                changed &= DBTools.executeSQLQueries(mConnection.getProvider(), queries, QueryCommand.DDL);
                 skipped = false;
             }
         } else {

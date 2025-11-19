@@ -192,11 +192,7 @@ public class SyncResolverImpl extends CachedRowSetImpl implements SyncResolver {
      * @return the object value as {@code Object}
      */
     public Object getConflictValue(int index) throws SQLException {
-        try {
-            return crsRes.getObject(index);
-        } catch (SQLException sqle) {
-            throw new SQLException(sqle.getMessage());
-        }
+        return crsRes.getObject(index);
     }
 
     /**
@@ -209,11 +205,7 @@ public class SyncResolverImpl extends CachedRowSetImpl implements SyncResolver {
      * @return the object value as {@code Object}
      */
     public Object getConflictValue(String columnName) throws SQLException {
-        try {
-            return crsRes.getObject(columnName);
-        } catch (SQLException sqle) {
-            throw new SQLException(sqle.getMessage());
-        }
+        return crsRes.getObject(columnName);
     }
 
     /**
@@ -237,18 +229,13 @@ public class SyncResolverImpl extends CachedRowSetImpl implements SyncResolver {
          * (Note: it can be resolved randomly for same row)
          * then sync back immediately.
          **/
-        try {
-            // check whether the index is in range
-            if (index <= 0 || index > crsSync.getMetaData().getColumnCount() ) {
-                throw new SQLException(resBundle.handleGetObject("syncrsimpl.indexval").toString() + index);
-            }
-             // check whether index col is in conflict
-            if (crsRes.getObject(index) == null) {
-                throw new SQLException(resBundle.handleGetObject("syncrsimpl.noconflict").toString());
-            }
-        } catch (SQLException sqle) {
-            // modify method to throw for SQLException
-            throw new SQLException(sqle.getMessage());
+        // check whether the index is in range
+        if (index <= 0 || index > crsSync.getMetaData().getColumnCount() ) {
+            throw new SQLException(resBundle.handleGetObject("syncrsimpl.indexval").toString() + index);
+        }
+         // check whether index col is in conflict
+        if (crsRes.getObject(index) == null) {
+            throw new SQLException(resBundle.handleGetObject("syncrsimpl.noconflict").toString());
         }
 
         checkConfict(index, obj);
@@ -333,11 +320,12 @@ public class SyncResolverImpl extends CachedRowSetImpl implements SyncResolver {
                 throw new SQLException(resBundle.handleGetObject("syncrsimpl.valtores").toString());
             }
 
-        } catch (SQLException sqle) {
-            throw new SQLException(sqle.getMessage());
+        } catch (SQLException ex) {
+            throw ex;
         } catch (Throwable e) {
-            e.printStackTrace();
-            throw new SQLException(e.getMessage());
+            SQLException ex = new SQLException(e.getMessage());
+            ex.initCause(e);
+            throw ex;
         }
     }
 
@@ -357,7 +345,7 @@ public class SyncResolverImpl extends CachedRowSetImpl implements SyncResolver {
 
     /**
      * This function builds a row  as a {@code CachedRowSet} object
-     * which has been resolved and is ready to be synchrinized to the datasource.
+     * which has been resolved and is ready to be synchronized to the datasource.
      *
      * @return the {@code CachedRowSet} object
      * @throws SQLException if there is problem in building
@@ -386,9 +374,7 @@ public class SyncResolverImpl extends CachedRowSetImpl implements SyncResolver {
 
         setCacheRowSet(crsRow);
 
-        try {
-            crsRow.setKeyColumns(crsSync.getKeyColumns());
-        } catch (SQLException e) { }
+        crsRow.setKeyColumns(crsSync.getKeyColumns());
 
         return crsRow;
     }
@@ -402,12 +388,8 @@ public class SyncResolverImpl extends CachedRowSetImpl implements SyncResolver {
             rsmdRow.setColumnName(i, rsmdWrite.getColumnName(i));
             rsmdRow.setNullable(i, ResultSetMetaData.columnNullableUnknown);
 
-            try {
-                rsmdRow.setCatalogName(i, rsmdWrite.getCatalogName(i));
-                rsmdRow.setSchemaName(i, rsmdWrite.getSchemaName(i));
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            rsmdRow.setCatalogName(i, rsmdWrite.getCatalogName(i));
+            rsmdRow.setSchemaName(i, rsmdWrite.getSchemaName(i));
         }
     }
 

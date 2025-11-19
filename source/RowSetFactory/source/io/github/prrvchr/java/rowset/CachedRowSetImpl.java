@@ -755,10 +755,13 @@ public class CachedRowSetImpl
         return rowsFetched;
     }
 
-    private Row fetchRow(ResultSet data, Map<String, Class<?>> map, int numCols) throws SQLException {
+    private Row fetchRow(ResultSet rs, Map<String, Class<?>> map, int numCols) throws SQLException {
         Object obj;
         Row row = new Row(numCols);
         for (int i = 1; i <= numCols; i++) {
+            // XXX: If we want to be able to compare numerical values,
+            // XXX: it is necessary to convert them to ensure we have the same types.
+            int type = rs.getMetaData().getColumnType(i);
             /*
              * check if the user has set a map. If no map
              * is set then use plain getObject. This lets
@@ -766,16 +769,18 @@ public class CachedRowSetImpl
              * getObject with a map in fairly sensible way
              */
             if (map == null || map.isEmpty()) {
-                obj = data.getObject(i);
+                obj = rs.getObject(i);
             } else {
-                obj = data.getObject(i, map);
+                obj = rs.getObject(i, map);
             }
             /*
              * the following block checks for the various
              * types that we have to serialize in order to
              * store - right now only structs have been tested
              */
-            if (obj instanceof Struct) {
+            if (obj != null && RowSetHelper.isNumeric(type)) {
+                obj = RowSetHelper.convertNumeric(resBundle, obj, Types.NULL, type);
+            } else if (obj instanceof Struct) {
                 obj = new SerialStruct((Struct)obj, map);
             } else if (obj instanceof SQLData) {
                 obj = new SerialStruct((SQLData)obj, map);
@@ -1013,10 +1018,15 @@ public class CachedRowSetImpl
         } catch (SyncProviderException spe) {
             throw spe;
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new SyncProviderException(e.getMessage());
-        } catch (SecurityException e) {
-            throw new SyncProviderException(e.getMessage());
+            SyncProviderException spe = new SyncProviderException(e.getMessage());
+            spe.setNextException(e);
+            throw spe;
+        } catch (Throwable e) {
+            SQLException ex = new SQLException(e.getMessage());
+            ex.initCause(e);
+            SyncProviderException spe = new SyncProviderException(e.getMessage());
+            spe.setNextException(ex);
+            throw spe;
         }
     }
 
@@ -4191,8 +4201,8 @@ public class CachedRowSetImpl
         // make sure the cursor is on a valid row
         checkCursor();
 
-        Object obj = RowSetHelper.convertNumeric(resBundle, Byte.valueOf(x),
-                                                 Types.TINYINT, RowSetMD.getColumnType(columnIndex));
+        Object obj = RowSetHelper.convertNumeric(resBundle, Byte.valueOf(x), Types.TINYINT,
+                                                 RowSetMD.getColumnType(columnIndex));
 
         getCurrentRow().setColumnObject(columnIndex, obj);
     }
@@ -4226,8 +4236,8 @@ public class CachedRowSetImpl
         // make sure the cursor is on a valid row
         checkCursor();
 
-        Object obj = RowSetHelper.convertNumeric(resBundle, Short.valueOf(x),
-                                                 Types.SMALLINT, RowSetMD.getColumnType(columnIndex));
+        Object obj = RowSetHelper.convertNumeric(resBundle, Short.valueOf(x), Types.SMALLINT,
+                                                 RowSetMD.getColumnType(columnIndex));
 
         getCurrentRow().setColumnObject(columnIndex, obj);
     }
@@ -4260,7 +4270,8 @@ public class CachedRowSetImpl
         checkIndex(columnIndex);
         // make sure the cursor is on a valid row
         checkCursor();
-        Object obj = RowSetHelper.convertNumeric(resBundle, x, Types.INTEGER, RowSetMD.getColumnType(columnIndex));
+        Object obj = RowSetHelper.convertNumeric(resBundle, x, Types.INTEGER,
+                                                 RowSetMD.getColumnType(columnIndex));
 
         getCurrentRow().setColumnObject(columnIndex, obj);
     }
@@ -4294,8 +4305,8 @@ public class CachedRowSetImpl
         // make sure the cursor is on a valid row
         checkCursor();
 
-        Object obj = RowSetHelper.convertNumeric(resBundle, Long.valueOf(x),
-                                                 Types.BIGINT, RowSetMD.getColumnType(columnIndex));
+        Object obj = RowSetHelper.convertNumeric(resBundle, Long.valueOf(x), Types.BIGINT,
+                                                 RowSetMD.getColumnType(columnIndex));
 
         getCurrentRow().setColumnObject(columnIndex, obj);
 
@@ -4330,8 +4341,8 @@ public class CachedRowSetImpl
         // make sure the cursor is on a valid row
         checkCursor();
 
-        Object obj = RowSetHelper.convertNumeric(resBundle, Float.valueOf(x),
-                                                 Types.REAL, RowSetMD.getColumnType(columnIndex));
+        Object obj = RowSetHelper.convertNumeric(resBundle, Float.valueOf(x), Types.REAL,
+                                                 RowSetMD.getColumnType(columnIndex));
 
         getCurrentRow().setColumnObject(columnIndex, obj);
     }
@@ -4364,8 +4375,8 @@ public class CachedRowSetImpl
         checkIndex(columnIndex);
         // make sure the cursor is on a valid row
         checkCursor();
-        Object obj = RowSetHelper.convertNumeric(resBundle, Double.valueOf(x),
-                                                 Types.DOUBLE, RowSetMD.getColumnType(columnIndex));
+        Object obj = RowSetHelper.convertNumeric(resBundle, Double.valueOf(x), Types.DOUBLE,
+                                                 RowSetMD.getColumnType(columnIndex));
 
         getCurrentRow().setColumnObject(columnIndex, obj);
     }
@@ -4399,7 +4410,8 @@ public class CachedRowSetImpl
         // make sure the cursor is on a valid row
         checkCursor();
 
-        Object obj = RowSetHelper.convertNumeric(resBundle, x, Types.NUMERIC, RowSetMD.getColumnType(columnIndex));
+        Object obj = RowSetHelper.convertNumeric(resBundle, x, Types.NUMERIC,
+                                                 RowSetMD.getColumnType(columnIndex));
 
         getCurrentRow().setColumnObject(columnIndex, obj);
     }

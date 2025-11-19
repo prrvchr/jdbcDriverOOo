@@ -43,6 +43,7 @@ import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
 public class ConfigDDL extends ConfigSQL {
 
+    private static final String SUPPORTS_DDL_TRANSACTION = "SupportsDDLTransaction";
     private static final String SUPPORTS_RENAME_VIEW = "SupportsRenameView";
     private static final String SUPPORTS_ALTER_PRIMARY_KEY = "SupportsAlterPrimaryKey";
     private static final String SUPPORTS_ALTER_FOREIGN_KEY = "SupportsAlterForeignKey";
@@ -106,6 +107,10 @@ public class ConfigDDL extends ConfigSQL {
     public boolean supportsSystemVersioning() {
         String[] versioning = getSystemVersioningCommands();
         return versioning != null && versioning.length > 0;
+    }
+
+    public boolean supportsDDLTransaction() {
+        return getSupportsDDLTransaction();
     }
 
     public boolean supportsRenameView() {
@@ -447,6 +452,10 @@ public class ConfigDDL extends ConfigSQL {
 
     private String getViewDefinitionQuery() {
         return getPropertyString(VIEW_DEFINITION_QUERY);
+    }
+
+    private boolean getSupportsDDLTransaction() {
+        return getPropertyBoolean(SUPPORTS_DDL_TRANSACTION, mSupportTransaction);
     }
 
     private boolean getSupportsRenameView() {

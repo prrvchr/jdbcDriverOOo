@@ -754,8 +754,8 @@ public class DatabaseMetaData
                                                         getPattern(schema),
                                                         table,
                                                         getPattern(types));
-            rs = getConfig().getMetaDataTables(rs);
-            return getResultSet(rs, "getTables");
+            java.sql.ResultSet result = getConfig().getMetaDataTables(rs);
+            return getResultSet(result, "getTables");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }

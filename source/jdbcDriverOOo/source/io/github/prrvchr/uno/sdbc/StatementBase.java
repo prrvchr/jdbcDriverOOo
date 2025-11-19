@@ -33,11 +33,9 @@ import com.sun.star.sdbc.XBatchExecution;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XStatement;
-import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
-import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.provider.Resources;
@@ -117,7 +115,7 @@ public abstract class StatementBase
             mQuery = new QueryHelper(mConnection.getProvider(), sql);
             getJdbcStatement().addBatch(sql);
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -128,7 +126,7 @@ public abstract class StatementBase
             try {
                 getJdbcStatement().clearBatch();
             } catch (java.sql.SQLException e) {
-                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+                throw UnoHelper.getSQLException(e, this);
             }
         }
     }
@@ -141,7 +139,7 @@ public abstract class StatementBase
             try {
                 batch = getJdbcStatement().executeBatch();
             } catch (java.sql.SQLException e) {
-                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+                throw UnoHelper.getSQLException(e, this);
             }
         }
         return batch;
@@ -158,7 +156,7 @@ public abstract class StatementBase
             return getJdbcStatement().execute(sql);
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -182,7 +180,7 @@ public abstract class StatementBase
             mQuery = new QueryHelper(mConnection.getProvider(), sql);
             return getJdbcStatement().executeUpdate(sql);
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

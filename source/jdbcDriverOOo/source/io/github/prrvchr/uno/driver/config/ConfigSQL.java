@@ -66,6 +66,8 @@ public class ConfigSQL extends ConfigBase {
                                                               "GRANTOR", "GRANTEE", "PRIVILEGE", "IS_GRANTABLE"};
     private static final String[] DEFAULT_TABLE_PRIVILEGES = {"SELECT", "INSERT", "UPDATE", "DELETE"};
 
+    protected final boolean mSupportTransaction;
+
     private final String mIdentifierQuote;
     private final String mSubProtocol;
     private final String mCommandSuffix;
@@ -99,6 +101,7 @@ public class ConfigSQL extends ConfigBase {
         mSubProtocol = subProtocol;
         mIdentifierQuote =  metadata.getIdentifierQuoteString();
         mCommandSuffix = getDriverCommandSuffix(config, subProtocol);
+        mSupportTransaction = metadata.supportsTransactions();
         mBooleanProperties = new HashMap<>();
         mStringProperties = new HashMap<>();
         mStringsProperties = new HashMap<>();
@@ -121,6 +124,14 @@ public class ConfigSQL extends ConfigBase {
             }
         }
         return use;
+    }
+
+    public boolean supportsTransaction() {
+        return mSupportTransaction;
+    }
+
+    public boolean supportsDDLTransaction() {
+        return mSupportTransaction;
     }
 
     public boolean needCompletedMetaData() {

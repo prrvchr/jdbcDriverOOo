@@ -104,7 +104,7 @@ public class ConstraintHelper {
                     }
                 }
             } catch (WrappedTargetException | IndexOutOfBoundsException e) {
-                throw new SQLException(e.getMessage(), e);
+                throw new SQLException(e.getLocalizedMessage(), e);
             }
         }
         return queries;
@@ -181,7 +181,7 @@ public class ConstraintHelper {
                 }
             }
         } catch (IndexOutOfBoundsException | WrappedTargetException e) {
-            throw new SQLException(e.getMessage(), e);
+            throw new SQLException(e.getLocalizedMessage(), e);
         }
         return columns.toArray(new String[0]);
     }

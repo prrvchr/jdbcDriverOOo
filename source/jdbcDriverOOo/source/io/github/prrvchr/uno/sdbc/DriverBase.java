@@ -144,8 +144,7 @@ public abstract class DriverBase
                 mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services,
                                connection.getProvider().getLogger().getObjectId());
             } catch (java.sql.SQLException e) {
-                mLogger.logp(LogLevel.SEVERE, e.getMessage());
-                e.printStackTrace();
+                mLogger.logp(LogLevel.SEVERE, e.getLocalizedMessage());
                 throw UnoHelper.getSQLException(e, this);
             }
         }
@@ -180,9 +179,7 @@ public abstract class DriverBase
                 }
             }
         } catch (NoSuchElementException e) {
-            String state = StandardSQLState.SQL_GENERAL_ERROR.text();
-            java.sql.SQLException ex = new java.sql.SQLException(e.getMessage(), state, e);
-            throw UnoHelper.getSQLException(ex, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         return properties.toArray(new DriverPropertyInfo[0]);
     }

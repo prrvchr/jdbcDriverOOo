@@ -704,6 +704,10 @@ public class UnoHelper {
         }
     }
 
+    public static SQLException getSQLException(Throwable e) {
+        return getSQLException(e, null);
+    }
+
     public static SQLException getSQLException(Throwable e,
                                                XInterface component) {
         SQLException ex = getUnoSQLException(e, component);

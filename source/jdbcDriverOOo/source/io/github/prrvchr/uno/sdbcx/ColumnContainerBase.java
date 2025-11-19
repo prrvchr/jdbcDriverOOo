@@ -45,6 +45,7 @@ import io.github.prrvchr.uno.driver.helper.TableHelper;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.QueryCommand;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.DBTools;
@@ -121,7 +122,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 mTable.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table, query);
-                created = DBTools.executeSQLQueries(provider, queries);
+                created = DBTools.executeSQLQueries(provider, queries, QueryCommand.DDL);
             }
         } catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_COLUMN_ALTER_QUERY_ERROR;
@@ -176,7 +177,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
                                nullable, description.mColumnSize, description.mDecimalDigits, description.mType,
                                isAutoIncrement, false, isCurrency);
         } catch (java.sql.SQLException e) {
-            throw new java.sql.SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), e);
+            throw new java.sql.SQLException(e.getLocalizedMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), e);
         }
         return column;
     }

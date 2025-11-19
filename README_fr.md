@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.6.1][5]
+# version [1.6.2][5]
 
 ## Introduction:
 
@@ -48,9 +48,9 @@ Elle embarque les pilotes pour les base de données suivantes:
 - Firebird via [Jaybird][19] version 6.0.3 et [JaybirdEmbedded][20] version 1.0.0
 - [MySQL via Connector/J][21] version 9.3.0
 - Oracle Database 23ai Free version 23.9.0.25.07 via [ojdbc17.jar][22].
-- Microsoft SQL Server via [mssql-jdbc-13.2.0.jre17.jar][23].
-- Microsoft Access via [ucanaccess-5.1.4.jar][24] (en cours d'intégration, à utiliser avec prudence).
-- [Trino ou PrestoSQL][25] version 458-SNAPSHOT (en cours d'intégration, à utiliser avec prudence).
+- Microsoft SQL Server via [mssql-jdbc-13.3.0.jre11-preview.jar][23].
+- Microsoft Access via [ucanaccess-5.1.4.jar][24].
+- [Trino ou PrestoSQL][25] version 479-SNAPSHOT.
 
 Grâce aux pilotes fournissant un moteur de base de données intégré tels que: HsqlDB, H2, SQLite, Derby, UCanAccess ou Jaybird, il est possible dans Base de créer et gérer très facilement des bases de données, aussi facilement que de créer des documents Writer.  
 Vous trouverez les informations nécessaires à la création d'une base de données avec ces pilotes dans la section: [URL de connexion][30]
@@ -211,9 +211,10 @@ ___
 ## URL de connexion:
 
 Certaines bases de données comme HsqlDB, H2, SQLite, Derby, UCanAccess ou Firebird via Jaybird permettent la création de la base de données lors de la connexion si cette base de données n'existe pas encore.
-Cette fonctionnalité rend la création de bases de données aussi simple que celle de documents Writer. Généralement il suffit d'ajouter l'option attendue par le driver à l'URL de connexion.
+Cette fonctionnalité rend la création de bases de données aussi simple que celle de documents Writer. Généralement il suffit d'ajouter l'option attendue par le pilote à l'URL de connexion.
 Cette URL de connexion peut être différente selon le système d'exploitation de votre ordinateur (Windows, Linux ou MacOS).  
 Pour créer une base de données, dans LibreOffice allez dans le menu: **Fichier -> Nouveau -> Base de données -> Connecter une base de données existante**, puis selon votre choix:
+
 - **HsqlDB pure Java**:
   - Linux: `file:///home/prrvchr/testdb/hsqldb/db;hsqldb.default_table_type=cached;create=true`
   - Windows: `C:\Utilisateurs\prrvc\testdb\hsqldb\db;hsqldb.default_table_type=cached;create=true`
@@ -235,6 +236,9 @@ Pour créer une base de données, dans LibreOffice allez dans le menu: **Fichier
 
   Firebird utilise [JaybirdEmbedded][20] pour fonctionner en mode embarqué. Vous trouverez les plateformes prises en charge dans la documentation de [JaybirdEmbedded][20].  
   Pour les plateformes non prises en charge, vous pouvez toujours installer [Firebird Server][56] correspondant à votre plateforme.
+
+Une fois le fichier **odb** créé et ouvert dans **LibreOffice Base**, il peut être **nécessaire, voire recommandé**, de supprimer l'option de création existante dans l'URL de connexion.  
+Pour ce faire, dans **Base**, accédez au menu: **Édition > Base de données > Propriétés... > Général**. Vous devrez enregistrer le fichier et le rouvrir pour que les modifications soient prises en compte.
 
 ___
 
@@ -277,6 +281,8 @@ ___
 * LibreOffice 7.3.7.2 - Lubuntu 22.04
 
 * LibreOffice 24.2.1.2 - Lubuntu 22.04
+
+* LibreOfficeDev 26.2 - Lubuntu 22.04
 
 * LibreOffice 24.8.0.3 (X86_64) - Windows 10(x64) - Python version 3.9.19 (sous Lubuntu 22.04 / VirtualBox 6.1.38)
 
@@ -321,7 +327,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-161>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-162>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -356,7 +362,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [41]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [42]: <img/jdbcDriverOOo.svg#middle>
 [43]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[44]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.6.1#right>
+[44]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.6.2#right>
 [45]: <img/jdbcDriverOOo-1_fr.png>
 [46]: <img/jdbcDriverOOo-2_fr.png>
 [47]: <img/jdbcDriverOOo-3_fr.png>

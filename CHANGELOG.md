@@ -445,7 +445,20 @@ If you use multiple accounts to connect to a database, you will not be able to r
 
 - All modal windows now open correctly in modal mode.
 
-### What remains to be done for version 1.6.1:
+### What has been done for version 1.6.2:
+
+- Added the parameter `JavaDriverDependencies` to the [Drivers.xcu][48] file to allow loading a JDBC driver as a dependency.  
+  This is necessary for the UCanAccess driver to function correctly, enabling access to MS Access files.
+- Added the parameter `SupportsDDLTransaction` to the [Drivers.xcu][48] file. Without this parameter, the driver is considered to support transactions in DDL (Data Definition Language) queries.  
+  This parameter was added to allow the creation and/or modification of tables in Trino without using transactions, as required by Trino.
+- Corrections and improvements to the `RowSetFactory.jar` artifact:
+  - Errors occurring before an insertion, modification, or deletion will be correctly reported and displayed instead of causing an abnormal exit from LibreOffice.
+  - All values ​​in numeric columns will now be converted according to their SQL type to ensure that the Java types are identical during comparison.
+- Trino integration has progressed, but there is still work to be done. A version of the [Trino server 479-SNAPSHOT][134] is available for download with the latest version of **jdbcDriverOOo**.  
+  It includes PRs [#27321][135] and [#27324][136] enabling support for HsqlDB and editing of ResultSets.
+- Updated SQL Server driver `mssql-jdbc-13.3.0.jre11-preview.jar`. This beta version integrates the fix [#2828][137] enabling the use of relationship management in Base.
+
+### What remains to be done for version 1.6.2:
 
 - Add new languages for internationalization...
 
@@ -584,3 +597,7 @@ If you use multiple accounts to connect to a database, you will not be able to r
 [131]: <https://github.com/microsoft/mssql-jdbc/issues/2745>
 [132]: <https://github.com/spannm/ucanaccess>
 [133]: <https://gerrit.libreoffice.org/c/core/+/189732>
+[134]: <https://github.com/prrvchr/jdbcDriverOOo/releases>
+[135]: <https://github.com/trinodb/trino/pull/27321>
+[136]: <https://github.com/trinodb/trino/pull/27324>
+[137]: <https://github.com/microsoft/mssql-jdbc/pull/2828>

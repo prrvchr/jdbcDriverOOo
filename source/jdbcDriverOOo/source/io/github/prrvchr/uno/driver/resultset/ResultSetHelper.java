@@ -44,6 +44,7 @@ import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class ResultSetHelper {
@@ -60,7 +61,7 @@ public class ResultSetHelper {
             result.close();
             return rowset;
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
+            throw UnoHelper.getSQLException(e);
         }
     }
 
@@ -80,7 +81,7 @@ public class ResultSetHelper {
             result.close();
             return rowset;
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
+            throw UnoHelper.getSQLException(e);
         }
     }
 
@@ -215,11 +216,13 @@ public class ResultSetHelper {
             boolean updated = false;
             for (int index = 1; index <= count; index++) {
                 String key = rowset.getString(index);
+                //System.out.println("ResultSetHelper.setCustomRowSet() 1 key: " + key);
                 if (rowset.wasNull() || !data.hasEntry(index, key)) {
                     continue;
                 }
                 key = RowSetData.getDataKey(index, key);
                 if (data.isDeletableRow(key)) {
+                    //System.out.println("ResultSetHelper.setCustomRowSet() 2 key: " + key);
                     rowset.deleteRow();
                     break;
                 }

@@ -41,6 +41,7 @@ import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.QueryCommand;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
@@ -117,7 +118,7 @@ public final class View
                     String query = String.join("> <", queries);
                     String name = ComponentHelper.buildName(support, component, false);
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_ALTER_QUERY, name, query);
-                    DBTools.executeSQLQueries(provider, queries);
+                    DBTools.executeSQLQueries(provider, queries, QueryCommand.DDL);
                 }
             } catch (java.sql.SQLException e) {
                 int resource = Resources.STR_LOG_VIEW_ALTER_QUERY_ERROR;

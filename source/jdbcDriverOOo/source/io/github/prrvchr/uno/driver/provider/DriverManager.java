@@ -45,6 +45,7 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.lib.util.StringHelper;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
@@ -63,6 +64,7 @@ public class DriverManager {
 
     private static final String DRIVER_NAME = "DriverTypeDisplayName";
     private static final String DRIVER_CLASS = "JavaDriverClass";
+    private static final String DRIVER_DEPENDENCIES = "JavaDriverDependencies";
     private static final String DRIVER_CLASS_PATH = "JavaDriverClassPath";
     private static final String PLUGIN_JAR_PATH = "/plugin/";
     private static final String JAR = "jar";
@@ -99,16 +101,13 @@ public class DriverManager {
         } catch (Throwable e) { }
     }
 
-    private static final void addToClassPath(XComponentContext context, String identifier, String jar) {
-        try {
-            String path = UnoHelper.getPackageLocation(context, identifier);
-            InstrumentationAgent.addToClassPath(path + PLUGIN_JAR_PATH + jar);
-        } catch (Throwable e) { }
-    }
-
     public static final boolean isDriverRegistered(final String subProtocol) {
         return mRegisteredClass.containsKey(subProtocol) &&
                mRegisteredDriver.containsKey(mRegisteredClass.get(subProtocol));
+    }
+
+    public static final Driver getDriver(final String subProtocol) {
+        return mRegisteredDriver.get(mRegisteredClass.get(subProtocol));
     }
 
     public static final Driver registerDriver(final XComponentContext ctx,
@@ -118,10 +117,13 @@ public class DriverManager {
                                               final boolean add)
         throws SQLException {
         String clsname;
+        Object[] dependencies = null;
         final String name = getDriverName(config, subProtocol);
         if (mRegisteredClass.containsKey(subProtocol)) {
             clsname = mRegisteredClass.get(subProtocol);
         } else {
+            dependencies = (Object[]) PropertiesHelper.getConfigProperties(config, infos, subProtocol,
+                                                                           DRIVER_DEPENDENCIES, null);
             clsname = getDriverClassName(config, infos, subProtocol, name);
             mRegisteredClass.put(subProtocol, clsname);
         }
@@ -129,6 +131,9 @@ public class DriverManager {
         if (mRegisteredDriver.containsKey(clsname)) {
             driver = mRegisteredDriver.get(clsname);
         } else {
+            if (dependencies != null) {
+                loadDriverDependencies(ctx, config, dependencies, add);
+            }
             final String clspath = getDriverClassPath(ctx, config, infos, subProtocol, name);
             driver = getDriverByClassName(clspath, clsname, add);
             mRegisteredDriver.put(clsname, driver);
@@ -136,18 +141,42 @@ public class DriverManager {
         return driver;
     }
 
-    public static final Driver getDriver(final String subProtocol) {
-        return mRegisteredDriver.get(mRegisteredClass.get(subProtocol));
+    // Private methods
+    private static final void addToClassPath(XComponentContext context, String identifier, String jar) {
+        try {
+            String path = UnoHelper.getPackageLocation(context, identifier);
+            InstrumentationAgent.addToClassPath(path + PLUGIN_JAR_PATH + jar);
+        } catch (Throwable e) { }
     }
 
-    public static final String getDriverName(final XHierarchicalNameAccess config, final String subProtocol) {
+    private static final String getDriverName(final XHierarchicalNameAccess config, final String subProtocol) {
         return (String) PropertiesHelper.getConfig(config, subProtocol, DRIVER_NAME, subProtocol);
     }
 
-    public static final String getDriverClassName(final XHierarchicalNameAccess config,
-                                                  final PropertyValue[] info,
-                                                  final String subProtocol,
-                                                  final String name)
+    private static final void loadDriverDependencies(final XComponentContext ctx,
+                                                     final XHierarchicalNameAccess config,
+                                                     final Object[] dependencies,
+                                                     final boolean add)
+        throws SQLException {
+        XNameAccess root = PropertiesHelper.getRootConfiguration(config, null);
+        if (root != null) {
+            String[] protocols = root.getElementNames();
+            PropertyValue[] infos = new PropertyValue[0];
+            for (Object dependencie : dependencies) {
+                String subProtocol = PropertiesHelper.getDependencieProtocol(config, protocols,
+                                                                             dependencie.toString(),
+                                                                             DRIVER_CLASS);
+                if (subProtocol != null) {
+                    registerDriver(ctx, config, infos, subProtocol, add);
+                }
+            }
+        }
+    }
+
+    private static final String getDriverClassName(final XHierarchicalNameAccess config,
+                                                   final PropertyValue[] info,
+                                                   final String subProtocol,
+                                                   final String name)
         throws SQLException {
         String clsname = (String) PropertiesHelper.getConfigProperties(config, info, subProtocol,
                                                                        DRIVER_CLASS, null);
@@ -160,11 +189,11 @@ public class DriverManager {
         return clsname;
     }
 
-    public static final String getDriverClassPath(final XComponentContext context,
-                                                  final XHierarchicalNameAccess config,
-                                                  final PropertyValue[] info,
-                                                  final String subProtocol,
-                                                  final String name)
+    private static final String getDriverClassPath(final XComponentContext context,
+                                                   final XHierarchicalNameAccess config,
+                                                   final PropertyValue[] info,
+                                                   final String subProtocol,
+                                                   final String name)
         throws SQLException {
         String path = (String) PropertiesHelper.getConfigProperties(config, info, subProtocol,
                                                                     DRIVER_CLASS_PATH, null);
@@ -181,9 +210,9 @@ public class DriverManager {
         return url;
     }
 
-    public static final Driver getDriverByClassName(final String clspath,
-                                                    final String clsname,
-                                                    final boolean add)
+    private static final Driver getDriverByClassName(final String clspath,
+                                                     final String clsname,
+                                                     final boolean add)
         throws SQLException {
         Driver driver = null;
         try {
@@ -247,7 +276,7 @@ public class DriverManager {
                 // expand macro string
                 expanded = expander.expandMacros(macro);
             } catch (UnsupportedEncodingException e) {
-                throw new SQLException(e.getMessage(), StandardSQLState.SQL_UNABLE_TO_CONNECT.text());
+                throw new SQLException(e.getLocalizedMessage(), StandardSQLState.SQL_UNABLE_TO_CONNECT.text());
             }
         }
         return expanded;
@@ -279,15 +308,19 @@ public class DriverManager {
         // XXX: the JavaDriverClassPath parameter can be a file or a folder
         final List<File> files = new ArrayList<>();
         if (file.isDirectory()) {
-            for (final File f : file.listFiles()) {
-                if (!f.isDirectory() && isArchiveFile(f)) {
-                    files.add(f);
-                }
-            }
+            setDriverArchiveFiles(files, file);
         } else if (isArchiveFile(file)) {
             files.add(file);
         }
         return files;
+    }
+
+    private static final void setDriverArchiveFiles(List<File> files, final File folder) {
+        for (final File file : folder.listFiles()) {
+            if (!file.isDirectory() && isArchiveFile(file)) {
+                files.add(file);
+            }
+        }
     }
 
     private static final boolean isArchiveFile(final File file) {

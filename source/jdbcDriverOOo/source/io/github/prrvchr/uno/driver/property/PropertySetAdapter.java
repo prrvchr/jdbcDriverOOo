@@ -357,7 +357,7 @@ public class PropertySetAdapter
         if ((data.mProperty.Attributes & PropertyAttribute.READONLY) != 0) {
             throw new PropertyVetoException();
         }
-        // XXX: The value may be null only if MAYBEVOID attribute is set         
+        // XXX: The value may be null only if MAYBEVOID attribute is set
         boolean isvoid = false;
         if (value instanceof Any) {
             isvoid = ((Any) value).getObject() == null;

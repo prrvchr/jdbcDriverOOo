@@ -1842,7 +1842,7 @@
         </node>
         <node oor:name="JavaDriverClassPath" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>%origin%/driver/mssql-jdbc-13.2.0.jre17.jar</value>
+            <value>%origin%/driver/mssql-jdbc-13.3.0.jre11-preview.jar</value>
           </prop>
         </node>
         <node oor:name="JavaDriverClass" oor:op="replace">
@@ -2030,6 +2030,11 @@
             <value>net.ucanaccess.jdbc.UcanaccessDriver</value>
           </prop>
         </node>
+        <node oor:name="JavaDriverDependencies" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value>org.hsqldb.jdbc.JDBCDriver</value>
+          </prop>
+        </node>
         <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>true</value>
@@ -2118,6 +2123,16 @@
       </prop>
 
       <node oor:name="Properties">
+        <node oor:name="SystemCatalogSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = system|null|Column(1) = tpcds|null|Column(1) = tpch|null</value>
+          </prop>
+        </node>
+        <node oor:name="SystemSchemaSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(2) = system|null|Column(2) = tpcds|null|Column(2) = tpch|null</value>
+          </prop>
+        </node>
         <node oor:name="PrimaryKeySupport" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
@@ -2135,7 +2150,7 @@
         </node>
         <node oor:name="JavaDriverClassPath" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>%origin%/driver/trino-jdbc-458-SNAPSHOT.jar</value>
+            <value>%origin%/driver/trino-jdbc-479-SNAPSHOT.jar</value>
           </prop>
         </node>
         <node oor:name="JavaDriverClass" oor:op="replace">
@@ -2171,7 +2186,7 @@
       </node>
 
       <node oor:name="MetaData">
-        <node oor:name="SupportTransaction" oor:op="replace">
+        <node oor:name="SupportsDDLTransaction" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
           </prop>

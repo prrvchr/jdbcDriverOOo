@@ -115,7 +115,7 @@ public abstract class RowSetBase
             }
             // XXX: If an insert was made, we need to validate that insert.
             if (mRowInserted) {
-                acceptInsertInternal();
+                acceptInsert();
             }
             Object bookmark = Any.VOID;
             boolean showdeleted = getRowSet().getShowDeleted();
@@ -252,7 +252,7 @@ public abstract class RowSetBase
             // XXX: we need to check if an insertion has not taken
             // XXX: place and in this case commit this insertion.
             if (mRowInserted) {
-                acceptInsertInternal();
+                acceptInsert();
             }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -285,7 +285,7 @@ public abstract class RowSetBase
     @Override
     public void clearWarnings()
         throws SQLException {
-        System.out.println("RowSetSuper.clearWarnings() 1");
+        System.out.println("RowSetBase.clearWarnings() 1");
     }
 
     @Override
@@ -294,10 +294,10 @@ public abstract class RowSetBase
         return Any.VOID;
     }
 
-    private void acceptInsertInternal() throws java.sql.SQLException {
+    private void acceptInsert() throws java.sql.SQLException {
+        acceptChanges();
         // XXX: We must position the cursor on the new inserted row (ie: last row)
         mResult.last();
-        acceptChanges();
         mRowInserted = false;
     }
 
@@ -305,33 +305,45 @@ public abstract class RowSetBase
         try {
             getRowSet().acceptChanges(mConnection.getProvider().getConnection());
         } catch (SyncProviderException spe) {
-            // XXX: If conflicts occur then the current operation will be canceled
-            // XXX: If we want to be able to undoDelete we need to show deleted row
-            boolean showDel = getRowSet().getShowDeleted();
-            getRowSet().setShowDeleted(true);
-
             SyncResolver resolver = spe.getSyncResolver();
-            while (resolver.nextConflict()) {
-                switch (resolver.getStatus()) {
-                    case SyncResolver.UPDATE_ROW_CONFLICT:
-                        getRowSet().undoUpdate();
-                        break;
-                    case SyncResolver.DELETE_ROW_CONFLICT:
-                        getRowSet().undoDelete();
-                        break;
-                    case SyncResolver.INSERT_ROW_CONFLICT:
-                        getRowSet().undoInsert();
-                        break;
-                }
-            }
-            // XXX: We need to close the resolver to make sure we restore
-            // XXX: the cursor position of the CachedRowSet
-            resolver.close();
 
-            // reset CachedRowSet
-            getRowSet().setShowDeleted(showDel);
-            // XXX: we throw the original SQLException
-            throw spe.getNextException();
+            // XXX: If the error occurred before the data was modified, then the resolver may be null.
+            if (resolver != null && resolver.getStatus() != SyncResolver.NO_ROW_CONFLICT) {
+
+                // XXX: If conflicts occur then the current operation will be canceled
+                // XXX: If we want to be able to undoDelete we need to show deleted row
+                boolean showDel = getRowSet().getShowDeleted();
+                getRowSet().setShowDeleted(true);
+
+                while (resolver.nextConflict()) {
+                    switch (resolver.getStatus()) {
+                        case SyncResolver.UPDATE_ROW_CONFLICT:
+                            getRowSet().undoUpdate();
+                            break;
+                        case SyncResolver.DELETE_ROW_CONFLICT:
+                            getRowSet().undoDelete();
+                            break;
+                        case SyncResolver.INSERT_ROW_CONFLICT:
+                            getRowSet().undoInsert();
+                            break;
+                    }
+                }
+                // XXX: We need to close the resolver to make sure we restore
+                // XXX: the cursor position of the CachedRowSet
+                resolver.close();
+
+                // reset CachedRowSet
+                getRowSet().setShowDeleted(showDel);
+            }
+
+            // XXX: we throw the original SQLException if exist
+            java.sql.SQLException e;
+            if (spe.getNextException() != null) {
+                e = spe.getNextException();
+            } else {
+                e = spe;
+            }
+            throw e;
         }
     }
 

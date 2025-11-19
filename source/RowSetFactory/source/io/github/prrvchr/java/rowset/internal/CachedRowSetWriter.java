@@ -67,6 +67,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
+import java.sql.Types;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -191,6 +192,10 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
     private boolean updateOnInsert;
 
     private boolean supportsGeneratedKeys;
+
+    private int resultSetType = ResultSet.TYPE_SCROLL_SENSITIVE;
+
+    private int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
     /**
      * An array containing the column numbers of the columns that are
@@ -380,7 +385,8 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             setCachedRowSetResolverMetaData(crsRes);
 
             List<Integer> status = new ArrayList<>(crs.size() + 1);
-            status.add(0, null);
+            // XXX: The first entry in the status will take the value of the first conflict that occurs
+            status.add(0, SyncResolver.NO_ROW_CONFLICT);
 
             // We need to save the sursor position before processing.
             crs.saveCursor();
@@ -515,10 +521,9 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         origVals.next();
 
         String predicate = buildWhereClause(origVals);
+        String cmd = selectCmd + predicate;
 
-        try (PreparedStatement stmt = con.prepareStatement(selectCmd + predicate,
-                                                           ResultSet.TYPE_SCROLL_SENSITIVE,
-                                                           ResultSet.CONCUR_READ_ONLY)) {
+        try (PreparedStatement stmt = con.prepareStatement(cmd, resultSetType, resultSetConcurrency)) {
 
             setStatementParameters(stmt);
             setStatementProperties(crs, stmt);
@@ -530,8 +535,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             }
 
         } catch (SQLException e) {
-            status.add(row, SyncResolver.UPDATE_ROW_CONFLICT);
-            setResolverConflict(crsRes, origVals);
+            setResolverConflict(crsRes, origVals, status, row, SyncResolver.UPDATE_ROW_CONFLICT);
             throw e;
         }
     }
@@ -660,7 +664,6 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         throws SQLException {
         Object orig = origVals.getObject(index);
         Object curr = crs.getObject(index);
-        Object rsval = rs.getObject(index);
 
         /**
          * the following block creates equivalent objects
@@ -668,7 +671,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
          * into a CachedRowSet so that comparison of the column values
          * from the ResultSet and CachedRowSet are possible
          */
-        rsval = getResultSetValue(map, rsval, row, index);
+        Object rsval = getResultSetValue(rs, map, row, index);
 
         /** This additional checking has been added when the current value
          *  in the DB is null, but the DB had a different value when the
@@ -718,14 +721,25 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         }
     }
 
-    private Object getResultSetValue(Map<String, Class<?>> map, Object rsval, int row, int index)
+    private Object getResultSetValue(ResultSet rs, Map<String, Class<?>> map, int row, int index)
         throws SQLException {
-        if (rsval instanceof Struct) {
+        // XXX: If we want to be able to compare numerical values,
+        // XXX: it is necessary to convert them to ensure we have the same types.
+        int type = rs.getMetaData().getColumnType(index);
+        Object rsval;
+        if (map == null || map.isEmpty()) {
+            rsval = rs.getObject(index);
+        } else {
+            rsval = rs.getObject(index, map);
+        }
+        if (rsval != null && RowSetHelper.isNumeric(type)) {
+            rsval = RowSetHelper.convertNumeric(resBundle, rsval, Types.NULL, type);
+        } else if (rsval instanceof Struct) {
             Struct s = (Struct) rsval;
             // look up the class in the map
             Class<?> c = null;
-            String type = s.getSQLTypeName();
-            c = map.get(type);
+            String typename = s.getSQLTypeName();
+            c = map.get(typename);
             if (c != null) {
                 // create new instance of the class
                 SQLData obj = null;
@@ -735,7 +749,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 } catch (Exception ex) {
                     String column = callerMd.getColumnName(index);
                     String msg = resBundle.handleGetObject("crswriter.update.struct.error").toString();
-                    throw new SQLException(MessageFormat.format(msg, row, type, column), ex);
+                    throw new SQLException(MessageFormat.format(msg, row, typename, column), ex);
                 }
                 // get the attributes from the struct
                 Object attribs[] = s.getAttributes(map);
@@ -863,8 +877,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
              * Hence we cannot exactly identify why the insertion failed,
              * present the current row as a null row to the caller.
              */
-            status.add(row, SyncResolver.INSERT_ROW_CONFLICT);
-            setResolverConflict(crsRes, crs);
+            setResolverConflict(crsRes, crs, status, row, SyncResolver.INSERT_ROW_CONFLICT);
             throw e;
         }
     }
@@ -1034,17 +1047,17 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         return predicate;
     }
 
-    private void updateCachedRowSet(CachedRowSet crs, ResultSet rsKey)
+    private void updateCachedRowSet(CachedRowSet crs, ResultSet rs)
         throws SQLException {
-        ResultSetMetaData mdKey = rsKey.getMetaData();
-        if (rsKey.next()) {
-            for (int i = 1; i <= mdKey.getColumnCount(); i++) {
+        ResultSetMetaData rsmd = rs.getMetaData();
+        if (rs.next()) {
+            for (int i = 1; i <= rsmd.getColumnCount(); i++) {
                 int j = 0;
                 try {
-                    j = crs.findColumn(mdKey.getColumnLabel(i));
+                    j = crs.findColumn(rsmd.getColumnLabel(i));
                 } catch (SQLException e) { }
-                if (j > 0 && callerMd.getColumnType(j) == mdKey.getColumnType(i)) {
-                    Object keyval = rsKey.getObject(i);
+                if (j > 0 && callerMd.getColumnType(j) == rsmd.getColumnType(i)) {
+                    Object keyval = rs.getObject(i);
                     if (keyval != null) {
                         crs.updateObject(j, keyval);
                     } else {
@@ -1085,10 +1098,9 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         origVals.next();
 
         String predicate = buildWhereClause(origVals);
+        String cmd = selectCmd + predicate;
 
-        try (PreparedStatement stmt = con.prepareStatement(selectCmd + predicate,
-                                                           ResultSet.TYPE_SCROLL_SENSITIVE,
-                                                           ResultSet.CONCUR_READ_ONLY)) {
+        try (PreparedStatement stmt = con.prepareStatement(cmd, resultSetType, resultSetConcurrency)) {
 
             setStatementParameters(stmt);
             setStatementProperties(crs, stmt);
@@ -1100,7 +1112,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             }
         } catch (SQLException e) {
             status.add(row, SyncResolver.DELETE_ROW_CONFLICT);
-            setResolverConflict(crsRes, origVals);
+            setResolverConflict(crsRes, origVals, status, row, SyncResolver.DELETE_ROW_CONFLICT);
             throw e;
         }
     }
@@ -1214,8 +1226,15 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         crsRes.moveToCurrentRow();
     }
 
-    private void setResolverConflict(CachedRowSetImpl crsRes, ResultSet origVals)
+    private void setResolverConflict(CachedRowSetImpl crsRes, ResultSet origVals,
+                                     List<Integer> status, int row, int conflict)
         throws SQLException {
+        status.add(row, conflict);
+        // XXX: The first stat entry corresponds to the first conflict
+        if (status.get(0) == SyncResolver.NO_ROW_CONFLICT) {
+            status.set(0, conflict);
+        }
+
         crsRes.moveToInsertRow();
         for (int i = 0; i < tabCols.length; i++) {
             int index = tabCols[i];
@@ -1265,6 +1284,9 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             DatabaseMetaData dbmd = con.getMetaData();
             identifierQuote = dbmd.getIdentifierQuoteString();
             supportsGeneratedKeys = dbmd.supportsGetGeneratedKeys();
+            if (!dbmd.supportsResultSetConcurrency(resultSetType, resultSetConcurrency)) {
+                resultSetType = ResultSet.TYPE_FORWARD_ONLY;
+            }
             /*
              * set the key descriptors that will be
              * needed to construct where clauses.
