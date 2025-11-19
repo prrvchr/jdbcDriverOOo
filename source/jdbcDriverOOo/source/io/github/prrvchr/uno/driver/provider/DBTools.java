@@ -90,6 +90,7 @@ import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import io.github.prrvchr.uno.driver.helper.QueryCommand;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -250,8 +251,8 @@ public class DBTools {
     }
 
     private static boolean updateSequence(java.sql.ResultSet resultset,
-                                   int index,
-                                   Object any)
+                                          int index,
+                                          Object any)
         throws java.sql.SQLException {
         boolean success = true;
         if (AnyConverter.isArray(any)) {
@@ -518,7 +519,7 @@ public class DBTools {
         try {
             return AnyConverter.toString(descriptor.getPropertyValue(pid.getName()));
         } catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
-            throw new java.sql.SQLException(e.getMessage(), e);
+            throw new java.sql.SQLException(e.getLocalizedMessage(), e);
         }
     }
 
@@ -539,7 +540,7 @@ public class DBTools {
         try {
             return AnyConverter.toBoolean(descriptor.getPropertyValue(pid.getName()));
         } catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
-            throw new java.sql.SQLException(e.getMessage(), e);
+            throw new java.sql.SQLException(e.getLocalizedMessage(), e);
         }
     }
 
@@ -560,16 +561,24 @@ public class DBTools {
         try {
             return AnyConverter.toInt(descriptor.getPropertyValue(pid.getName()));
         } catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
-            throw new java.sql.SQLException(e.getMessage(), e);
+            throw new java.sql.SQLException(e.getLocalizedMessage(), e);
         }
     }
 
     public static boolean executeSQLQuery(Provider provider,
                                           String query)
         throws java.sql.SQLException {
+        return executeSQLQuery(provider, query, QueryCommand.ALL);
+    }
+
+    public static boolean executeSQLQuery(Provider provider,
+                                          String query,
+                                          QueryCommand type)
+        throws java.sql.SQLException {
         Object[] parameters =  new Object[]{};
         Integer[] positions = new Integer[]{};
-        return executeSQLQuery(provider, query, parameters, positions);
+        boolean support = provider.supportsTransactions(type);
+        return executeSQLQuery(provider, query, parameters, positions, support);
     }
 
     public static boolean executeSQLQuery(Provider provider,
@@ -577,11 +586,29 @@ public class DBTools {
                                           Object[] parameters,
                                           Integer[] positions)
         throws java.sql.SQLException {
+        return executeSQLQuery(provider, query, parameters, positions, QueryCommand.ALL);
+    }
+
+    public static boolean executeSQLQuery(Provider provider,
+                                          String query,
+                                          Object[] parameters,
+                                          Integer[] positions,
+                                          QueryCommand type)
+        throws java.sql.SQLException {
+        boolean support = provider.supportsTransactions(type);
+        return executeSQLQuery(provider, query, parameters, positions, support);
+    }
+
+    private static boolean executeSQLQuery(Provider provider,
+                                           String query,
+                                           Object[] parameters,
+                                           Integer[] positions,
+                                           boolean support)
+        throws java.sql.SQLException {
         boolean result = false;
         if (!query.isBlank()) {
             boolean auto = false;
-            boolean support = provider.supportsTransactions();
-    
+
             java.sql.Connection connection = provider.getConnection();
             try {
                 if (support) {
@@ -616,9 +643,17 @@ public class DBTools {
     public static boolean executeSQLQueries(Provider provider,
                                             List<String> queries)
         throws java.sql.SQLException {
+        return executeSQLQueries(provider, queries, QueryCommand.ALL);
+    }
+
+    public static boolean executeSQLQueries(Provider provider,
+                                            List<String> queries,
+                                            QueryCommand type)
+        throws java.sql.SQLException {
         Object[] parameters =  new Object[]{};
         List<Integer[]> positions = new ArrayList<Integer[]>();
-        return executeSQLQueries(provider, queries, parameters, positions);
+        boolean support = provider.supportsTransactions(type);
+        return executeSQLQueries(provider, queries, parameters, positions, support);
     }
 
     public static boolean executeSQLQueries(Provider provider,
@@ -626,10 +661,19 @@ public class DBTools {
                                             Object[] parameters,
                                             List<Integer[]> positions)
         throws java.sql.SQLException {
+        boolean support = provider.supportsTransactions(QueryCommand.ALL);
+        return executeSQLQueries(provider, queries, parameters, positions, support);
+    }
+
+    private static boolean executeSQLQueries(Provider provider,
+                                             List<String> queries,
+                                             Object[] parameters,
+                                             List<Integer[]> positions,
+                                             boolean support)
+        throws java.sql.SQLException {
         int count = 0;
         int index = 0;
         boolean auto = false;
-        boolean support = provider.supportsTransactions();
         java.sql.Connection connection = provider.getConnection();
         try {
             if (support) {

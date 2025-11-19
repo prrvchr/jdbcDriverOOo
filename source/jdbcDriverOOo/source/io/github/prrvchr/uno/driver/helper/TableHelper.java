@@ -246,7 +246,7 @@ public class TableHelper {
                                                          queries, parts, versions, descriptor, sensitive);
             }
         } catch (IndexOutOfBoundsException | WrappedTargetException | IllegalArgumentException e) {
-            throw new SQLException(e.getMessage());
+            throw new SQLException(e.getLocalizedMessage());
         }
         return hasAutoIncrement;
     }
@@ -905,7 +905,7 @@ public class TableHelper {
                                                            final XPropertySet property,
                                                            final String name,
                                                            final boolean sensitive)
-        throws java.sql.SQLException {
+        throws SQLException {
         List<String> queries = new ArrayList<>();
         NamedComponent table = ComponentHelper.getTableNamedComponents(property);
 
@@ -922,7 +922,7 @@ public class TableHelper {
                 }
             }
         } catch (IllegalArgumentException | WrappedTargetException | IndexOutOfBoundsException e) {
-            throw new java.sql.SQLException(e.getMessage(), e);
+            throw new SQLException(e.getLocalizedMessage(), e);
         }
         return queries;
     }

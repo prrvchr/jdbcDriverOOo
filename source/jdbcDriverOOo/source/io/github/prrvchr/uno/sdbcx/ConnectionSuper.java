@@ -36,16 +36,15 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.sdbcx.XViewsSupplier;
-import com.sun.star.uno.Any;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
-import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
@@ -145,6 +144,7 @@ public abstract class ConnectionSuper
                 mTables.refill(names);
             }
         } catch (ElementExistException | java.sql.SQLException | SQLException e) {
+            e.printStackTrace();
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
@@ -169,9 +169,8 @@ public abstract class ConnectionSuper
         // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
         List<String> names = new ArrayList<>();
         String[] types = getProvider().getConfigSQL().getTableTypes();
-        java.sql.ResultSet result = getProvider().getConnection().getMetaData().getTables(null, null, "%", types);
-        ComposeRule rule = ComposeRule.InDataManipulation;
-        NamedSupport support = getProvider().getNamedSupport(rule);
+        ResultSet result = getProvider().getConnection().getMetaData().getTables(null, null, "%", types);
+        NamedSupport support = getProvider().getNamedSupport(ComposeRule.InDataManipulation);
         try (ResultSet rs = getProvider().getConfigSQL().getResultSetTable(result)) {
             while (rs.next()) {
                 String name = buildName(support, rs);
@@ -185,8 +184,7 @@ public abstract class ConnectionSuper
         List<String> names = new ArrayList<>();
         String[] types = getProvider().getConfigSQL().getViewTypes();
         java.sql.ResultSet rs = getProvider().getConnection().getMetaData().getTables(null, null, "%", types);
-        ComposeRule rule = ComposeRule.InDataManipulation;
-        NamedSupport support = getProvider().getNamedSupport(rule);
+        NamedSupport support = getProvider().getNamedSupport(ComposeRule.InDataManipulation);
         try (java.sql.ResultSet result = getProvider().getConfigSQL().getResultSetView(rs)) {
             while (result.next()) {
                 String name = buildName(support, result);
@@ -201,7 +199,7 @@ public abstract class ConnectionSuper
         try {
             return ComponentHelper.buildName(support, result);
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

@@ -53,6 +53,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper;
 import io.github.prrvchr.uno.driver.helper.IndexHelper;
 import io.github.prrvchr.uno.driver.helper.KeyHelper;
+import io.github.prrvchr.uno.driver.helper.QueryCommand;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.TableHelper;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
@@ -280,7 +281,7 @@ public abstract class TableSuper
                 for (String q : queries) {
                     System.out.println("TableSuper.alterColumn() Query: " + q);
                 }
-                if (DBTools.executeSQLQueries(provider, queries)) {
+                if (DBTools.executeSQLQueries(provider, queries, QueryCommand.DDL)) {
                     setColumnProperties(oldcolumn, newcolumn, oldname, result);
                 }
             }

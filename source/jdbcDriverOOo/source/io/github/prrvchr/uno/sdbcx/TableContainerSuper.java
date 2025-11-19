@@ -44,6 +44,7 @@ import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.TableHelper;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.QueryCommand;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
 import io.github.prrvchr.uno.driver.property.PropertyID;
@@ -125,7 +126,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
                 for (String query : queries) {
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name, query);
                 }
-                created = DBTools.executeSQLQueries(mConnection.getProvider(), queries);
+                created = DBTools.executeSQLQueries(mConnection.getProvider(), queries, QueryCommand.DDL);
             }
         } catch (SQLException e) {
             int resource = Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY_ERROR;

@@ -257,7 +257,7 @@ public class GeneratedKeys {
             }
             return resultset;
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
+            throw UnoHelper.getSQLException(e);
         }
     }
 

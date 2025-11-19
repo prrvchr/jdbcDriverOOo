@@ -35,6 +35,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XClob;
 
 import io.github.prrvchr.uno.driver.provider.ReaderInputStream;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class Clob
@@ -73,7 +74,7 @@ public final class Clob
             }
             return input;
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
+            throw UnoHelper.getSQLException(e);
         }
     }
 
@@ -83,7 +84,7 @@ public final class Clob
         try {
             return mClob.getSubString(position, lenght);
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
+            throw UnoHelper.getSQLException(e);
         }
     }
 

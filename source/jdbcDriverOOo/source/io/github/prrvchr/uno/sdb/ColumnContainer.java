@@ -49,7 +49,6 @@ public final class ColumnContainer
 
     @Override
     protected XPropertySet createDescriptor() {
-        System.out.println("sdb.ColumnContainer.createDescriptor() 1");
         return new ColumnDescriptor(mTable, isCaseSensitive());
     }
 

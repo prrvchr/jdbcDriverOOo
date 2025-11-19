@@ -44,9 +44,11 @@ import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
 import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
+import io.github.prrvchr.uno.driver.helper.QueryCommand;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponentSupport;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class Provider {
@@ -60,8 +62,6 @@ public class Provider {
     private String mSubProtocol;
     private PropertyValue[] mInfos;
     private java.sql.Statement mStatement = null;
-
-    private boolean mSupportsTransactions = true;
 
     private NamedComponentSupport mNamedComponentSupport;
 
@@ -111,8 +111,6 @@ public class Provider {
                 break;
         }
 
-        // XXX: keep some DataBaseMetaData data in cache...
-        mSupportsTransactions = metadata.supportsTransactions();
         mNamedComponentSupport = new NamedComponentSupport(metadata, mConfig);
 
         // XXX: We do not keep the connection but the statement
@@ -189,7 +187,20 @@ public class Provider {
 
     // DatabaseMetadata cache data
     public boolean supportsTransactions() {
-        return mSupportsTransactions;
+        return supportsTransactions(QueryCommand.ALL);
+    }
+
+    public boolean supportsTransactions(QueryCommand type) {
+        boolean supportTransaction;
+        switch (type) {
+            case DDL:
+                supportTransaction = mConfig.supportsDDLTransaction();
+                break;
+            default:
+                supportTransaction = mConfig.supportsTransaction();
+                break;
+        }
+        return supportTransaction;
     }
 
     public int getGeneratedKeysOption() {
@@ -212,7 +223,7 @@ public class Provider {
         try {
             return mStatement.getConnection();
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
+            throw UnoHelper.getSQLException(e);
         }
     }
 

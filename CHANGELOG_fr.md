@@ -445,7 +445,20 @@ Si vous utilisez plusieurs comptes pour vous connecter à une base de données, 
 
 - Toutes les fenêtres modales s'ouvrent désormais correctement en mode modal.
 
-### Que reste-t-il à faire pour la version 1.6.1:
+### Ce qui a été fait pour la version 1.6.2:
+
+- Ajout du paramètre `JavaDriverDependencies` au fichier [Drivers.xcu][48] pour permettre le chargement d'un pilote JDBC comme dépendance.  
+  Ceci est nécessaire au bon fonctionnement du pilote UCanAccess, permettant ainsi l'accès aux fichiers MS Access.
+- Ajout du paramètre `SupportsDDLTransaction` au fichier [Drivers.xcu][48]. Sans ce paramètre, le pilote est considéré comme prenant en charge les transactions dans les requêtes DDL (Data Definition Language).  
+  Ce paramètre a été ajouté afin de permettre la création et/ou la modification de tables dans Trino sans utiliser de transactions, conformément aux exigences de Trino.
+- Corrections et améliorations apportées à l'artefact `RowSetFactory.jar`:
+  - Les erreurs survenant avant une insertion, une modification ou une suppression seront correctement signalées et affichées au lieu de provoquer une fermeture anormale de LibreOffice.
+  - Toutes les valeurs des colonnes numériques seront désormais converties en fonction de leur type SQL afin de garantir que les types Java soient identiques lors de la comparaison.
+- L'intégration de Trino a progressé, mais il reste du travail à accomplir. Une version du [serveur Trino 479-SNAPSHOT][134] est disponible au téléchargement avec la dernière version de **jdbcDriverOOo**.  
+  Il comprend les PR [#27321][135] et [#27324][136] permettant la prise en charge de HsqlDB et l'édition des ResultSets.
+- Mise à jour du pilote SQL Server `mssql-jdbc-13.3.0.jre11-preview.jar`. Cette version bêta intègre le correctif [#2828][137] permettant l'utilisation de la gestion des relations dans Base.
+
+### Que reste-t-il à faire pour la version 1.6.2:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -584,3 +597,7 @@ Si vous utilisez plusieurs comptes pour vous connecter à une base de données, 
 [131]: <https://github.com/microsoft/mssql-jdbc/issues/2745>
 [132]: <https://github.com/spannm/ucanaccess>
 [133]: <https://gerrit.libreoffice.org/c/core/+/189732>
+[134]: <https://github.com/prrvchr/jdbcDriverOOo/releases>
+[135]: <https://github.com/trinodb/trino/pull/27321>
+[136]: <https://github.com/trinodb/trino/pull/27324>
+[137]: <https://github.com/microsoft/mssql-jdbc/pull/2828>

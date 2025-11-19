@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.6.1][5]
+# version [1.6.2][5]
 
 ## Introduction:
 
@@ -48,9 +48,9 @@ It embeds the drivers for the following databases:
 - Firebird via [Jaybird][19] version 6.0.3 and [JaybirdEmbedded][20] version 1.0.0
 - [MySQL via Connector/J][21] version 9.3.0
 - Oracle Database 23ai Free version 23.9.0.25.07 via [ojdbc17.jar][22].
-- Microsoft SQL Server via [mssql-jdbc-13.2.0.jre11.jar][23].
-- Microsoft Access via [ucanaccess-5.1.4.jar][24] (currently being integrated, use with caution).
-- [Trino or PrestoSQL][25] version 458-SNAPSHOT (currently being integrated, use with caution).
+- Microsoft SQL Server via [mssql-jdbc-13.3.0.jre11-preview.jar][23].
+- Microsoft Access via [ucanaccess-5.1.4.jar][24].
+- [Trino or PrestoSQL][25] version 479-SNAPSHOT.
 
 Thanks to drivers providing an integrated database engine such as: HsqlDB, H2, SQLite, Derby, UCanAccess or Jaybird, it is possible in Base to very easily create and manage databases, as easily as creating Writer documents.  
 You will find the information needed to create a database with these drivers in the section: [Connection URL][30]
@@ -214,6 +214,7 @@ Certain databases such as HsqlDB, H2, SQLite, Derby, UCanAccess or Firebird via 
 This feature makes it as easy to create databases as Writer documents. Generally it is enough to add the option expected by the driver to the connection URL.
 This connection URL may be different depending on the operating system of your computer (Windows, Linux or MacOS).  
 To create a database, in LibreOffice go to the menu: **File -> New -> Database -> Connect to an existing database**, then according to your choice:
+
 - **HsqlDB pure Java**:
   - Linux: `file:///home/prrvchr/testdb/hsqldb/db;hsqldb.default_table_type=cached;create=true`
   - Windows: `C:\Utilisateurs\prrvc\testdb\hsqldb\db;hsqldb.default_table_type=cached;create=true`
@@ -235,6 +236,9 @@ To create a database, in LibreOffice go to the menu: **File -> New -> Database -
 
   Firebird uses [JaybirdEmbedded][20] for its embedded mode to work. You can find the supported platforms in the [JaybirdEmbedded][20] documentation.  
   For unsupported platforms, you can always install the [Firebird Server][56] for your platform.
+
+Once the **odb** file is created and opened in **LibreOffice Base**, it may be **necessary, or even recommended**, to remove the existing creation option from the connection URL.  
+To do this, in **Base**, go to the menu: **Edit > Database > Properties... > General**. You will need to save the file and reopen it for the changes to take effect.
 
 ___
 
@@ -277,6 +281,8 @@ ___
 * LibreOffice 7.3.7.2 - Lubuntu 22.04
 
 * LibreOffice 24.2.1.2 - Lubuntu 22.04
+
+* LibreOfficeDev 26.2 - Lubuntu 22.04
 
 * LibreOffice 24.8.0.3 (x86_64) - Windows 10(x64) - Python version 3.9.19 (under Lubuntu 22.04 / VirtualBox 6.1.38)
 
@@ -321,7 +327,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-161>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-162>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -356,7 +362,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [41]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
 [42]: <img/jdbcDriverOOo.svg#middle>
 [43]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[44]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.6.1#right>
+[44]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.6.2#right>
 [45]: <img/jdbcDriverOOo-1.png>
 [46]: <img/jdbcDriverOOo-2.png>
 [47]: <img/jdbcDriverOOo-3.png>

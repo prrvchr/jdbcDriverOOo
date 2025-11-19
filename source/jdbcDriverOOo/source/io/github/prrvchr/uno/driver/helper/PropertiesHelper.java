@@ -30,12 +30,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
 
@@ -43,6 +46,7 @@ public class PropertiesHelper {
 
     public static final String CONNECT_PROTOCOL = "jdbc:";
     public static final String REGISTRED_PROTOCOL = "xdbc:";
+    public static final String SUFFIX_PROTOCOL = ":*";
 
     public static final String getJdbcUrl(final String url) {
         return url.replaceFirst(REGISTRED_PROTOCOL, CONNECT_PROTOCOL);
@@ -73,6 +77,29 @@ public class PropertiesHelper {
         return properties;
     }
 
+    public static final XNameAccess getRootConfiguration(final XHierarchicalNameAccess config, Object dflt) {
+        return UnoRuntime.queryInterface(XNameAccess.class, getConfigProperty(config, getConfigRootPath(), dflt));
+    }
+
+    public static final String getDependencieProtocol(final XHierarchicalNameAccess config,
+                                                      final String[] nodes,
+                                                      final String dependencie,
+                                                      final String property) {
+        String subProtocol = null;
+        for (String node : nodes) {
+            if (node.startsWith(REGISTRED_PROTOCOL)) {
+                StringJoiner path = new StringJoiner("/");
+                path.add(getConfigDriverPath(node)).add("Properties").add(property).add("Value");
+                String clsname = (String) getConfigProperty(config, path.toString(), null);
+                if (clsname != null && clsname.equals(dependencie)) {
+                    subProtocol = getNodeProtocol(node);
+                    break;
+                }
+            }
+        }
+        return subProtocol;
+    }
+
     public static final String getConfigPropertiesPath(final String protocol,
                                                        final String name) {
         return getConfigPath(protocol, "Properties", name);
@@ -99,7 +126,7 @@ public class PropertiesHelper {
 
     private static final String getConfigPath(final String protocol,
                                               final String name) {
-        return "Installed/" + REGISTRED_PROTOCOL + protocol + ":*/" + name;
+        return getConfigDriverPath(REGISTRED_PROTOCOL + protocol + SUFFIX_PROTOCOL) + "/" + name;
     }
 
     public static final String getDefaultConfigPath(final String path,
@@ -108,7 +135,23 @@ public class PropertiesHelper {
     }
 
     public static final String getDefaultConfigPath(final String name) {
-        return "Installed/" + REGISTRED_PROTOCOL + "*/" + name;
+        return getDefaultConfigPath() + "/" + name;
+    }
+
+    public static final String getDefaultConfigPath() {
+        return getConfigDriverPath(REGISTRED_PROTOCOL + "*") ;
+    }
+
+    public static final String getConfigDriverPath(String path) {
+        return getConfigRootPath() + "/" + path;
+    }
+
+    public static final String getConfigRootPath() {
+        return "Installed";
+    }
+
+    private static final String getNodeProtocol(final String node) {
+        return node.replace(REGISTRED_PROTOCOL, "").replace(SUFFIX_PROTOCOL, "");
     }
 
     public static final Object getConfigProperties(final XHierarchicalNameAccess driver,
@@ -118,9 +161,9 @@ public class PropertiesHelper {
                                                    final Object dflt) {
         Object value = dflt;
         if (hasInfosProperty(infos, name)) {
-            value = getInfosProperty(infos, name, null);
+            value = getInfosProperty(infos, name, dflt);
         } else {
-            value = getConfigProperties(driver, protocol, name, null);
+            value = getConfigProperties(driver, protocol, name, dflt);
         }
         return value;
     }
@@ -132,9 +175,9 @@ public class PropertiesHelper {
                                                  final Object dflt) {
         Object value = dflt;
         if (hasInfosProperty(infos, name)) {
-            value = getInfosProperty(infos, name, null);
+            value = getInfosProperty(infos, name, dflt);
         } else {
-            value = getConfigMetaData(driver, protocol, name, null);
+            value = getConfigMetaData(driver, protocol, name, dflt);
         }
         return value;
     }
@@ -229,15 +272,23 @@ public class PropertiesHelper {
                                                    final String protocol,
                                                    final String name,
                                                    final Object dflt) {
-        Object value = dflt;
         String property = getConfigPropertiesPath(protocol, name);
         if (!driver.hasByHierarchicalName(property)) {
             property = getDefaultConfigPropertiesPath(name);
         }
+        return getConfigProperty(driver, property, dflt);
+    }
+
+    public static final Object getConfigProperty(final XHierarchicalNameAccess driver,
+                                                 final String property,
+                                                 final Object dflt) {
+        Object value = null;
         if (driver.hasByHierarchicalName(property)) {
             try {
                 value = driver.getByHierarchicalName(property);
             } catch (NoSuchElementException e) { }
+        } else {
+            value = dflt;
         }
         return value;
     }
@@ -404,6 +455,10 @@ public class PropertiesHelper {
         // XXX: (which probably does not know anything about them anyway).
         boolean is = false;
         switch (property) {
+            case "SystemCatalogSettings":
+            case "SystemSchemaSettings":
+            case "SystemTableSettings":
+            case "TableSettings":
             case "TablePrivilegesSettings":
             case "PrivilegesSettings":
             case "RowVersionCreation":
@@ -413,6 +468,7 @@ public class PropertiesHelper {
             case "Url":
             case "ShowSystemTable":
             case "CachedRowSet":
+            case "JavaDriverDependencies":
                 is = true;
                 break;
             default:

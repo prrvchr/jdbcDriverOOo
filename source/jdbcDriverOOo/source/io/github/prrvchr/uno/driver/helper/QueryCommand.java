@@ -23,57 +23,19 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.java.rowset.internal;
+package io.github.prrvchr.uno.driver.helper;
 
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
-
-public class NamedComponent {
-    private String mCatalog;
-    private String mSchema;
-    private String mTable;
-
-    public NamedComponent(DatabaseMetaData dbmd, String tablename)
-        throws SQLException {
-        // do we have catalogs ?
-        if (dbmd.supportsCatalogsInDataManipulation()) {
-            String sep = dbmd.getCatalogSeparator();
-            if (dbmd.isCatalogAtStart()) {
-                // search for the catalog name at the beginning
-                int index = tablename.indexOf(sep);
-                if (index != -1) {
-                    mCatalog = tablename.substring(0, index);
-                    tablename = tablename.substring(index + sep.length());
-                }
-            } else {
-                // catalog name at end
-                int index = tablename.lastIndexOf(sep);
-                if (index != -1) {
-                    mCatalog = tablename.substring(index + sep.length());
-                    tablename = tablename.substring(0, index);
-                }
-            }
-        }
-        if (dbmd.supportsSchemasInDataManipulation()) {
-            int index = tablename.indexOf(".");
-            if (index != -1) {
-                mSchema = tablename.substring(0, index);
-                tablename = tablename.substring(index + 1);
-            }
-        }
-        mTable = tablename;
-    }
-
-    public String getCatalog() {
-        return mCatalog;
-    }
-
-    public String getSchema() {
-        return mSchema;
-    }
-
-    public String getName() {
-        return mTable;
-    }
-
+public enum QueryCommand {
+    // GRANT, REVOKE
+    DCL,
+    // CREATE, DROP, ALTER, TRUNCATE...
+    DDL,
+    // INSERT, UPDATE, DELETE
+    DML,
+    // SELECT
+    DQL,
+    // COMMIT, SAVEPOINT, ROLLBACK
+    TCL,
+    // ALL ABOVE
+    ALL
 }
