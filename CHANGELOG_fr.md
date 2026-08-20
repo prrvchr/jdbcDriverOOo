@@ -458,7 +458,18 @@ Si vous utilisez plusieurs comptes pour vous connecter à une base de données, 
   Il comprend les PR [#27321][135] et [#27324][136] permettant la prise en charge de HsqlDB et l'édition des ResultSets.
 - Mise à jour du pilote SQL Server `mssql-jdbc-13.3.0.jre11-preview.jar`. Cette version bêta intègre le correctif [#2828][137] permettant l'utilisation de la gestion des relations dans Base.
 
-### Que reste-t-il à faire pour la version 1.6.2:
+### Ce qui a été fait pour la version 1.7.0:
+
+- **Le protocole utilisé est passé de** `xdbc` **à** `juda`.  
+  Ce changement nécessite la mise à jour de la source de données pour tous les fichiers `.odb` existants.  
+  Pour mettre à jour la source de données, ouvrez simplement le fichier `.odb`, allez dans **Édition -> Base de données -> Type de connexion**, puis sélectionnez dans la liste **Type de base de données** celui qui correspond au type affiché en bas à gauche de la fenêtre LibreOffice Base.  
+  Fermez la fenêtre LibreOffice Base en enregistrant vos modifications. Vous pourrez ensuite vous reconnecter.
+- Remplacement du pilote JDBC Trino par le pilote JDBC juda (une version améliorée du pilote Trino). Cette nouvelle version permet aux objets `java.sql.ResultSet` provenant de Trino d'être modifiables.  
+  Ce remplacement nécessite également de modifier la source de données pour tous les fichiers `.odb` qui utilisaient le pilote Trino. Vous devez sélectionner `Juda pure Java` comme **Type de base de données**.
+- Réécriture de l'implémentation de `javax.sql.rowset.CachedRowSet` utilisée par jdbcDriverOOo. Cette nouvelle version permet des opérations d'écriture dans les grilles de données de Base affichant des résultats de requêtes impliquant plusieurs tables.
+- Amélioration de la fluidité du défilement des grilles de données de Base grâce à l'ajout d'une couche de mise en cache supplémentaire.
+
+### Que reste-t-il à faire pour la version 1.7.0:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 

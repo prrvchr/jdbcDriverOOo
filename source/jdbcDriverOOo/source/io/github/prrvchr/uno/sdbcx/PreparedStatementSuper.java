@@ -30,11 +30,11 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
-import io.github.prrvchr.uno.sdbc.PreparedStatementBase;
+import io.github.prrvchr.uno.sdbc.PreparedStatementMain;
 
 
 public abstract class PreparedStatementSuper
-    extends PreparedStatementBase {
+    extends PreparedStatementMain {
 
     // The constructor method:
     // XXX: Constructor called from methods:

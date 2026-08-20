@@ -111,8 +111,8 @@ public class SyncResolverImpl extends CachedRowSetImpl implements SyncResolver {
     private CachedRowSetImpl crsSync;
 
     /**
-     *  This ArrayList will contain the status of a row
-     *  from the SyncResolver.* values else it will be null.
+     * This ArrayList will contain the status of a row
+     * from the SyncResolver. * values else it will be null.
      */
     private ArrayList<?> stats;
 
@@ -396,19 +396,10 @@ public class SyncResolverImpl extends CachedRowSetImpl implements SyncResolver {
     private void setCacheRowSet(CachedRowSetImpl crsRow) {
         try {
             crsRow.setUrl(crsSync.getUrl());
-        } catch (SQLException e) { }
-
-        try {
             crsRow.setDataSourceName(crsSync.getCommand());
-        } catch (SQLException e) { }
-
-        try {
             if (crsSync.getTableName() != null) {
                 crsRow.setTableName(crsSync.getTableName());
             }
-        } catch (SQLException e) { }
-
-        try {
             if (crsSync.getCommand() != null) {
                 crsRow.setCommand(crsSync.getCommand());
             }

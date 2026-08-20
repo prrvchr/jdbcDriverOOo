@@ -32,7 +32,7 @@ import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public abstract class DescriptorContainer<T extends Descriptor>
-    extends ContainerBase<T> {
+    extends ContainerMain<T> {
     private static final String SERVICE = DescriptorContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 

@@ -58,7 +58,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class IndexContainer
-    extends ContainerBase<Index> {
+    extends ContainerMain<Index> {
 
     private static final String SERVICE = IndexContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Indexes",

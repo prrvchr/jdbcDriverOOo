@@ -36,7 +36,7 @@ import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
+import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
 public abstract class ResultSetSuper
@@ -49,7 +49,7 @@ public abstract class ResultSetSuper
                           String[] services,
                           ConnectionSuper connection,
                           java.sql.ResultSet resultset,
-                          StatementMain statement,
+                          StatementBase statement,
                           boolean bookmark,
                           boolean updatable)
         throws SQLException {

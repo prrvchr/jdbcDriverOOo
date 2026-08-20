@@ -35,7 +35,7 @@ import com.sun.star.uno.Type;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptorSuper;
-import io.github.prrvchr.uno.sdbcx.TableMain;
+import io.github.prrvchr.uno.sdbcx.TableBase;
 
 
 public final class ColumnDescriptor
@@ -59,7 +59,7 @@ public final class ColumnDescriptor
     private Integer mWidth;
 
     // The constructor method:
-    public ColumnDescriptor(TableMain table,
+    public ColumnDescriptor(TableBase table,
                             boolean sensitive) {
         super(SERVICE, SERVICES, table, sensitive);
         registerProperties();

@@ -55,41 +55,31 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
-import java.sql.Blob;
-import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLData;
 import java.sql.SQLException;
 import java.sql.Savepoint;
-import java.sql.Statement;
-import java.sql.Struct;
-import java.sql.Types;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import javax.sql.RowSetInternal;
 import javax.sql.rowset.CachedRowSet;
 import javax.sql.rowset.RowSetMetaDataImpl;
-import javax.sql.rowset.serial.SQLInputImpl;
-import javax.sql.rowset.serial.SerialArray;
-import javax.sql.rowset.serial.SerialBlob;
-import javax.sql.rowset.serial.SerialClob;
-import javax.sql.rowset.serial.SerialStruct;
 import javax.sql.rowset.spi.SyncProviderException;
 import javax.sql.rowset.spi.SyncResolver;
 import javax.sql.rowset.spi.TransactionalWriter;
 
 import io.github.prrvchr.java.rowset.CachedRowSetImpl;
 import io.github.prrvchr.java.rowset.JdbcRowSetResourceBundle;
+import io.github.prrvchr.java.rowset.internal.TableWriter.Table;
 
 
 /**
@@ -118,16 +108,14 @@ import io.github.prrvchr.java.rowset.JdbcRowSetResourceBundle;
  */
 public class CachedRowSetWriter implements TransactionalWriter, Serializable {
 
-    static final long serialVersionUID = -8506030970299413976L;
-
-    static final String DOT = ".";
+    private static final long serialVersionUID = 1751318974164335483L;
 
     /**
      * The {@code Connection} object that this writer will use to make a
      * connection to the data source to which it will write data.
      *
      */
-    private transient Connection con;
+    private transient Connection connection;
 
     /**
      * The {@code Logger} object that this writer will use.
@@ -136,101 +124,16 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
     private transient Logger logger;
 
     /**
-     * The {@code String} object that this writer will use to quote
-     * identifier in SQL queries.
+     * The Tables holding SQL command relative to the columns composing
+     * this rowset. The method {@code initSQLStatements} builds the list of tables.
      *
      * @serial
      */
-    private String identifierQuote;
+    private TableWriter[] tables;
 
-    /**
-     * The SQL {@code SELECT} command that this writer will call
-     * internally. The method {@code initSQLStatements} builds this
-     * command by supplying the words "SELECT" and "FROM," and using
-     * metadata to get the table name and column names .
-     *
-     * @serial
-     */
-    private String selectCmd;
+    private int rsType = ResultSet.TYPE_SCROLL_SENSITIVE;
 
-    /**
-     * The SQL {@code UPDATE} command that this writer will call
-     * internally to write data to the rowset's underlying data source.
-     * The method {@code initSQLStatements} builds this {@code String}
-     * object.
-     *
-     * @serial
-     */
-    private String updateCmd;
-
-    /**
-     * The SQL {@code DELETE} command that this writer will call
-     * internally to delete a row in the rowset's underlying data source.
-     *
-     * @serial
-     */
-    private String deleteCmd;
-
-    /**
-     * The SQL {@code INSERT INTO} command that this writer will internally use
-     * to insert data into the rowset's underlying data source.  The method
-     * {@code initSQLStatements} builds this command with a question
-     * mark parameter placeholder for each column in the rowset.
-     *
-     * @serial
-     */
-    private String insertCmd;
-
-    /**
-     * A <code>boolean</code> indicating whether the {@code CachedRowSet}
-     * object has primary keys.
-     *
-     * @serial
-     */
-    private boolean hasPrimarykeys;
-
-    private boolean updateOnInsert;
-
-    private boolean supportsGeneratedKeys;
-
-    private int resultSetType = ResultSet.TYPE_SCROLL_SENSITIVE;
-
-    private int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
-
-    /**
-     * An array containing the column numbers of the columns that are
-     * needed to uniquely identify a row in the {@code CachedRowSet} object
-     * for which this {@code CachedRowSetWriter} object is the writer.
-     *
-     * @serial
-     */
-    private int[] keyCols;
-
-    /**
-     * An array containing the column numbers of the columns that coming from
-     * the same table as keyCols.
-     *
-     * @serial
-     */
-    private int[] tabCols;
-
-    /**
-     * An array containing the column name of the columns that coming from
-     * the same table as keyCols and using for getGeneratedKeys().
-     *
-     * @serial
-     */
-    private String[] autoCols;
-
-
-    /**
-     * An array of the parameters that should be used to set the parameter
-     * placeholders in a {@code PreparedStatement} object that this
-     * writer will execute.
-     *
-     * @serial
-     */
-    private Object[] params;
+    private int rsConcurrency = ResultSet.CONCUR_READ_ONLY;
 
     /**
      * The {@code CachedRowSetReader} object that has been
@@ -248,7 +151,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      *
      * @serial
      */
-    private ResultSetMetaData callerMd;
+    private ResultSetMetaData metadata;
 
     /**
      * The number of columns in the {@code CachedRowSet} object
@@ -256,7 +159,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      *
      * @serial
      */
-    private int callerColumnCount;
+    private int columnCount;
 
     private JdbcRowSetResourceBundle resBundle;
 
@@ -336,9 +239,9 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         // This is not required, in general.  The reader has logic
         // to get a JDBC connection, so call it.
 
-        con = reader.connect(caller);
+        connection = reader.connect(caller);
 
-        if (con == null) {
+        if (connection == null) {
             throw new SQLException(resBundle.handleGetObject("crswriter.connect").toString());
         }
 
@@ -356,10 +259,10 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         // We assume caller is a CachedRowSet
         CachedRowSetImpl crs = (CachedRowSetImpl) caller;
 
-        if (keyCols == null) {
+        if (tables == null) {
             initSQLStatements(crs);
         }
-        if (keyCols.length > 0) {
+        if (tables.length > 0) {
             success = writeData(crs);
         } else {
             crs.setReadOnly(true);
@@ -372,10 +275,10 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
 
         boolean success = false;
 
-        if (callerColumnCount < 1) {
+        if (columnCount < 1) {
             // No data, so return success.
             if (reader.getCloseConnection()) {
-                con.close();
+                connection.close();
             }
             success = true;
         } else {
@@ -388,12 +291,13 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             // XXX: The first entry in the status will take the value of the first conflict that occurs
             status.add(0, SyncResolver.NO_ROW_CONFLICT);
 
-            // We need to save the sursor position before processing.
+            // We need to save the cursor position before processing.
             crs.saveCursor();
-
             // We need to see rows marked for deletion.
-            boolean showDel = crs.getShowDeleted();
-            crs.setShowDeleted(true);
+            boolean showDeleted = crs.getShowDeleted();
+            if (!showDeleted) {
+                crs.setShowDeleted(true);
+            }
 
             // Look at all the rows.
             crs.beforeFirst();
@@ -402,8 +306,9 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             List<SQLException> conflicts = writeData(crs, crsRes, status);
 
             // reset
-            crs.setShowDeleted(showDel);
-
+            if (!showDeleted) {
+                crs.setShowDeleted(false);
+            }
             // We need to restore the cursor position after processing.
             crs.restoreCursor();
 
@@ -436,13 +341,10 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
     private void setCachedRowSetResolverMetaData(CachedRowSetImpl crsRes)
         throws SQLException {
         RowSetMetaDataImpl md = new RowSetMetaDataImpl();
-        md.setColumnCount(callerColumnCount);
-        for (int i = 1; i <= callerColumnCount; i++) {
-            if (callerMd.isAutoIncrement(i)) {
-                updateOnInsert = true;
-            }
-            md.setColumnType(i, callerMd.getColumnType(i));
-            md.setColumnName(i, callerMd.getColumnName(i));
+        md.setColumnCount(columnCount);
+        for (int i = 1; i <= columnCount; i++) {
+            md.setColumnType(i, metadata.getColumnType(i));
+            md.setColumnName(i, metadata.getColumnName(i));
             md.setNullable(i, ResultSetMetaData.columnNullableUnknown);
         }
         crsRes.setMetaData(md);
@@ -520,300 +422,26 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         ResultSet origVals = crs.getOriginalRow();
         origVals.next();
 
-        String predicate = buildWhereClause(origVals);
-        String cmd = selectCmd + predicate;
-
-        try (PreparedStatement stmt = con.prepareStatement(cmd, resultSetType, resultSetConcurrency)) {
-
-            setStatementParameters(stmt);
-            setStatementProperties(crs, stmt);
-
-            if (hasPrimarykeys) {
-                updateCurrentRow(crs, origVals, stmt, predicate, row);
-            } else {
-                updateCurrentRowWithCheck(crs, origVals, stmt, predicate, row);
-            }
-
-        } catch (SQLException e) {
-            setResolverConflict(crsRes, origVals, status, row, SyncResolver.UPDATE_ROW_CONFLICT);
-            throw e;
-        }
-    }
-
-    private void setStatementParameters(PreparedStatement stmt)
-        throws SQLException {
-        int index = 0;
-        for (int i = 0; i < params.length; i++) {
-            Object obj = params[i];
-            if (obj != null) {
-                stmt.setObject(++index, obj);
-            }
-        }
-    }
-
-    private void setStatementProperties(CachedRowSet crs, PreparedStatement stmt) {
+        Map<TableWriter, String> queries = new HashMap<>();
         try {
-            stmt.setMaxRows(crs.getMaxRows());
-            stmt.setMaxFieldSize(crs.getMaxFieldSize());
-            stmt.setEscapeProcessing(crs.getEscapeProcessing());
-            stmt.setQueryTimeout(crs.getQueryTimeout());
-        } catch (Exception e) {
-            // Older driver don't support these operations.
-        }
-    }
-
-    private void updateCurrentRow(CachedRowSet crs, ResultSet origVals,
-                                  PreparedStatement stmt, String predicate, int row)
-        throws SQLException {
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                updateCurrentRow(crs, origVals, rs, predicate, row);
-            } else {
-                /**
-                 * Cursor will be here, if the ResultSet may not return even a single row
-                 * i.e. we can't find the row where to update because it has been deleted
-                 * etc. from the db.
-                 * Present the whole row as null to user, to force null to be sync'ed
-                 * and hence nothing to be synced.
-                 *
-                 * NOTE:
-                 * ------
-                 * In the database if a column that is mapped to java.sql.Types.REAL stores
-                 * a Double value and is compared with value got from ResultSet.getFloat()
-                 * no row is retrieved and will throw a SyncProviderException. For details
-                 * see bug Id 5053830
-                 **/
-                String msg = resBundle.handleGetObject("crswriter.update.norow.error").toString();
-                throw new SQLException(MessageFormat.format(msg, row));
-            }
-        }
-    }
-
-    private void updateCurrentRowWithCheck(CachedRowSet crs, ResultSet origVals,
-                                           PreparedStatement stmt, String predicate, int row)
-        throws SQLException {
-        boolean updated = false;
-        try (ResultSet rs = stmt.executeQuery()) {
-
-            if (rs.next()) {
-                if (rs.next()) {
-                    /** More than one row conflict.
-                     *  If rs has only one row we are able to
-                     *  uniquely identify the row where update
-                     *  have to happen else if more than one
-                     *  row implies we cannot uniquely identify the row
-                     *  where we have to do updates.
-                     *  crs.setKeyColumns needs to be set to
-                     *  come out of this situation.
-                     */
-                    int duplicate = 2;
-                    while (rs.next()) {
-                        duplicate++;
-                    }
-                    String msg = resBundle.handleGetObject("crswriter.update.duplicate.error").toString();
-                    throw new SQLException(MessageFormat.format(msg, row, duplicate));
-                }
-                if (rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
-                    rs.first();
-                    updateCurrentRow(crs, origVals, rs, predicate, row);
-                    updated = true;
-                }
-            } else {
-                String msg = resBundle.handleGetObject("crswriter.update.norow.error").toString();
-                throw new SQLException(MessageFormat.format(msg, row));
-            }
-        }
-
-        // XXX: We need to close the ResultSet and open an other one for
-        // XXX: database like SQLite supporting only ResultSet.TYPE_FORWARD_ONLY
-        if (!updated) {
-            updateCurrentRow(crs, origVals, stmt, predicate, row);
-        }
-    }
-
-    private void updateCurrentRow(CachedRowSet crs, ResultSet origVals,
-                                  ResultSet rs, String predicate, int row)
-        throws SQLException {
-
-        // how many fields need to be updated
-        StringJoiner updateSet = new StringJoiner(", ");
-
-        Map<String, Class<?>> map;
-        if (crs.getTypeMap() != null) {
-            map = crs.getTypeMap();
-        } else {
-            map = con.getTypeMap();
-        }
-
-        List<Integer> cols = new ArrayList<>();
-
-        for (int i = 0; i < tabCols.length; i++) {
-            int index = tabCols[i];
-            updateCurrentRow(crs, origVals, rs, index, map, cols, updateSet, row);
-        }
-
-        if (cols.size() > 0 ) {
-            String query = updateCmd + updateSet.toString() + predicate;
-            executeUpdate(crs, cols, query, row);
-        }
-    }
-
-    private void updateCurrentRow(CachedRowSet crs, ResultSet origVals, ResultSet rs,
-                                  int index, Map<String, Class<?>> map,
-                                  List<Integer> cols, StringJoiner updateSet, int row)
-        throws SQLException {
-        Object orig = origVals.getObject(index);
-        Object curr = crs.getObject(index);
-
-        /**
-         * the following block creates equivalent objects
-         * that would have been created if this rs is populated
-         * into a CachedRowSet so that comparison of the column values
-         * from the ResultSet and CachedRowSet are possible
-         */
-        Object rsval = getResultSetValue(rs, map, row, index);
-
-        /** This additional checking has been added when the current value
-         *  in the DB is null, but the DB had a different value when the
-         *  data was actually fetched into the CachedRowSet.
-         **/
-
-        if (rsval == null && orig != null || rsval != null && !rsval.equals(orig)) {
-            // value in db has changed
-            // don't proceed with synchronization
-            // get the value in db and pass it to the resolver.
-            String msg = resBundle.handleGetObject("crswriter.update.conflict.error").toString();
-            throw new SQLException(MessageFormat.format(msg, row));
-        }
-        if (orig == null && curr != null || curr != null && !curr.equals(orig)) {
-            // When values from db and values in CachedRowSet are not equal,
-            // if db value is same as before updation for each col in
-            // the row before fetching into CachedRowSet,
-            // only then we go ahead with updation, else we
-            // throw SyncProviderException.
-
-            // if value has changed in db after fetching from db
-            // for some cols of the row and at the same time, some other cols
-            // have changed in CachedRowSet, no synchronization happens
-
-            // Synchronization happens only when data when fetching is
-            // same or at most has changed in cachedrowset
-
-            // check orig value with what is there in crs for a column
-            // before updation in crs.
-
-            if (crs.columnUpdated(index)) {
-                if (!rsval.equals(orig)) {
-                    String msg = resBundle.handleGetObject("crswriter.update.conflict.error").toString();
-                    throw new SQLException(MessageFormat.format(msg, row));
-                }
-                // At this point we are sure that
-                // the value updated in crs was from
-                // what is in db now and has not changed
-                String col = getQuotedIdentifier(callerMd.getColumnName(index));
-                updateSet.add(col + " = ?");
-                cols.add(index);
-            } else {
-                // XXX: Normally this should never happen
-                String msg = resBundle.handleGetObject("crswriter.update.error").toString();
-                throw new SQLException(MessageFormat.format(msg, row));
-            }
-        }
-    }
-
-    private Object getResultSetValue(ResultSet rs, Map<String, Class<?>> map, int row, int index)
-        throws SQLException {
-        // XXX: If we want to be able to compare numerical values,
-        // XXX: it is necessary to convert them to ensure we have the same types.
-        int type = rs.getMetaData().getColumnType(index);
-        Object rsval;
-        if (map == null || map.isEmpty()) {
-            rsval = rs.getObject(index);
-        } else {
-            rsval = rs.getObject(index, map);
-        }
-        if (rsval != null && RowSetHelper.isNumeric(type)) {
-            rsval = RowSetHelper.convertNumeric(resBundle, rsval, Types.NULL, type);
-        } else if (rsval instanceof Struct) {
-            Struct s = (Struct) rsval;
-            // look up the class in the map
-            Class<?> c = null;
-            String typename = s.getSQLTypeName();
-            c = map.get(typename);
-            if (c != null) {
-                // create new instance of the class
-                SQLData obj = null;
-                try {
-                    Object tmp = c.getDeclaredConstructor().newInstance();
-                    obj = (SQLData) tmp;
-                } catch (Exception ex) {
-                    String column = callerMd.getColumnName(index);
-                    String msg = resBundle.handleGetObject("crswriter.update.struct.error").toString();
-                    throw new SQLException(MessageFormat.format(msg, row, typename, column), ex);
-                }
-                // get the attributes from the struct
-                Object attribs[] = s.getAttributes(map);
-                // create the SQLInput "stream"
-                SQLInputImpl sqlInput = new SQLInputImpl(attribs, map);
-                // read the values...
-                obj.readSQL(sqlInput, s.getSQLTypeName());
-                rsval = obj;
-            }
-        } else if (rsval instanceof SQLData) {
-            rsval = new SerialStruct((SQLData) rsval, map);
-        } else if (rsval instanceof Blob) {
-            rsval = new SerialBlob((Blob) rsval);
-        } else if (rsval instanceof Clob) {
-            rsval = new SerialClob((Clob) rsval);
-        } else if (rsval instanceof java.sql.Array) {
-            rsval = new SerialArray((java.sql.Array) rsval, map);
-        }
-        return rsval;
-    }
-
-    private void executeUpdate(CachedRowSet crs, List<Integer> cols, String query, int row)
-        throws SQLException {
-
-        try (PreparedStatement stmt = con.prepareStatement(query)) {
-
-            // Comments needed here
-            int i;
-            StringJoiner values = new StringJoiner(", ");
-            for (i = 0; i < cols.size(); i++) {
-                int index = cols.get(i);
-                Object value = crs.getObject(index);
-                if (crs.wasNull()) {
-                    stmt.setNull(i + 1, callerMd.getColumnType(index));
-                    values.add("null");
-                } else {
-                    stmt.setObject(i + 1, value);
-                    values.add(value.toString());
+            Map<String, List<Entry<Object, Integer>>> parameters = new HashMap<>();
+            // FIXME: We need to check all table before updating anything.
+            for (TableWriter table : tables) {
+                if (table.isRowUpdated(crs)) {
+                    List<Entry<Object, Integer>> params = new ArrayList<>();
+                    queries.put(table, table.getUpdateQuery(connection, metadata, origVals, crs,
+                                                            row, params, rsType, rsConcurrency));
+                    parameters.put(table.getName(), params);
                 }
             }
-            int index = i;
-
-            // Comments needed here
-            for (i = 0; i < keyCols.length; i++) {
-                Object obj = params[i];
-                if (obj != null) {
-                    stmt.setObject(++index, obj);
-                    values.add(obj.toString());
-                }
+            for (Entry<TableWriter, String> entry : queries.entrySet()) {
+                TableWriter table = entry.getKey();
+                table.executeUpdateStatement(connection, entry.getValue(), row, parameters.get(table.getName()));
             }
-
-            /**
-             * i should be equal to 1(row count), because we update
-             * one row(returned as row count) at a time, if all goes well.
-             * if 1 != 1, this implies we have not been able to
-             * do updations properly i.e there is a conflict in database
-             * versus what is in CachedRowSet for this particular row.
-             **/
-            int count = stmt.executeUpdate();
-            if (count != 1) {
-                String msg = resBundle.handleGetObject("crswriter.update.cmd.error").toString();
-                throw new SQLException(MessageFormat.format(msg, row, query, count));
-            }
-            log(Level.INFO, "crswriter.update.cmd", row, query, values.toString());
+        } catch (SQLException e) {
+            setResolverConflict(queries.keySet().toArray(new TableWriter[0]), crsRes,
+                                origVals, status, row, SyncResolver.UPDATE_ROW_CONFLICT);
+            throw e;
         }
     }
 
@@ -835,40 +463,10 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
     private void insertCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes,
                                   List<Integer> status, int row) throws SQLException {
 
-
-        // We update on insert only if we have auto-increment columns in the CachedRowSet
-        boolean generatedKey = updateOnInsert && supportsGeneratedKeys;
-
-        try (PreparedStatement stmt = getInsertPreparedStatement(generatedKey)) {
-            // XXX: Auto-increment columns are ignored during inserts (needed by PostGreSQL)
-            StringJoiner values = new StringJoiner(", ");
-            int index = 1;
-            for (int i = 0; i < tabCols.length; i++) {
-                int j = tabCols[i];
-                if (isInsertableColumns(j)) {
-                    Object value = crs.getObject(j);
-                    if (value != null) {
-                        stmt.setObject(index, value);
-                        values.add(value.toString());
-                    } else {
-                        stmt.setNull(index, callerMd.getColumnType(j));
-                        values.add("null");
-                    }
-                    index++;
-                }
+        try {
+            for (TableWriter table: tables) {
+                table.insertCurrentRow(connection, metadata, crs, row);
             }
-
-            int count = stmt.executeUpdate();
-            if (count != 1) {
-                String msg = resBundle.handleGetObject("crswriter.insert.cmd.error").toString();
-                throw new SQLException(MessageFormat.format(msg, row, insertCmd, count));
-            }
-
-            if (generatedKey) {
-                updateGeneratedKeys(crs, stmt);
-            }
-            log(Level.INFO, "crswriter.insert.cmd", row, insertCmd, values.toString());
-
         } catch (SQLException e) {
             /*
              * Cursor will come here if executeUpdate() fails.
@@ -877,194 +475,8 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
              * Hence we cannot exactly identify why the insertion failed,
              * present the current row as a null row to the caller.
              */
-            setResolverConflict(crsRes, crs, status, row, SyncResolver.INSERT_ROW_CONFLICT);
+            setResolverConflict(tables, crsRes, crs, status, row, SyncResolver.INSERT_ROW_CONFLICT);
             throw e;
-        }
-    }
-
-    private PreparedStatement getInsertPreparedStatement(boolean generatedKey) throws SQLException {
-        PreparedStatement stmt;
-        if (generatedKey) {
-            if (autoCols == null) {
-                autoCols = getGeneratedColumns();
-            }
-            stmt = con.prepareStatement(insertCmd, autoCols);
-        } else {
-            stmt = con.prepareStatement(insertCmd, Statement.NO_GENERATED_KEYS);
-        }
-        return stmt;
-    }
-
-    private String[] getGeneratedColumns() throws SQLException {
-        int index;
-        List<String> columns = new ArrayList<>();
-        for (int i = 0; i < tabCols.length; i++) {
-            index = tabCols[i];
-            if (callerMd.isAutoIncrement(index)) {
-                columns.add(callerMd.getColumnName(index));
-            }
-        }
-        return columns.toArray(new String[0]);
-    }
-
-    /**
-     * Update the generated keys obtained from the prepared statement (if it supports it) that performed
-     * the insert into the data source from which the given {@code CachedRowSet} object is derived.
-     *
-     * @param crs the {@code CachedRowSet} object that has had a row inserted
-     *        and to whose underlying data source the row will be inserted
-     *        to execute the insertion
-     * @param stmt the {@code PreparedStatement} object that will be used
-     *        to execute the insertion
-     * @throws SQLException if a database access error occurs
-     */
-    private void updateGeneratedKeys(CachedRowSet crs, PreparedStatement stmt)
-        throws SQLException {
-        String select = null;
-        Map<Object, Integer> param = new HashMap<>();
-
-        try (ResultSet rsKey = stmt.getGeneratedKeys()) {
-            ResultSetMetaData mdKey = rsKey.getMetaData();
-            int keyCount = mdKey.getColumnCount();
-            if (keyCount < tabCols.length) {
-                select = buildSelectNewInsertedRow(rsKey, mdKey , param);
-            } else {
-                updateCachedRowSet(crs, rsKey);
-            }
-        }
-        if (select != null) {
-            executeSelectNewInsertedRow(crs, param, select);
-        }
-    }
-
-    private void executeSelectNewInsertedRow(CachedRowSet crs, Map<Object, Integer> param,
-                                             String select)
-        throws SQLException {
-        try (PreparedStatement stmt = con.prepareStatement(select)) {
-            int i = 1;
-            for (Entry<Object, Integer> entry : param.entrySet()) {
-                stmt.setObject(i, entry.getKey(), entry.getValue());
-            }
-            try (ResultSet rs = stmt.executeQuery()) {
-                updateCachedRowSet(crs, rs);
-            }
-        }
-    }
-
-    private String buildSelectNewInsertedRow(ResultSet rsKey, ResultSetMetaData mdKey,
-                                             Map<Object, Integer> param)
-        throws SQLException {
-        String select = null;
-
-        if (rsKey.next()) {
-            int count = mdKey.getColumnCount();
-            StringJoiner predicates = new StringJoiner(" AND ");
-            for (int i = 0; i < keyCols.length; i++) {
-                int index = keyCols[i];
-                setWherePredicate(rsKey, mdKey, param, predicates, count, index);
-            }
-
-            // With MariaDB Column name can't be retrieved we need to retrieve the table's primary key
-            if (predicates.length() == 0 && hasPrimarykeys) {
-                for (int i = 0; i < keyCols.length; i++) {
-                    int index = keyCols[i];
-                    setWherePredicatePk(rsKey, mdKey, param, predicates, count, index);
-                }
-            }
-            if (predicates.length() > 0) {
-                select = selectCmd + " WHERE " + predicates.toString();
-            }
-        }
-        return select;
-    }
-
-    private void setWherePredicate(ResultSet rsKey, ResultSetMetaData mdKey,
-                                   Map<Object, Integer> param, StringJoiner predicates,
-                                   int count, int index)
-        throws SQLException {
-        String predicate = null;
-        String column = callerMd.getColumnName(index);
-        int type = callerMd.getColumnType(index);
-        for (int j = 1; j <= count; j++) {
-            if (column.equals(mdKey.getColumnName(j))) {
-                predicate = getWherePredicate(rsKey, param, column, type, j);
-                break;
-            }
-        }
-        if (predicate != null) {
-            predicates.add(predicate);
-        }
-    }
-
-    private void setWherePredicatePk(ResultSet rsKey, ResultSetMetaData mdKey,
-                                     Map<Object, Integer> param, StringJoiner predicates,
-                                     int count, int index)
-        throws SQLException {
-        String predicate = null;
-        String column = callerMd.getColumnName(index);
-        int type = callerMd.getColumnType(index);
-        for (int j = 1; j <= count; j++) {
-            if (RowSetHelper.isSimilarType(mdKey.getColumnType(j), type)) {
-                predicate = getWherePredicate(rsKey, param, column, type, j);
-                break;
-            }
-        }
-        if (predicate != null) {
-            predicates.add(predicate);
-        }
-    }
-
-    private String getWherePredicate(ResultSet rs, Map<Object, Integer> param, String column,
-                                     int type, int colIndex)
-        throws SQLException {
-        Object value = rs.getObject(colIndex);
-        Boolean wasnull = rs.wasNull();
-        if (!wasnull) {
-            param.put(value, type);
-        }
-        return getWherePredicate(wasnull, column);
-    }
-
-    private String getWherePredicate(ResultSet rs, Object[] param, String column,
-                                     int colIndex, int index)
-        throws SQLException {
-        Object value = rs.getObject(colIndex);
-        Boolean wasnull = rs.wasNull();
-        if (!wasnull) {
-            param[index] = value;
-        }
-        return getWherePredicate(wasnull, column);
-    }
-
-    private String getWherePredicate(boolean wasnull, String column)
-        throws SQLException {
-        String predicate = getQuotedIdentifier(column);
-        if (wasnull) {
-            predicate += " IS NULL";
-        } else {
-            predicate += " = ?";
-        }
-        return predicate;
-    }
-
-    private void updateCachedRowSet(CachedRowSet crs, ResultSet rs)
-        throws SQLException {
-        ResultSetMetaData rsmd = rs.getMetaData();
-        if (rs.next()) {
-            for (int i = 1; i <= rsmd.getColumnCount(); i++) {
-                int j = 0;
-                try {
-                    j = crs.findColumn(rsmd.getColumnLabel(i));
-                } catch (SQLException e) { }
-                if (j > 0 && callerMd.getColumnType(j) == rsmd.getColumnType(i)) {
-                    Object keyval = rs.getObject(i);
-                    if (keyval != null) {
-                        crs.updateObject(j, keyval);
-                    } else {
-                        crs.updateNull(j);
-                    }
-                }
-            }
         }
     }
 
@@ -1097,136 +509,38 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         ResultSet origVals = crs.getOriginalRow();
         origVals.next();
 
-        String predicate = buildWhereClause(origVals);
-        String cmd = selectCmd + predicate;
-
-        try (PreparedStatement stmt = con.prepareStatement(cmd, resultSetType, resultSetConcurrency)) {
-
-            setStatementParameters(stmt);
-            setStatementProperties(crs, stmt);
-
-            if (hasPrimarykeys) {
-                deleteCurrentRow(origVals, stmt, predicate, row);
-            } else {
-                deleteCurrentRowWithCheck(origVals, stmt, predicate, row);
+        Map<TableWriter, String> queries = new HashMap<>();
+        try {
+            Map<String, List<Entry<Object, Integer>>> parameters = new HashMap<>();
+            // FIXME: We need to check all table before deleting anything.
+            for (TableWriter table : tables) {
+                List<Entry<Object, Integer>> params = new ArrayList<>();
+                queries.put(table, table.getDeleteQuery(connection, metadata, origVals, crs,
+                                                        row, params, rsType, rsConcurrency));
+                parameters.put(table.getName(), params);
+            }
+            for (Entry<TableWriter, String> entry : queries.entrySet()) {
+                TableWriter table = entry.getKey();
+                table.executeDeleteStatement(connection, entry.getValue(), row, parameters.get(table.getName()));
             }
         } catch (SQLException e) {
             status.add(row, SyncResolver.DELETE_ROW_CONFLICT);
-            setResolverConflict(crsRes, origVals, status, row, SyncResolver.DELETE_ROW_CONFLICT);
+            setResolverConflict(queries.keySet().toArray(new TableWriter[0]), crsRes,
+                                origVals, status, row, SyncResolver.DELETE_ROW_CONFLICT);
             throw e;
-        }
-    }
-
-    private void deleteCurrentRow(ResultSet origVals, PreparedStatement stmt,
-                                  String predicate, int row)
-        throws SQLException {
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                deleteCurrentRow(origVals, rs, predicate, row);
-            } else {
-                // didn't find the row
-                String msg = resBundle.handleGetObject("crswriter.delete.norow.error").toString();
-                throw new SQLException(MessageFormat.format(msg, row));
-            }
-        }
-    }
-
-    private void deleteCurrentRowWithCheck(ResultSet origVals, PreparedStatement stmt,
-                                           String predicate, int row)
-        throws SQLException {
-        boolean deleted = false;
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                if (rs.next()) {
-                    // more than one row
-                    int duplicate = 2;
-                    while (rs.next()) {
-                        duplicate++;
-                    }
-                    String msg = resBundle.handleGetObject("crswriter.delete.duplicate.error").toString();
-                    throw new SQLException(MessageFormat.format(msg, row, duplicate));
-                }
-                if (rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
-                    rs.first();
-                    deleteCurrentRow(origVals, rs, predicate, row);
-                    deleted = true;
-                }
-            } else {
-                String msg = resBundle.handleGetObject("crswriter.delete.norow.error").toString();
-                throw new SQLException(MessageFormat.format(msg, row));
-            }
-        }
-
-        // XXX: We need to close the ResultSet and open an other one for
-        // XXX: database like SQLite supporting only ResultSet.TYPE_FORWARD_ONLY
-        if (!deleted) {
-            deleteCurrentRow(origVals, stmt, predicate, row);
-        }
-    }
-
-    private void deleteCurrentRow(ResultSet origVals, ResultSet rs,
-                                  String predicate, int row)
-        throws SQLException {
-        // Now check all the values in rs to be same in
-        // db also before actually going ahead with deleting
-
-        if (isCachedRowSetModified(origVals, rs)) {
-            String msg = resBundle.handleGetObject("crswriter.delete.conflict.error").toString();
-            throw new SQLException(MessageFormat.format(msg, row));
-        }
-        executeDeleteStatement(deleteCmd + predicate, row);
-    }
-
-    private boolean isCachedRowSetModified(ResultSet origVals, ResultSet rs)
-        throws SQLException {
-        boolean modified = false;
-
-        for (int i = 0; i < tabCols.length; i++) {
-            int index = tabCols[i];
-            Object original = origVals.getObject(index);
-            Object changed = rs.getObject(index);
-
-            if (original != null && changed != null ) {
-                if (!(original.toString()).equals(changed.toString())) {
-                    modified = true;
-                    break;
-                }
-            }
-        }
-        return modified;
-    }
-
-    private void executeDeleteStatement(String query, int row) throws SQLException {
-        try (PreparedStatement stmt = con.prepareStatement(query)) {
-            int index = 0;
-            StringJoiner values = new StringJoiner(", ");
-            for (int i = 0; i < keyCols.length; i++) {
-                Object obj = params[i];
-                if (obj != null) {
-                    stmt.setObject(++index, obj);
-                    values.add(obj.toString());
-                }
-            }
-
-            int count = stmt.executeUpdate();
-            if (count != 1) {
-                String msg = resBundle.handleGetObject("crswriter.delete.cmd.error").toString();
-                throw new SQLException(MessageFormat.format(msg, row, query, count));
-            }
-            log(Level.INFO, "crswriter.delete.cmd", row, query, values.toString());
         }
     }
 
     private void setResolverNoConflict(CachedRowSetImpl crsRes) throws SQLException {
         crsRes.moveToInsertRow();
-        for (int cols = 1; cols <= callerColumnCount; cols++) {
+        for (int cols = 1; cols <= columnCount; cols++) {
             crsRes.updateNull(cols);
         }
         crsRes.insertRow();
         crsRes.moveToCurrentRow();
     }
 
-    private void setResolverConflict(CachedRowSetImpl crsRes, ResultSet origVals,
+    private void setResolverConflict(TableWriter[] tableWriters, CachedRowSetImpl crsRes,  ResultSet origVals,
                                      List<Integer> status, int row, int conflict)
         throws SQLException {
         status.add(row, conflict);
@@ -1236,8 +550,11 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         }
 
         crsRes.moveToInsertRow();
-        for (int i = 0; i < tabCols.length; i++) {
-            int index = tabCols[i];
+        if (tableWriters.length < 1) {
+            tableWriters = tables;
+        }
+        List<Integer> indexes = Arrays.stream(tableWriters).flatMap(table -> table.getTableColumns().stream()).toList();
+        for (int index : indexes) {
             Object value = origVals.getObject(index);
             crsRes.updateObject(index, value);
         }
@@ -1278,153 +595,28 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
     private void initSQLStatements(CachedRowSet caller)
         throws SQLException {
 
-        callerMd = caller.getMetaData();
-        callerColumnCount = callerMd.getColumnCount();
-        if (callerColumnCount > 0) {
-            DatabaseMetaData dbmd = con.getMetaData();
-            identifierQuote = dbmd.getIdentifierQuoteString();
-            supportsGeneratedKeys = dbmd.supportsGetGeneratedKeys();
-            if (!dbmd.supportsResultSetConcurrency(resultSetType, resultSetConcurrency)) {
-                resultSetType = ResultSet.TYPE_FORWARD_ONLY;
-            }
-            /*
-             * set the key descriptors that will be
-             * needed to construct where clauses.
-             */
-            buildKeyDesc(dbmd, caller);
-
-            if (keyCols != null && keyCols.length > 0) {
-                setSQLStatements(dbmd);
-            }
+        metadata = caller.getMetaData();
+        columnCount = metadata.getColumnCount();
+        DatabaseMetaData dbmd = connection.getMetaData();
+        if (!dbmd.supportsResultSetConcurrency(rsType, rsConcurrency)) {
+            rsType = ResultSet.TYPE_FORWARD_ONLY;
         }
-    }
-
-    private void setSQLStatements(DatabaseMetaData dbmd)
-        throws SQLException {
         /*
-         * If the RowSet has a Table name we should use it.
-         * This is really a hack to get round the fact that
-         * a lot of the jdbc drivers can't provide the tab.
+         * set the key descriptors that will be
+         * needed to construct where clauses.
          */
-        int index = keyCols[0];
-        String table = callerMd.getTableName(index);
-        if (table == null || table.isBlank()) {
-            throw new SQLException(resBundle.handleGetObject("crswriter.tname").toString());
+        tables = getTableWriters(dbmd, caller.getKeyColumns());
+
+        if (tables == null) {
+            throw new SQLException(resBundle.handleGetObject("crswriter.twriter.ko").toString());
         }
-        String catalog = callerMd.getCatalogName(index);
-        String schema = callerMd.getSchemaName(index);
-
-        String tableName = buildTableName(dbmd, catalog, schema, table);
-
-        /*
-         * Compose a SELECT statement.
-         */
-        selectCmd = "SELECT " + getSelectColumn() + " FROM " + tableName;
-
-        /*
-         * Compose an UPDATE statement.
-         */
-        updateCmd = "UPDATE " + tableName + " SET ";
-
-        /*
-         * Compose an INSERT statement.
-         */
-        insertCmd = "INSERT INTO " + tableName + composeInsertStatement();
-
-        /*
-         * Compose a DELETE statement.
-         */
-        deleteCmd = "DELETE FROM " + tableName;
-
-    }
-
-    private String getSelectColumn()
-        throws SQLException {
-        StringJoiner names = new StringJoiner(", ") ;
-
-        for (int i = 0; i < tabCols.length; i++) {
-            String name = callerMd.getColumnName(tabCols[i]);
-            names.add(getQuotedIdentifier(name));
-        }
-
-        return names.toString();
-    }
-
-    private String composeInsertStatement()
-        throws SQLException {
-
-        int count = 0;
-        StringJoiner names = new StringJoiner(", ", "(", ")");
-        for (int i = 0; i < tabCols.length; i++) {
-            int index = tabCols[i];
-            if (isInsertableColumns(index)) {
-                // XXX: Auto-increment columns are ignored during inserts (needed by PostGreSQL)
-                names.add(getQuotedIdentifier(callerMd.getColumnName(index)));
-                count++;
-            }
-        }
-
-        StringJoiner values = new StringJoiner(", ", "(", ")");
-        for (int i = 0; i < count; i++) {
-            values.add("?");
-        }
-
-        return String.format(" %s VALUES %s", names.toString(), values.toString());
-    }
-
-    private boolean isInsertableColumns(int i)
-        throws SQLException {
-        return !callerMd.isAutoIncrement(i) && !callerMd.isReadOnly(i) && callerMd.isWritable(i);
-    }
-
-    /**
-     * Returns a fully qualified table name built from the given catalog and
-     * table names. The given metadata object is used to get the proper order
-     * and separator.
-     *
-     * @param dbmd a {@code DatabaseMetaData} object that contains metadata
-     *          about this writer's {@code CachedRowSet} object
-     * @param catalog a {@code String} object with the rowset's catalog
-     *          name
-     * @param schema a {@code String} object with the rowset's schema
-     *          name
-     * @param table a {@code String} object with the name of the table from
-     *          which this writer's rowset was derived
-     * @return a {@code String} object with the fully qualified name of the
-     *          table from which this writer's rowset was derived
-     * @throws SQLException if a database access error occurs
-     */
-    private String buildTableName(DatabaseMetaData dbmd, String catalog, String schema, String table)
-        throws SQLException {
-
-        StringBuilder tableName = new StringBuilder();
-
-        if (dbmd.isCatalogAtStart()) {
-            if (catalog != null && !catalog.isBlank()) {
-                tableName.append(getQuotedIdentifier(catalog));
-                tableName.append(dbmd.getCatalogSeparator());
-            }
-            if (schema != null && !schema.isBlank()) {
-                tableName.append(getQuotedIdentifier(schema));
-                tableName.append(DOT);
-            }
-            tableName.append(getQuotedIdentifier(table));
+        if (tables.length > 0) {
+            String description = Arrays.stream(tables)
+                    .map(TableWriter::getDescription).collect(Collectors.joining(", "));
+            log(Level.INFO, "crswriter.twriter.ok", description);
         } else {
-            if (schema != null && !schema.isBlank()) {
-                tableName.append(getQuotedIdentifier(schema));
-                tableName.append(DOT);
-            }
-            tableName.append(getQuotedIdentifier(table));
-            if (catalog != null && !catalog.isBlank()) {
-                tableName.append(dbmd.getCatalogSeparator());
-                tableName.append(getQuotedIdentifier(catalog));
-            }
+            log(Level.ERROR, "crswriter.twriter.ko");
         }
-        return tableName.toString();
-    }
-
-    private String getQuotedIdentifier(String identifier) {
-        return identifierQuote + identifier.trim() + identifierQuote;
     }
 
     /**
@@ -1442,185 +634,84 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      * identifier for a row.
      *
      * @param dbmd a {@code DatabaseMetaData} object
-     * @param caller a {@code CachedRowSet} object for which this
-     *        {@code CachedRowSetWriter} object is the writer
+     * @param keys a {@code Int[]} object coming from the caller's
      *
+     * @return the {@code TableWriter} object from this writer
      * @throws SQLException if a database access error occurs
      */
 
-    private void buildKeyDesc(DatabaseMetaData dbmd, CachedRowSet caller) throws SQLException {
-
-        int[] keys = caller.getKeyColumns();
-        if (keys == null || keys.length == 0) {
-            throw new SQLException(resBundle.handleGetObject("crswriter.coldesc").toString());
-        }
-        keyCols = keys;
-        params = new Object[keys.length];
-        int index = keys[0];
-        String catalog = callerMd.getCatalogName(index);
-        String schema = callerMd.getSchemaName(index);
-        String table = callerMd.getTableName(index);
-        tabCols = getTableColumns(catalog, schema, table);
-        hasPrimarykeys = RowSetHelper.hasPrimaryKeys(dbmd, catalog, schema, table);
-    }
-
-    private int[] getTableColumns(String catalog, String schema, String table)
+    private TableWriter[] getTableWriters(DatabaseMetaData dbmd, int[] keys)
         throws SQLException {
-        List<Integer> colIndexes = new ArrayList<>();
-        for (int i = 1; i <= callerColumnCount; i++) {
-            if (isSameTableColumn(catalog, schema, table, i)) {
-                colIndexes.add(i);
-            }
-        }
-        return colIndexes.stream().mapToInt(Integer::intValue).toArray();
-    }
 
-    private boolean isSameTableColumn(String catalog, String schema, String table, int i)
-        throws SQLException {
-        return compare(callerMd.getCatalogName(i), catalog) &&
-               compare(callerMd.getSchemaName(i), schema) &&
-               compare(callerMd.getTableName(i), table);
-    }
-
-    private static boolean compare(String str1, String str2) {
-        return str1 == null && str2 == null || str1.equals(str2);
-    }
-
-    /**
-     * Constructs an SQL {@code WHERE} clause using the given
-     * string as a starting point. The resulting clause will contain
-     * a column name and " = ?" for each key column, that is, each column
-     * that is needed to form a unique identifier for a row in the rowset.
-     * This {@code WHERE} clause can be added to
-     * a {@code PreparedStatement} object that updates, inserts, or
-     * deletes a row.
-     * <P>
-     * This method uses the given result set to access values in the
-     * {@code CachedRowSet} object that called this writer.  These
-     * values are used to build the array of parameters that will serve as
-     * replacements for the "?" parameter placeholders in the
-     * {@code PreparedStatement} object that is sent to the
-     * {@code CachedRowSet} object's underlying data source.
-     *
-     * @param rs a {@code ResultSet} object that can be used
-     *           to access the {@code CachedRowSet} object's data
-     * @return a {@code WHERE} clause of the form "{@code WHERE}
-     *         columnName = ? AND columnName = ? AND columnName = ? ..."
-     * @throws SQLException if a database access error occurs
-     */
-    private String buildWhereClause(ResultSet rs)
-        throws SQLException {
-        StringJoiner predicates = new StringJoiner(" AND ");
-        for (int i = 0; i < keyCols.length; i++) {
-            int index = keyCols[i];
-            predicates.add(getWherePredicate(rs, params, callerMd.getColumnName(index), index, i));
-        }
-        return " WHERE " + predicates.toString();
-    }
-
-    void updateResolvedConflictToDB(CachedRowSet crs, Connection connection) throws SQLException {
-        PreparedStatement stmt;
-        int colCount = crs.getMetaData().getColumnCount();
-        int keyColumns[] = crs.getKeyColumns();
-        Object param[];
-
-        if (keyColumns == null || keyColumns.length == 0) {
-            keyColumns = new int[colCount];
-            for (int i = 0; i < keyColumns.length; ) {
-                keyColumns[i] = ++i;
-            }
-        }
-        param = new Object[keyColumns.length];
-
-        String strUpdate = "UPDATE " + buildTableName(connection.getMetaData(),
-                                                      crs.getMetaData().getCatalogName(1),
-                                                      crs.getMetaData().getSchemaName(1),
-                                                      crs.getTableName());
-
-        // keycols will become part of where clause
-        strUpdate += getUpdateSetCmd(crs, colCount);
-
-        StringJoiner predicates = new StringJoiner(" AND ");
-        for (int i = 0; i < keyColumns.length; i++) {
-            String col = crs.getMetaData().getColumnName(keyColumns[i]);
-            predicates.add(getWherePredicate(crs, param, col, keyColumns[i], i));
-        }
-        strUpdate += " WHERE " + predicates.toString();
-
-        stmt = connection.prepareStatement(strUpdate);
-
-        int idx = 0;
-        for (int i = 0; i < colCount; i++) {
-            if (crs.columnUpdated(i + 1)) {
-                Object obj = crs.getObject(i + 1);
-                if (obj != null) {
-                    stmt.setObject(++idx, obj);
-                } else {
-                    stmt.setNull(i + 1,crs.getMetaData().getColumnType(i + 1));
+        if (columnCount > 0 && keys != null && keys.length > 0) {
+            Map<Table, TableWriter> tablesBuilder = new HashMap<>();
+            List<Integer> primaryKeys = new ArrayList<>();
+            List<Integer> indexes = getKeyIndexes(keys, primaryKeys);
+            for (int index : indexes) {
+                Table table = new Table(metadata, index);
+                if (!tablesBuilder.containsKey(table)) {
+                    tablesBuilder.put(table, new TableWriter(metadata, dbmd, table, indexes,
+                                                             primaryKeys, resBundle, logger));
                 }
             }
+            return tablesBuilder.values().toArray(new TableWriter[0]);
         }
-
-        // Set the key cols for after WHERE = ? clause
-        for (int i = 0; i < keyColumns.length; i++) {
-            if (param[i] != null) {
-                stmt.setObject(++idx, param[i]);
-            }
-        }
-
-        stmt.executeUpdate();
+        return new TableWriter[0];
     }
 
-    private String getUpdateSetCmd(CachedRowSet crs, int colCount) throws SQLException {
-        // changed or updated values will become part of
-        // set clause here
-        String setCmd = " SET ";
-        StringJoiner updateSet = new StringJoiner(", ");
-        for (int i = 1; i <= colCount;i++) {
-            if (crs.columnUpdated(i)) {
-                updateSet.add(getQuotedIdentifier(crs.getMetaData().getColumnName(i)) + " = ?");
+    private List<Integer> getKeyIndexes(int[] keys, List<Integer> primaryKeys) {
+        List<Integer> indexes = new ArrayList<>();
+        for (int key : keys) {
+            int index;
+            if (key < 0) {
+                index = Math.abs(key);
+                primaryKeys.add(index);
+            } else {
+                index = key;
             }
+            indexes.add(index);
         }
-        return setCmd + updateSet.toString();
+        return indexes;
     }
 
-    /**
-     *
-     */
+    void updateResolvedConflictToDB(CachedRowSet crs, Connection con)
+        throws SQLException {
+        for (TableWriter table : tables) {
+            table.updateResolvedConflictToDB(crs, con);
+        }
+    }
+
     public void commit() throws SQLException {
-        con.commit();
+        connection.commit();
         if (reader.getCloseConnection()) {
-            con.close();
+            connection.close();
         }
     }
 
     public void commit(CachedRowSetImpl crs, boolean updateRowset) throws SQLException {
-        con.commit();
+        connection.commit();
         if (updateRowset) {
             if (crs.getCommand() != null) {
-                crs.execute(con);
+                crs.execute(connection);
             }
         }
 
         if (reader.getCloseConnection()) {
-            con.close();
+            connection.close();
         }
     }
 
-    /**
-     *
-     */
     public void rollback() throws SQLException {
-        con.rollback();
+        connection.rollback();
         if (reader.getCloseConnection()) {
-            con.close();
+            connection.close();
         }
     }
 
     public void rollback(Savepoint s) throws SQLException {
-        con.rollback(s);
+        connection.rollback(s);
         if (reader.getCloseConnection()) {
-            con.close();
+            connection.close();
         }
     }
 

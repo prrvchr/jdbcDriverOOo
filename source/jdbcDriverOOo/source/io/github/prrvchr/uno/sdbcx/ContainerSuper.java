@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.driver.provider.DBTools;
 
 
 public abstract class ContainerSuper<T extends Descriptor>
-    extends ContainerBase<T> {
+    extends ContainerMain<T> {
 
 
     // The constructor method:

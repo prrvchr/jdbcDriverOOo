@@ -39,7 +39,7 @@ import io.github.prrvchr.uno.driver.provider.Resources;
 
 
 public final class Statement
-    extends StatementBase {
+    extends StatementMain {
     private static final String SERVICE = Statement.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbc.Statement"};
 

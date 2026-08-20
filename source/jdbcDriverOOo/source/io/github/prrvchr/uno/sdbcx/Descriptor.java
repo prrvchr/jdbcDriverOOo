@@ -45,7 +45,7 @@ public abstract class Descriptor
     protected final String mService;
     protected final boolean mReadonly;
     protected String mName;
-    protected ColumnMain mColumn;
+    protected ColumnBase mColumn;
     private final String[] mServices;
     private final boolean mSensitive;
 
@@ -58,7 +58,7 @@ public abstract class Descriptor
     }
     public Descriptor(String service,
                       String[] services,
-                      ColumnMain column) {
+                      ColumnBase column) {
         this(service, services, column.isCaseSensitive(), true);
         mColumn = column;
     }

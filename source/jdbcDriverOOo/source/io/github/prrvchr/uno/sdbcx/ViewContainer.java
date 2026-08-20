@@ -39,6 +39,7 @@ import com.sun.star.sdbcx.CheckOption;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.QueryCommand;
 import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
@@ -50,7 +51,7 @@ import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class ViewContainer
-    extends TableContainerMain<View> {
+    extends TableContainerBase<View> {
     private static final String SERVICE = ViewContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Views",
                                               "com.sun.star.sdbcx.Container"};
@@ -72,22 +73,25 @@ public final class ViewContainer
     protected boolean createDataBaseElement(XPropertySet descriptor, String name)
         throws SQLException {
         boolean created = false;
-        String query = null;
+        List<String> queries = new ArrayList<>();
         try {
             ComposeRule rule = ComposeRule.InViewDefinitions;
             Provider provider = getConnection().getProvider();
-            query = DBTools.getCreateViewQuery(provider.getConfigDDL(),
-                                               provider.getNamedSupport(rule),
-                                               descriptor, isCaseSensitive());
-            getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
-            if (DBTools.executeSQLQuery(provider, query)) {
-                TableContainerMain<?> tables = getConnection().getTablesInternal();
+            queries = DBTools.getCreateViewQueries(provider.getConfigDDL(),
+                                                   provider.getNamedSupport(rule),
+                                                   descriptor,
+                                                   isCaseSensitive());
+            for (String query : queries) {
+                getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
+            }
+            if (DBTools.executeSQLQueries(provider, queries, QueryCommand.DDL)) {
+                TableContainerBase<?> tables = getConnection().getTablesInternal();
                 tables.insertElement(name, null);
                 created = true;
             }
         } catch (SQLException e) {
             int resource = Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, String.join("; ", queries));
             throw new SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
         }
         return created;
@@ -188,7 +192,7 @@ public final class ViewContainer
             String table = ComponentHelper.buildName(support, view.getNamedComponents(), isCaseSensitive());
             query = provider.getConfigDDL().getDropViewCommand(ParameterDDL.getDropView(table));
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);
-            DBTools.executeSQLQuery(provider, query);
+            DBTools.executeSQLQuery(provider, query, QueryCommand.DDL);
         } catch (SQLException e) {
             int resource = Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, view.getName(), query);

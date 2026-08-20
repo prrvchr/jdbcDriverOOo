@@ -55,7 +55,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class View
-    extends TableBase
+    extends TableMain
     implements XAlterView {
     private static final String SERVICE = View.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.View"};

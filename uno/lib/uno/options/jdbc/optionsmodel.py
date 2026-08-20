@@ -36,8 +36,8 @@ import traceback
 
 class OptionsModel():
     def __init__(self, ctx, instrumented):
-        self._rebootkeys = ('ApiLevel', 'CachedRowSet')
-        configkeys = ('ShowSystemTable', )
+        self._rebootkeys = ('ApiLevel', 'ResultSetType')
+        configkeys = ('UseCachedRowSet', 'ShowSystemTable', )
         self._keys = self._rebootkeys + configkeys
         self._config = getConfiguration(ctx, g_identifier, True)
         self._settings = self._getSettings()
@@ -50,17 +50,22 @@ class OptionsModel():
     def getViewData(self):
         self._settings = self._getSettings()
         level = self._settings.get('ApiLevel')
-        crs = self._settings.get('CachedRowSet')
+        rst = self._settings.get('ResultSetType')
+        crs = self._settings.get('UseCachedRowSet')
         system = self._settings.get('ShowSystemTable')
-        return self._instrumented, level, crs, system, self._isRowSetEnabled(level)
+        return self._instrumented, level, rst, crs, system, self._isRowSetEnabled(level)
 
 # OptionModel setter methods
     def setApiLevel(self, level):
         self._settings['ApiLevel'] = level
         return self._instrumented and self._isRowSetEnabled(level)
 
-    def setCachedRowSet(self, level):
-        self._settings['CachedRowSet'] = level
+    def setResultSetType(self, level):
+        self._settings['ResultSetType'] = level
+        return level != 0
+
+    def setCachedRowSet(self, state):
+        self._settings['UseCachedRowSet'] = bool(state)
 
     def setSystemTable(self, state):
         self._settings['ShowSystemTable'] = bool(state)
@@ -68,7 +73,7 @@ class OptionsModel():
     def saveSetting(self):
         reboot = False
         for key in self._keys:
-            if key != 'CachedRowSet' or self._instrumented:
+            if key != 'ResultSetType' or self._instrumented:
                 value = self._settings.get(key)
                 if value != self._config.getByName(key):
                     self._config.replaceByName(key, value)

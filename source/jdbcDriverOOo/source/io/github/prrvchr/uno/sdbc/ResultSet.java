@@ -55,14 +55,14 @@ public final class ResultSet
 
     public ResultSet(Connection connection,
                      java.sql.ResultSet result,
-                     StatementMain statement)
+                     StatementBase statement)
         throws SQLException {
         this(connection, result, statement, "");
     }
 
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet result,
-                     StatementMain statement,
+                     StatementBase statement,
                      String method)
         throws SQLException {
         super(SERVICE, SERVICES, connection, result, statement, false, method);

@@ -42,7 +42,6 @@ import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.TableHelper;
-import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComposeRule;
 import io.github.prrvchr.uno.driver.helper.QueryCommand;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
@@ -54,9 +53,11 @@ import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.SharedResources;
 
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.buildName;
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.qualifiedNameComponents;
 
 public abstract class TableContainerSuper<T extends TableSuper>
-    extends TableContainerMain<T> {
+    extends TableContainerBase<T> {
 
     // XXX: In order to be able to remove correctly any reference after deleting
     // XXX: a table, I need to keep track of all tables with a foreign key.
@@ -114,14 +115,6 @@ public abstract class TableContainerSuper<T extends TableSuper>
             DatabaseMetaData metadata = provider.getConnection().getMetaData();
             queries = TableHelper.getCreateTableQueries(provider.getConfigDDL(), metadata,
                                                         support, descriptor, type, isCaseSensitive());
-            String description = DBTools.getDescriptorStringValue(descriptor, PropertyID.DESCRIPTION);
-            if (!description.isEmpty() && provider.getConfigDDL().supportsTableDescription()) {
-                String table = ComponentHelper.composeTableName(provider.getNamedSupport(rule),
-                                                                descriptor, isCaseSensitive());
-                Map<String, Object> arguments = ParameterDDL.getTableDescription(table, description);
-                String query = provider.getConfigDDL().getTableDescriptionCommand(arguments);
-                queries.add(query);
-            }
             if (!queries.isEmpty()) {
                 for (String query : queries) {
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name, query);
@@ -147,7 +140,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
         try {
             ComposeRule rule = ComposeRule.InDataManipulation;
             NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
-            NamedComponent component = ComponentHelper.qualifiedNameComponents(support, name);
+            NamedComponent component = qualifiedNameComponents(support, name);
             try (java.sql.ResultSet result = getcreateElementResultSet(component)) {
                 if (result.next()) {
                     String type = result.getString(TABLE_TYPE);
@@ -198,12 +191,12 @@ public abstract class TableContainerSuper<T extends TableSuper>
             Provider provider = mConnection.getProvider();
             ComposeRule rule = ComposeRule.InTableDefinitions;
             NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
-            NamedComponent component = ComponentHelper.qualifiedNameComponents(support, name);
-            String table = ComponentHelper.buildName(support, component, isCaseSensitive());
+            NamedComponent component = qualifiedNameComponents(support, name);
+            String table = buildName(support, component, isCaseSensitive());
             query = provider.getConfigDDL().getDropTableCommand(ParameterDDL.getDropTable(table));
             System.out.println("TableContainer.removeDataBaseElement() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name, query);
-            DBTools.executeSQLQuery(mConnection.getProvider(), query);
+            DBTools.executeSQLQuery(mConnection.getProvider(), query, QueryCommand.DDL);
         } catch (SQLException e) {
             int resource = Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
@@ -213,7 +206,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
     }
 
     // XXX: ColumnListener methods
-    protected void removeReferencedColumns(ColumnBase column, String name) {
+    protected void removeReferencedColumns(ColumnMain column, String name) {
         for (TableSuper table : mReferencedTables.get(column.getTableInternal())) {
             removeReferencedColumns(column.getTableInternal(), table, name);
         }

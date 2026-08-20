@@ -42,7 +42,7 @@ import traceback
 class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
-        self._instrumented = isInstrumented(ctx, 'xdbc:jdbc')
+        self._instrumented = isInstrumented(ctx, 'juda:jdbc')
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
         self._resources = {'TabTitle1': 'OptionsDialog.Tab1.Title',
                            'TabTitle2': 'OptionsDialog.Tab2.Title',

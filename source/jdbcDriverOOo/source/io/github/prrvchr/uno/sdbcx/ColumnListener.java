@@ -58,7 +58,7 @@ public class ColumnListener
     public void elementRemoved(ContainerEvent event) {
         System.out.println("ColumnListener.elementRemoved() 1");
         String name = AnyConverter.toString(event.Accessor);
-        ColumnBase column = (ColumnBase) event.Element;
+        ColumnMain column = (ColumnMain) event.Element;
         System.out.println("ColumnListener.elementRemoved() 2 ColumnName: " + column.getName());
         //if (mTables.isReferencedTable(column.getTableInternal())) {
             //mTables.removeReferencedColumns(column, name);
@@ -70,7 +70,7 @@ public class ColumnListener
     public void elementReplaced(ContainerEvent event) {
         String oldname =  AnyConverter.toString(event.ReplacedElement);
         String newname =  AnyConverter.toString(event.Accessor);
-        ColumnBase column = (ColumnBase) event.Element;
+        ColumnMain column = (ColumnMain) event.Element;
         System.out.println("ColumnListener.elementReplaced() 1 oldName: " + oldname);
         System.out.println("ColumnListener.elementReplaced() 2 newName: " + newname);
 

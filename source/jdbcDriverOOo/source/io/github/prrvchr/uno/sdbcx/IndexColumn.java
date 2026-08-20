@@ -39,7 +39,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class IndexColumn
-    extends ColumnMain 
+    extends ColumnBase 
     implements XDataDescriptorFactory {
 
     private static final String SERVICE = IndexColumn.class.getName();
@@ -68,7 +68,7 @@ public final class IndexColumn
         registerProperties();
     }
 
-    public IndexColumn(final ColumnMain column,
+    public IndexColumn(final ColumnBase column,
                        final boolean ascending) {
         super(SERVICE, SERVICES, column);
         mIsAscending = ascending;

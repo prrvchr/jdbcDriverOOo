@@ -32,14 +32,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbcx.KeyType;
 
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
-
 
 public class ConfigDDL extends ConfigSQL {
 
@@ -55,7 +56,6 @@ public class ConfigDDL extends ConfigSQL {
     // java.sql.Statement DDL commands
     private static final String CREATE_TABLE_COMMAND = "CreateTableCommand";
     private static final String DROP_TABLE_COMMAND = "DropTableCommand";
-    private static final String CREATE_VIEW_COMMAND = "CreateViewCommand";
     private static final String DROP_VIEW_COMMAND = "DropViewCommand";
     private static final String ADD_COLUMN_COMMAND = "AddColumnCommand";
     private static final String DROP_COLUMN_COMMAND = "DropColumnCommand";
@@ -79,9 +79,16 @@ public class ConfigDDL extends ConfigSQL {
     private static final String COLUMN_DESCRIPTION_QUERY = "ColumnDescriptionQuery";
     private static final String CREATE_INDEX_COMMAND = "CreateIndexCommand";
 
+    private static final String CREATE_VIEW_COMMANDS = "CreateViewCommands";
     private static final String ALTER_VIEW_COMMANDS = "AlterViewCommands";
     private static final String RENAME_TABLE_COMMANDS = "RenameTableCommands";
     private static final String SYSTEM_VERSIONING_COMMANDS = "SystemVersioningCommands";
+
+    private static final String COLUMN_TEMPLATE = "ColumnTemplate";
+    private static final String COMMENT_TEMPLATE = "CommentTemplate";
+    private static final String PROPERTIES_TEMPLATE = "PropertiesTemplate";
+    private static final String COLUMN_PROPERTIES = "ColumnProperties";
+    private static final String TABLE_PROPERTIES = "TableProperties";
 
     // java.sql.PreparedStatement queries
     private static final String VIEW_DEFINITION_QUERY = "ViewDefinitionQuery";
@@ -150,14 +157,50 @@ public class ConfigDDL extends ConfigSQL {
     }
 
     public String getCreateTableCommand(final Map<String, Object> keys,
-                                        final boolean versioning,
-                                        final String key) {
+                                        final boolean versioning) {
         String query = null;
         String command = getCreateTableCommand();
         if (command != null) {
             if (versioning && supportsTableSystemVersioning()) {
-                keys.put(key, " " + getSystemVersioningTableCommand());
+                keys.put("Versioning", " " + getSystemVersioningTableCommand());
             }
+            query = format(command, keys);
+        }
+        return query;
+    }
+
+    public String getCommentDefinition(final NamedSupport support,
+                                       final String entry,
+                                       final String comment) {
+        String command = getCommentTemplate();
+        if (command != null) {
+            return format(command, Map.of(entry, support.enquoteLiteral(comment)));
+        }
+        return "";
+    }
+
+    public String getColumnProperties(final String entry, final Map<String, Object> keys) {
+        String command = getPropertiesTemplate();
+        if (command != null) {
+            String properties = getColumnProperties().stream().map(e -> format(e, keys)).collect(Collectors.joining (", "));
+            return format(command, Map.of(entry, properties));
+        }
+        return "";
+    }
+
+    public String getTableProperties(final String entry, final Map<String, Object> keys) {
+        String command = getPropertiesTemplate();
+        if (command != null) {
+            String properties = getTableProperties().stream().map(e -> format(e, keys)).collect(Collectors.joining (", "));
+            return format(command, Map.of(entry, properties));
+        }
+        return "";
+    }
+
+    public String getColumnDefinition(final Map<String, Object> keys) {
+        String query = null;
+        String command = getColumnTemplate();
+        if (command != null) {
             query = format(command, keys);
         }
         return query;
@@ -172,13 +215,12 @@ public class ConfigDDL extends ConfigSQL {
         return query;
     }
 
-    public String getCreateViewCommand(final Map<String, Object> keys) {
-        String query = null;
-        String command = getCreateViewCommand();
-        if (command != null) {
-            query = format(command, keys);
+    public List<String> getCreateViewCommands(final Map<String, Object> keys) {
+        List<String> queries = new ArrayList<>();
+        for (String command : getCreateViewCommands()) {
+            queries.add(format(command, keys));
         }
-        return query;
+        return queries;
     }
 
     public String getDropViewCommand(final Map<String, Object> keys) {
@@ -419,7 +461,23 @@ public class ConfigDDL extends ConfigSQL {
     public String getViewDefinitionQuery(final Map<String, Object> parameters,
                                          final List<Object> values) {
         String command = getViewDefinitionQuery();
-        return format(command, parameters, values, "?");
+        return format(command, parameters, values);
+    }
+
+    public boolean supportsTableProperties() {
+        return getPropertyStrings(TABLE_PROPERTIES) != null;
+    }
+
+    public boolean supportsColumnProperties() {
+        return getPropertyStrings(COLUMN_PROPERTIES) != null;
+    }
+
+    public List<String> getTableProperties() {
+        return Arrays.asList(getPropertyStrings(TABLE_PROPERTIES));
+    }
+
+    public List<String> getColumnProperties() {
+        return Arrays.asList(getPropertyStrings(COLUMN_PROPERTIES));
     }
 
     private boolean supportsTableSystemVersioning() {
@@ -430,12 +488,24 @@ public class ConfigDDL extends ConfigSQL {
         return getPropertyString(CREATE_TABLE_COMMAND);
     }
 
+    private String getColumnTemplate() {
+        return getPropertyString(COLUMN_TEMPLATE);
+    }
+
+    private String getCommentTemplate() {
+        return getPropertyString(COMMENT_TEMPLATE);
+    }
+
+    private String getPropertiesTemplate() {
+        return getPropertyString(PROPERTIES_TEMPLATE);
+    }
+
     private String getDropTableCommand() {
         return getPropertyString(DROP_TABLE_COMMAND);
     }
 
-    private String getCreateViewCommand() {
-        return getPropertyString(CREATE_VIEW_COMMAND);
+    private List<String> getCreateViewCommands() {
+        return Arrays.asList(getPropertyStrings(CREATE_VIEW_COMMANDS));
     }
 
     private String getDropViewCommand() {

@@ -25,76 +25,56 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
-import com.sun.star.sdbc.SQLException;
+import java.util.Map;
 
-import io.github.prrvchr.uno.driver.helper.ComponentHelper;
-import io.github.prrvchr.uno.driver.helper.ComposeRule;
-import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import javax.sql.rowset.CachedRowSet;
+
+import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.uno.Type;
+
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
-import io.github.prrvchr.uno.driver.logger.LoggerObjectType;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
+import io.github.prrvchr.uno.sdbc.CachedRowSetMain;
+import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
-public abstract class TableContainerMain<T extends TableMain>
-    extends ContainerSuper<T> {
-    protected final ConnectionSuper mConnection;
-    private final ConnectionLog mLogger;
+public abstract class CachedRowSetSuper
+    extends CachedRowSetMain {
+
+    private boolean mCanUpdateInsertedRows = true;
 
     // The constructor method:
-    protected TableContainerMain(String service,
-                                 String[] services,
-                                 ConnectionSuper connection,
-                                 boolean sensitive,
-                                 String[] names,
-                                 LoggerObjectType logtype)
-        throws ElementExistException {
-        super(service, services, connection, sensitive, names);
-        mConnection = connection;
-        mLogger = new ConnectionLog(connection.getProvider().getLogger(), logtype);
+    protected CachedRowSetSuper(String service,
+                          String[] services,
+                          ConnectionSuper connection,
+                          CachedRowSet rowset,
+                          StatementBase statement)
+        throws java.sql.SQLException {
+        super(service, services, connection, rowset, statement);
     }
 
+    @Override
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
+        short readonly = PropertyAttribute.READONLY;
+
+        properties.put(PropertyID.CANUPDATEINSERTEDROWS,
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    System.out.println("RowSetSuper.CanUpdateInsertedRows() 1: " + mCanUpdateInsertedRows);
+                    return mCanUpdateInsertedRows;
+                },
+                null));
+
+        super.registerProperties(properties);
+    }
+
+    protected CachedRowSet getRowSet() {
+        return (CachedRowSet) mResult;
+    }
+
+    @Override
     protected ConnectionLog getLogger() {
-        return mLogger;
+        return super.getLogger();
     }
-
-    protected ConnectionSuper getConnection() {
-        return mConnection;
-    }
-
-    // FIXME: This is the Java implementation of com.sun.star.sdbcx.XContainer interface for the
-    // FIXME: com.sun.star.sdbcx.XRename interface available for the com.sun.star.sdbcx.XTable and XView
-    protected void rename(String oldname, String newname)
-        throws SQLException {
-        if (hasByName(oldname)) {
-            replaceElement(oldname, newname, false);
-        }
-    }
-
-    @Override
-    protected String getElementName(XPropertySet descriptor)
-        throws java.sql.SQLException {
-        ComposeRule rule = ComposeRule.InTableDefinitions;
-        NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
-        return ComponentHelper.composeTableName(support, descriptor);
-    }
-
-    @Override
-    protected T appendElement(XPropertySet descriptor)
-        throws java.sql.SQLException {
-        T element = null;
-        String name = getElementName(descriptor);
-        if (createDataBaseElement(descriptor, name)) {
-            element = createElement(name);
-        }
-        return element;
-    }
-
-    @Override
-    protected void refreshInternal() {
-        mConnection.refresh();
-    }
-
-    abstract boolean createDataBaseElement(XPropertySet descriptor, String name) throws java.sql.SQLException;
-
 }

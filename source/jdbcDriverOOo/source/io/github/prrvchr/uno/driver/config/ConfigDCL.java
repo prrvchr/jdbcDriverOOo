@@ -39,7 +39,6 @@ import com.sun.star.sdbcx.Privilege;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.provider.DBTools;
 
-
 public class ConfigDCL extends ConfigDDL {
 
     // java.sql.Statement DCL commands
@@ -159,7 +158,7 @@ public class ConfigDCL extends ConfigDDL {
     public String getTablePrivilegesQuery(final Map<String, Object> parameters,
                                           final List<Object> values) {
         String command = getTablePrivilegesQuery();
-        return format(command, parameters, values, "?");
+        return format(command, parameters, values);
     }
 
     public boolean supportsGrantablePrivileges() {
@@ -169,7 +168,7 @@ public class ConfigDCL extends ConfigDDL {
     public String getGrantablePrivilegesQuery(final Map<String, Object> parameters,
                                               final List<Object> values) {
         String command = getGrantablePrivilegesQuery();
-        return format(command, parameters, values, "?");
+        return format(command, parameters, values);
     }
 
     public String getUsersQuery() {
@@ -195,7 +194,7 @@ public class ConfigDCL extends ConfigDDL {
     public String getGroupUsersQuery(final String group, final List<Object> values) {
         String command = getGroupUsersQuery();
         Map<String, Object> keys = Map.of("Group", group);
-        return format(command, keys, values, "?");
+        return format(command, keys, values);
     }
 
     public boolean hasPrivilege(final String privilege) {
@@ -265,13 +264,13 @@ public class ConfigDCL extends ConfigDDL {
     private String getUserGroupsQuery(final String user, final List<Object> values) {
         String command = getUserGroupsQuery();
         Map<String, Object> keys = Map.of("User", user);
-        return format(command, keys, values, "?");
+        return format(command, keys, values);
     }
 
     private String getGroupRolesQuery(final String group, final List<Object> values) {
         String command = getGroupRolesQuery();
         Map<String, Object> keys = Map.of("Group", group);
-        return format(command, keys, values, "?");
+        return format(command, keys, values);
     }
 
     private List<String> getDefaultPrivilegeNames() {

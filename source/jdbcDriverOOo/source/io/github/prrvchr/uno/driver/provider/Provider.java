@@ -27,7 +27,6 @@ package io.github.prrvchr.uno.driver.provider;
 
 import java.sql.Driver;
 import java.util.Properties;
-
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
@@ -61,6 +60,7 @@ public class Provider {
 
     private String mSubProtocol;
     private PropertyValue[] mInfos;
+    private String mConnectionProperties;
     private java.sql.Statement mStatement = null;
 
     private NamedComponentSupport mNamedComponentSupport;
@@ -72,7 +72,6 @@ public class Provider {
                     final XNameAccess opts,
                     final String url,
                     final PropertyValue[] infos,
-                    final Properties properties,
                     final String api)
         throws java.sql.SQLException {
         String location = PropertiesHelper.getJdbcUrl(url);
@@ -94,29 +93,24 @@ public class Provider {
         mInfos = infos;
 
         //setSystemProperties(logger, config, infos);
+        Properties properties = PropertiesHelper.getConnectionProperties(infos);
 
         java.sql.Connection connection = driver.connect(location, properties);
         java.sql.DatabaseMetaData metadata = connection.getMetaData();
 
         // XXX: Get the corresponding query composer at the API level
-        switch (api) {
-            case "sdb":
-                mConfig = new ConfigDCL(config, opts, infos, url, metadata, mSubProtocol);
-                break;
-            case "sdbcx":
-                mConfig = new ConfigDDL(config, opts, infos, url, metadata, mSubProtocol);
-                break;
-            case "sdbc":
-                mConfig = new ConfigSQL(config, opts, infos, url, metadata, mSubProtocol);
-                break;
-        }
+        mConfig = switch (api) {
+            case "sdb" -> new ConfigDCL(config, opts, infos, url, metadata, mSubProtocol);
+            case "sdbcx" -> new ConfigDDL(config, opts, infos, url, metadata, mSubProtocol);
+            default -> new ConfigSQL(config, opts, infos, url, metadata, mSubProtocol);
+        };
 
         mNamedComponentSupport = new NamedComponentSupport(metadata, mConfig);
+        mConnectionProperties = PropertiesHelper.streamConnectionProperties(properties);
 
         // XXX: We do not keep the connection but the statement
         // XXX: which allows us to find the connection if necessary.
         mStatement = connection.createStatement();
-
     }
 
     public NamedSupport getNamedSupport() {
@@ -142,6 +136,10 @@ public class Provider {
 
     public PropertyValue[] getInfos() {
         return mInfos;
+    }
+
+    public String getConnectionProperties() {
+        return mConnectionProperties;
     }
 
     public boolean isCaseSensitive() {

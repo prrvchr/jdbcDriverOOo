@@ -33,11 +33,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.prrvchr.uno.sdbcx.ContainerMain;
+import io.github.prrvchr.uno.sdbcx.ContainerBase;
 
 
 public final class ResultColumnContainer
-    extends ContainerMain<ResultColumn> {
+    extends ContainerBase<ResultColumn> {
     private static final String SERVICE = ResultColumnContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 

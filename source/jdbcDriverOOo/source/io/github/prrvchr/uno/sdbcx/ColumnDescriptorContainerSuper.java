@@ -29,10 +29,10 @@ package io.github.prrvchr.uno.sdbcx;
 public abstract class ColumnDescriptorContainerSuper<T extends ColumnDescriptorSuper>
     extends DescriptorContainer<T> {
 
-    protected TableMain mTable;
+    protected TableBase mTable;
 
     // The constructor method:
-    public ColumnDescriptorContainerSuper(TableMain table,
+    public ColumnDescriptorContainerSuper(TableBase table,
                                           boolean sensitive) {
         super(table, sensitive);
         mTable = table;

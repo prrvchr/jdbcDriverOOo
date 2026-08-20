@@ -27,8 +27,6 @@ package io.github.prrvchr.uno.sdbc;
 
 
 import java.sql.SQLException;
-import java.util.Set;
-
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
@@ -48,9 +46,8 @@ public final class Connection
     // The constructor method:
     protected Connection(XComponentContext ctx,
                          Provider provider,
-                         String url,
-                         Set<String> properties) {
-        super(ctx, SERVICE, SERVICES, provider, url, properties);
+                         String url) {
+        super(ctx, SERVICE, SERVICES, provider, url);
     }
 
     protected Provider getProvider() {

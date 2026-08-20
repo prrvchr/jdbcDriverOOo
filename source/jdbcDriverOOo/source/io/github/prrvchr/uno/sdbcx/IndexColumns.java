@@ -32,7 +32,7 @@ import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 
 public final class IndexColumns
-    extends ContainerBase<IndexColumn> {
+    extends ContainerMain<IndexColumn> {
 
     private static final String SERVICE = IndexColumns.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.IndexColumns",
@@ -74,7 +74,7 @@ public final class IndexColumns
     protected IndexColumn createElement(String name)
         throws java.sql.SQLException {
         IndexColumn index = null;
-        ContainerBase<?> columns = mIndex.getTable().getColumnsInternal();
+        ContainerMain<?> columns = mIndex.getTable().getColumnsInternal();
         if (columns.hasByName(name)) {
             boolean isascending = true;
             final int COLUMN_NAME = 9;
@@ -92,7 +92,7 @@ public final class IndexColumns
                     }
                 }
             }
-            ColumnMain column = (ColumnMain) columns.getElementByName(name);
+            ColumnBase column = (ColumnBase) columns.getElementByName(name);
             index = new IndexColumn(column, isascending);
         }
         return index;

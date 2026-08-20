@@ -39,7 +39,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 
 
 public abstract class TableDescriptorSuper
-    extends TableMain
+    extends TableBase
     implements XColumnsSupplier,
                XKeysSupplier {
 

@@ -34,31 +34,39 @@ import java.util.Map;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.KeyRule;
 
-import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.helper.TableHelper.ColumnProperties;
 
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.buildName;
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.composeColumnName;
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.composeTableName;
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.quoteTableName;
+import static java.lang.String.format;
 
 public class ParameterDDL extends ParameterBase {
 
-    public static String setCreateTable(final Map<String, Object> arguments,
-                                        final NamedSupport support,
-                                        final XPropertySet property,
-                                        final String type,
-                                        final Collection<String> columns,
-                                        final boolean sensitive)
+    public static final String COMMENT = "Comment";
+    public static final String PROPERTIES = "Properties";
+    public static final String AUTOINCREMENT = "AutoIncrement";
+    public static final String PRIMARY_KEYS = "PrimaryKeys";
+    public static final String COLUMN_DEFINITION = "ColumnDefinition";
+
+    public static void setCreateTableParameter(final Map<String, Object> arguments,
+                                               final NamedSupport support,
+                                               final XPropertySet property,
+                                               final String type,
+                                               final Collection<String> columns,
+                                               final boolean sensitive)
         throws SQLException {
         // XXX: ${TableType} table type
         arguments.put("TableType", type);
         // XXX: ${TableName} unquoted / quoted full table name
-        arguments.put("TableName", ComponentHelper.composeTableName(support, property, sensitive));
-        // XXX: ${ColumnDescriptions} unquoted schema name
-        arguments.put("ColumnDescriptions", String.join(getSeparator(), columns));
+        arguments.put("TableName", composeTableName(support, property, sensitive));
+        // XXX: ${ColumnDescriptions} joining ColumnDescription
+        arguments.put("Columns", String.join(getSeparator(), columns));
         // XXX: ${Versioning} versioning will be set during query build
-        String versioning = "Versioning";
-        arguments.put(versioning, "");
-        return versioning;
+        arguments.put("Versioning", "");
     }
 
     public static Map<String, Object> getSystemVersioningColumnParameter(final NamedSupport support,
@@ -80,7 +88,7 @@ public class ParameterDDL extends ParameterBase {
         arguments.put("RawSchema", component.getSchemaName());
         arguments.put("RawTable", component.getTableName());
         arguments.put("RawColumn", column);
-        arguments.put("ColumnName", ComponentHelper.composeColumnName(support, component, column, sensitive));
+        arguments.put("ColumnName", composeColumnName(support, component, column, sensitive));
         arguments.put("Description", support.enquoteLiteral(description));
         arguments.put("RawDescription", description);
         return arguments;
@@ -95,7 +103,7 @@ public class ParameterDDL extends ParameterBase {
         arguments.put("RawSchema", component.getSchemaName());
         arguments.put("RawTable", component.getTableName());
         arguments.put("RawColumn", column);
-        arguments.put("ColumnName", ComponentHelper.composeColumnName(support, component, column, sensitive));
+        arguments.put("ColumnName", composeColumnName(support, component, column, sensitive));
         return arguments;
     }
 
@@ -104,9 +112,20 @@ public class ParameterDDL extends ParameterBase {
         return Map.of("TableName", table);
     }
 
-    public static Map<String, Object> getCreateView(final String view,
-                                                    final String select) {
-        return Map.of("ViewName", view, "SelectCommand", select);
+    public static Map<String, Object> getCreateView(final NamedSupport support,
+                                                    final String catalog,
+                                                    final String schema,
+                                                    final String view,
+                                                    final String select,
+                                                    final boolean sensitive) {
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("Catalog", support.enquoteIdentifier(catalog, sensitive));
+        arguments.put("Schema", support.enquoteIdentifier(schema, sensitive));
+        arguments.put("RawCatalog", catalog);
+        arguments.put("RawSchema", schema);
+        arguments.put("ViewName", view);
+        arguments.put("SelectCommand", select);
+        return arguments;
     }
 
     public static Map<String, Object> getDropView(final String view) {
@@ -117,7 +136,7 @@ public class ParameterDDL extends ParameterBase {
                                                    final NamedComponent component,
                                                    final ColumnProperties column,
                                                    final boolean sensitive) {
-        return Map.of("TableName", ComponentHelper.composeTableName(support, component, sensitive),
+        return Map.of("TableName", composeTableName(support, component, sensitive),
                       "ColumnDescription", getColumnDescription(support, column));
     }
 
@@ -199,37 +218,37 @@ public class ParameterDDL extends ParameterBase {
                                                      final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${TableName} quoted / unquoted full old table name
-        arguments.put("TableName", ComponentHelper.quoteTableName(support, fullname, sensitive));
+        arguments.put("TableName", quoteTableName(support, fullname, sensitive));
         arguments.put("RawTableName", fullname);
         // XXX: ${NewSchema} quoted / unquoted new schema name
         arguments.put("NewSchema", support.enquoteIdentifier(newtable.getSchemaName(), sensitive));
         // XXX: ${Catalog.NewSchema.Table} quoted / unquoted full old table name overwritten with the new schema name
-        arguments.put("Catalog.NewSchema.Table", ComponentHelper.buildName(support, oldtable.getCatalogName(),
-                                                                                    newtable.getSchemaName(),
-                                                                                    oldtable.getTableName(),
-                                                                                    sensitive));
+        arguments.put("Catalog.NewSchema.Table", buildName(support, oldtable.getCatalogName(),
+                                                           newtable.getSchemaName(),
+                                                           oldtable.getTableName(),
+                                                           sensitive));
         // XXX: ${Table} quoted / unquoted old table name
         arguments.put("Table", support.enquoteIdentifier(oldtable.getTableName(), sensitive));
         // XXX: ${NewTable} quoted / unquoted new table name
         arguments.put("NewTable", support.enquoteIdentifier(newtable.getTableName(), sensitive));
         arguments.put("RawNewTable", newtable.getTableName());
         // XXX: ${Catalog.Schema.NewTable} quoted / unquoted full old table name overwritten with the new table name
-        arguments.put("Catalog.Schema.NewTable", ComponentHelper.buildName(support, oldtable.getCatalogName(),
-                                                                                    oldtable.getSchemaName(),
-                                                                                    newtable.getTableName(),
-                                                                                    sensitive));
+        arguments.put("Catalog.Schema.NewTable", buildName(support, oldtable.getCatalogName(),
+                                                           oldtable.getSchemaName(),
+                                                           newtable.getTableName(),
+                                                           sensitive));
         // XXX: ${NewCatalog} quoted / unquoted new catalog name
         arguments.put("NewCatalog", support.enquoteIdentifier(newtable.getCatalogName(), sensitive));
         // XXX: ${NewCatalog.Schema.Table} quoted / unquoted full old table name overwritten with the new catalog name
-        arguments.put("NewCatalog.Schema.Table", ComponentHelper.buildName(support, newtable.getCatalogName(),
-                                                                                    oldtable.getSchemaName(),
-                                                                                    oldtable.getTableName(),
-                                                                                    sensitive));
+        arguments.put("NewCatalog.Schema.Table", buildName(support, newtable.getCatalogName(),
+                                                           oldtable.getSchemaName(),
+                                                           oldtable.getTableName(),
+                                                           sensitive));
         // XXX: ${NewCatalog.NewSchema.NewTable} quoted / unquoted full new table name
-        arguments.put("NewCatalog.NewSchema.NewTable", ComponentHelper.buildName(support, newtable.getCatalogName(),
-                                                                                          newtable.getSchemaName(),
-                                                                                          newtable.getTableName(),
-                                                                                          sensitive));
+        arguments.put("NewCatalog.NewSchema.NewTable", buildName(support, newtable.getCatalogName(),
+                                                                 newtable.getSchemaName(),
+                                                                 newtable.getTableName(),
+                                                                 sensitive));
         if (reversed) {
             Object argument = arguments.get("TableName");
             arguments.put("TableName", arguments.get("Catalog.Schema.NewTable"));
@@ -253,7 +272,7 @@ public class ParameterDDL extends ParameterBase {
                                                         final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${ViewName} quoted / unquoted  full view name
-        arguments.put("ViewName", ComponentHelper.buildName(support, view, sensitive));
+        arguments.put("ViewName", buildName(support, view, sensitive));
         // XXX: ${Catalog} quoted / unquoted  catalog view name
         arguments.put("Catalog", support.enquoteIdentifier(view.getCatalogName(), sensitive));
         // XXX: ${Schema} quoted / unquoted  schema view name
@@ -271,8 +290,8 @@ public class ParameterDDL extends ParameterBase {
                                                           final ColumnProperties column,
                                                           final boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
-        arguments.put("TableName", ComponentHelper.composeTableName(support, component, sensitive));
-        arguments.put("RawTableName", ComponentHelper.composeTableName(support, component, false));
+        arguments.put("TableName", composeTableName(support, component, sensitive));
+        arguments.put("RawTableName", composeTableName(support, component, false));
         arguments.put("Table", support.enquoteIdentifier(component.getTable(), sensitive));
         arguments.put("RawTable", component.getTable());
         arguments.put("Column", support.enquoteIdentifier(column.getName(), sensitive));
@@ -303,6 +322,17 @@ public class ParameterDDL extends ParameterBase {
     public static String getColumnDescription(final NamedSupport support,
                                               final ColumnProperties column) {
         // XXX: We try to construct the Column part needed for Table creation
+        StringBuilder builder = new StringBuilder(getColumnDefinition(support, column));
+        if (column.isAutoIncrement()) {
+            builder.append(" ");
+            builder.append(column.getAutoIncrement());
+        }
+        return builder.toString();
+    }
+
+    public static String getColumnDefinition(final NamedSupport support,
+                                             final ColumnProperties column) {
+        // XXX: We try to construct the Column part needed for Table creation
         StringBuilder builder = new StringBuilder(support.enquoteIdentifier(column.getNewName()));
         builder.append(" ");
         builder.append(column.getType());
@@ -313,11 +343,10 @@ public class ParameterDDL extends ParameterBase {
         if (column.getNotNull()) {
             builder.append(" NOT NULL");
         }
-        if (column.isAutoIncrement()) {
-            builder.append(" ");
-            builder.append(column.getAutoIncrement());
-        }
         return builder.toString();
     }
 
+    public static String getColumnAutoIncrement(final ColumnProperties column) {
+        return format(" %s", column.getAutoIncrement());
+    }
 }

@@ -127,15 +127,16 @@ public class DBTools {
      * @return
      *   The CREATE VIEW statement.
      */
-    public static String getCreateViewQuery(ConfigDDL config,
-                                            NamedSupport support,
-                                            XPropertySet descriptor,
-                                            boolean sensitive)
+    public static List<String> getCreateViewQueries(ConfigDDL config,
+                                                    NamedSupport support,
+                                                    XPropertySet descriptor,
+                                                    boolean sensitive)
         throws java.sql.SQLException {
+        String catalog = getDescriptorStringValue(descriptor, PropertyID.CATALOGNAME);
+        String schema = getDescriptorStringValue(descriptor, PropertyID.SCHEMANAME);
         String view = ComponentHelper.composeTableName(support, descriptor, sensitive);
         String command = getDescriptorStringValue(descriptor, PropertyID.COMMAND);
-        String query = config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
-        return query;
+        return config.getCreateViewCommands(ParameterDDL.getCreateView(support, catalog, schema, view, command, sensitive));
     }
 
     /** creates a SQL CREATE VIEW statement.
@@ -150,17 +151,18 @@ public class DBTools {
      *    The SQL command to create view.
      * @param sensitive
      *    Is the name case sensitive.
-     * @return The CREATE VIEW statement.
+     * @return The CREATE VIEW statements.
      */
-    public static String getCreateViewQuery(ConfigDDL config,
-                                            NamedSupport support,
-                                            NamedComponent component,
-                                            String command,
-                                            boolean sensitive)
+    public static List<String> getCreateViewQueries(ConfigDDL config,
+                                                    NamedSupport support,
+                                                    NamedComponent component,
+                                                    String command,
+                                                    boolean sensitive)
         throws java.sql.SQLException {
+        String catalog = component.getCatalogName();
+        String schema = component.getSchemaName();
         String view = ComponentHelper.composeTableName(support, component, sensitive);
-        String query = config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
-        return query;
+        return config.getCreateViewCommands(ParameterDDL.getCreateView(support, catalog, schema, view, command, sensitive));
     }
 
     public static void cloneDescriptorColumns(XPropertySet source,

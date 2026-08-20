@@ -25,27 +25,19 @@
 */
 package io.github.prrvchr.uno.driver.helper;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.StringJoiner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import java.util.stream.Collectors;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.uno.driver.config.ConfigSQL;
-
 public class PropertiesHelper {
 
     public static final String CONNECT_PROTOCOL = "jdbc:";
-    public static final String REGISTRED_PROTOCOL = "xdbc:";
+    public static final String REGISTRED_PROTOCOL = "juda:";
     public static final String SUFFIX_PROTOCOL = ":*";
 
     public static final String getJdbcUrl(final String url) {
@@ -65,7 +57,7 @@ public class PropertiesHelper {
         return subprotocol;
     }
 
-    public static final Properties getJdbcConnectionProperties(final PropertyValue[] infos) {
+    public static final Properties getConnectionProperties(final PropertyValue[] infos) {
         Properties properties = new Properties();
         for (PropertyValue info : infos) {
             String property = info.Name;
@@ -75,6 +67,13 @@ public class PropertiesHelper {
             properties.setProperty(property, String.format("%s", info.Value));
         }
         return properties;
+    }
+
+    public static final String streamConnectionProperties(final Properties properties) {
+        return properties.entrySet().stream()
+                .filter(entry -> !entry.getKey().toString().equals("password"))
+                .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
+                .collect(Collectors.joining(", "));
     }
 
     public static final XNameAccess getRootConfiguration(final XHierarchicalNameAccess config, Object dflt) {
@@ -336,53 +335,6 @@ public class PropertiesHelper {
         return value;
     }
 
-    public static final String[] getFormatKeys(final String template) {
-        List<String> keys = new ArrayList<>();
-
-        Matcher matcher = Pattern.compile(ConfigSQL.KEY_PATTERN).matcher(template);
-        while (matcher.find()) {
-            keys.add(matcher.group(1));
-        }
-
-        return keys.toArray(new String[0]);
-    }
-
-    public static final String format(final String template,
-                                      final Map<String, Object> parameters) {
-        StringBuilder newTemplate = new StringBuilder(template);
-        List<Object> valueList = new ArrayList<>();
-
-        for (String key : getFormatKeys(template)) {
-            String paramName = ConfigSQL.KEY_PREFIX + key + ConfigSQL.KEY_SUFFIX;
-            int index = newTemplate.indexOf(paramName);
-            if (index != -1) {
-                newTemplate.replace(index, index + paramName.length(), "%s");
-                valueList.add(parameters.get(key));
-            }
-        }
-
-        return String.format(newTemplate.toString(), valueList.toArray());
-    }
-
-    public static final Map<String, Object> getKeysArgument(final XHierarchicalNameAccess config,
-                                                            final PropertyValue[] infos,
-                                                            final String protocol,
-                                                            final String[] keys) {
-        Map<String, Object> arguments = new HashMap<>();
-        for (String key : keys) {
-            Object value = null;
-            if (hasInfosProperty(infos, key)) {
-                value = getInfosProperty(infos, key, null);
-            } else {
-                value = getConfigStringProperty(config, protocol, key, null);
-            }
-            if (value != null) {
-                arguments.put(key, value);
-            }
-        }
-        return arguments;
-    }
-
     private static final void setSQLQueries(final Object[] queries,
                                             final String suffix) {
         // XXX: We need to be able to add a suffix to SQL commands.
@@ -402,79 +354,70 @@ public class PropertiesHelper {
         // XXX: and should not be passed to the JDBC driver
         // XXX: (which probably does not know anything about them anyway).
         // XXX: see: connectivity/source/drivers/jdbc/tools.cxx createStringPropertyArray()
-        boolean is = false;
-        switch (property) {
-            case "JavaDriverClass":
-            case "JavaDriverClassPath":
-            case "SystemProperties":
-            case "CharSet":
-            case "AppendTableAliasName":
-            case "AppendTableAliasInSelect":
-            case "DisplayVersionColumns":
-            case "GeneratedValues":
-            case "UseIndexDirectionKeyword":
-            case "UseKeywordAsBeforeAlias":
-            case "AddIndexAppendix":
-            case "FormsCheckRequiredFields":
-            case "GenerateASBeforeCorrelationName":
-            case "EscapeDateTime":
-            case "ParameterNameSubstitution":
-            case "IsPasswordRequired":
-            case "IsAutoRetrievingEnabled":
-            case "AutoRetrievingStatement":
-            case "UseCatalogInSelect":
-            case "UseSchemaInSelect":
-            case "AutoIncrementCreation":
-            case "Extension":
-            case "NoNameLengthLimit":
-            case "EnableSQL92Check":
-            case "EnableOuterJoinEscape":
-            case "BooleanComparisonMode":
-            case "IgnoreCurrency":
-            case "TypeInfoSettings":
-            case "IgnoreDriverPrivileges":
-            case "ImplicitCatalogRestriction":
-            case "ImplicitSchemaRestriction":
-            case "SupportsTableCreation":
-            case "UseJava":
-            case "Authentication":
-            case "PreferDosLikeLineEnds":
-            case "PrimaryKeySupport":
-            case "RespectDriverResultSetType":
-                is = true;
-                break;
-            default:
-                is = false;
-        }
-        return is;
+        return switch (property) {
+            case "JavaDriverClass",
+                 "JavaDriverClassPath",
+                 "SystemProperties",
+                 "CharSet",
+                 "AppendTableAliasName",
+                 "AppendTableAliasInSelect",
+                 "DisplayVersionColumns",
+                 "GeneratedValues",
+                 "UseIndexDirectionKeyword",
+                 "UseKeywordAsBeforeAlias",
+                 "AddIndexAppendix",
+                 "FormsCheckRequiredFields",
+                 "GenerateASBeforeCorrelationName",
+                 "EscapeDateTime",
+                 "ParameterNameSubstitution",
+                 "IsPasswordRequired",
+                 "IsAutoRetrievingEnabled",
+                 "AutoRetrievingStatement",
+                 "UseCatalogInSelect",
+                 "UseSchemaInSelect",
+                 "AutoIncrementCreation",
+                 "Extension",
+                 "NoNameLengthLimit",
+                 "EnableSQL92Check",
+                 "EnableOuterJoinEscape",
+                 "BooleanComparisonMode",
+                 "IgnoreCurrency",
+                 "TypeInfoSettings",
+                 "IgnoreDriverPrivileges",
+                 "ImplicitCatalogRestriction",
+                 "ImplicitSchemaRestriction",
+                 "SupportsTableCreation",
+                 "UseJava",
+                 "Authentication",
+                 "PreferDosLikeLineEnds",
+                 "PrimaryKeySupport",
+                 "RespectDriverResultSetType" -> true;
+            default -> false;
+        };
     }
 
     private static final boolean isInternalProperty(final String property) {
         // XXX: These are properties used internally by jdbcDriverOOo,
         // XXX: and should not be passed to the JDBC driver
         // XXX: (which probably does not know anything about them anyway).
-        boolean is = false;
-        switch (property) {
-            case "SystemCatalogSettings":
-            case "SystemSchemaSettings":
-            case "SystemTableSettings":
-            case "TableSettings":
-            case "TablePrivilegesSettings":
-            case "PrivilegesSettings":
-            case "RowVersionCreation":
-            case "LogLevel":
-            case "InMemoryDataBase":
-            case "Type":
-            case "Url":
-            case "ShowSystemTable":
-            case "CachedRowSet":
-            case "JavaDriverDependencies":
-                is = true;
-                break;
-            default:
-                is = false;
-        }
-        return is;
+        return switch (property) {
+            case "SystemCatalogSettings",
+                 "SystemSchemaSettings",
+                 "SystemTableSettings",
+                 "TableSettings",
+                 "TablePrivilegesSettings",
+                 "PrivilegesSettings",
+                 "RowVersionCreation",
+                 "LogLevel",
+                 "InMemoryDataBase",
+                 "Type",
+                 "Url",
+                 "ShowSystemTable",
+                 "ResultSetType",
+                 "UseCachedRowSet",
+                 "JavaDriverDependencies" -> true;
+            default -> false;
+        };
     }
 
 }

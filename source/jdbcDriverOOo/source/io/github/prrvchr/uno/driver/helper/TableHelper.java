@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.sun.star.beans.XPropertySet;
@@ -72,6 +73,7 @@ import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.provider.DBTools;
 
+import static java.lang.String.format;
 
 public class TableHelper {
 
@@ -183,7 +185,7 @@ public class TableHelper {
         if (columns == null || columns.getCount() <= 0) {
             String template = "The '%s' table has no columns, it is not possible to create the table";
             String table = ComponentHelper.composeTableName(support, property, sensitive);
-            String message = String.format(template, table);
+            String message = format(template, table);
             throw new SQLException(message);
         }
         // XXX: The first thing to do is to retrieve the columns
@@ -199,30 +201,70 @@ public class TableHelper {
                                                       String type,
                                                       boolean sensitive)
         throws SQLException {
+        Map<String, Object> arguments = new HashMap<>();
         List<String> queries = new ArrayList<>();
         List<String> parts = new ArrayList<>();
         List<String> versions = new ArrayList<>();
         boolean hasAutoIncrement = setCreateTableColumn(config, metadata, support, property, columns,
                                                         queries, parts, versions, sensitive);
         boolean versioning = !versions.isEmpty() && config.supportsSystemVersioning();
+        String description = DBTools.getDescriptorStringValue(property, PropertyID.DESCRIPTION);
+        // In table creation we only handle non empty description
+        if (config.supportsTableProperties()) {
+            String properties = "";
+            List<String> primaryKeys = ConstraintHelper.getPrimaryKeys(property);
+            if (!primaryKeys.isEmpty()) {
+                properties = config.getTableProperties(ParameterDDL.PROPERTIES, getPrimaryKeyProperty(support, primaryKeys));
+            }
+            arguments.put(ParameterDDL.PROPERTIES, properties);
+            String comment = "";
+            if (!description.isEmpty() && config.supportsTableDescription()) {
+                comment = config.getCommentDefinition(support, ParameterDDL.COMMENT, description);
+            }
+            arguments.put(ParameterDDL.COMMENT, comment);
+        } else {
+            setCreateTableQueries(config, support, property, queries, parts, versions, hasAutoIncrement, versioning, sensitive);
+            if (!description.isEmpty() && config.supportsTableDescription()) {
+                String table = ComponentHelper.composeTableName(support, property, sensitive);
+                String query = config.getTableDescriptionCommand(ParameterDDL.getTableDescription(table, description));
+                queries.add(query);
+            }
+        }
+        ParameterDDL.setCreateTableParameter(arguments, support, property, type, parts, sensitive);
+        queries.add(0, config.getCreateTableCommand(arguments, versioning));
+        return queries;
+    }
+
+    private static Map<String, Object> getPrimaryKeyProperty(final NamedSupport support, final List<String> primaryKeys) {
+        String property = primaryKeys.stream().map(e -> support.enquoteLiteral(e)).collect(Collectors.joining (", "));
+        return Map.of(ParameterDDL.PRIMARY_KEYS, property);
+    }
+
+    private static void setCreateTableQueries(ConfigDDL config,
+                                              NamedSupport support,
+                                              XPropertySet property,
+                                              List<String> queries,
+                                              List<String> parts,
+                                              List<String> versions,
+                                              boolean hasAutoIncrement,
+                                              boolean versioning,
+                                              boolean sensitive)
+        throws SQLException {
         if (versioning) {
-            Map<String, Object> Arguments = ParameterDDL.getSystemVersioningColumnParameter(support, versions);
-            parts.add(config.getSystemVersioningColumnQuery(Arguments));
+            Map<String, Object> parameters = ParameterDDL.getSystemVersioningColumnParameter(support, versions);
+            parts.add(config.getSystemVersioningColumnQuery(parameters));
         }
         // XXX: If the underlying driver allows it, we create the primary key in a DDL command
         // XXX: separate from the one that creates the table. But there are specific cases!!!
         boolean autopk = config.isAutoIncrementIsPrimaryKey();
         boolean alterpk = config.supportsAlterPrimaryKey();
-        // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
+        // XXX: SQLite only allows creating PK with table creation and if there is no auto increment column
+        // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation
         if (alterpk && !autopk || isCreationSupported(alterpk, autopk, !hasAutoIncrement)) {
             queries.addAll(0, getCreateConstraintQueries(config, support, property, property, "", sensitive));
-        // XXX: SQLite only allows creating PK with table creation and if there is no auto increment column (first test)
-        // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
         } else if (!alterpk && !hasAutoIncrement || isCreationSupported(alterpk, autopk, hasAutoIncrement)) {
             parts.addAll(ConstraintHelper.getCreatePrimaryKeyParts(support, property, sensitive));
         }
-        addCreateTableCommand(config, support, property, queries, parts, type, versioning, sensitive);
-        return queries;
     }
 
     private static boolean setCreateTableColumn(final ConfigDDL config,
@@ -236,34 +278,20 @@ public class TableHelper {
                                                 final boolean sensitive)
         throws SQLException {
         boolean hasAutoIncrement = false;
+        boolean supportsProperties = config.supportsColumnProperties();
         try {
             for (int i = 0, count = columns.getCount(); i < count; i++) {
                 XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
                 if (descriptor == null) {
                     continue;
                 }
-                hasAutoIncrement |= getCreateTableColumn(config, metadata, support, property,
-                                                         queries, parts, versions, descriptor, sensitive);
+                hasAutoIncrement |= getCreateTableColumn(config, metadata, support, property, queries, parts,
+                                                         versions, descriptor, supportsProperties, sensitive);
             }
         } catch (IndexOutOfBoundsException | WrappedTargetException | IllegalArgumentException e) {
             throw new SQLException(e.getLocalizedMessage());
         }
         return hasAutoIncrement;
-    }
-
-    private static void addCreateTableCommand(final ConfigDDL config,
-                                              final NamedSupport support,
-                                              final XPropertySet property,
-                                              final List<String> queries,
-                                              final List<String> parts,
-                                              final String type,
-                                              final boolean versioning,
-                                              final boolean sensitive)
-        throws SQLException {
-        Map<String, Object> arguments = new HashMap<>();
-        String key = ParameterDDL.setCreateTable(arguments, support, property,
-                                                 type, parts, sensitive);
-        queries.add(0, config.getCreateTableCommand(arguments, versioning, key));
     }
 
     private static boolean getCreateTableColumn(final ConfigDDL config,
@@ -274,24 +302,40 @@ public class TableHelper {
                                                 final List<String> parts,
                                                 final List<String> columnversion,
                                                 final XPropertySet descriptor,
-                                                boolean sensitive)
+                                                final boolean supportsProperties,
+                                                final boolean sensitive)
         throws SQLException {
-        boolean hasAutoIncrement = false;
+        Map<String, Object> arguments = new HashMap<>();
         ColumnProperties column = getStandardColumnProperties(config, metadata, descriptor);
+        arguments.put(ParameterDDL.COLUMN_DEFINITION, ParameterDDL.getColumnDefinition(support, column));
         if (config.supportsColumnDescription()) {
-            String comment = DBTools.getDescriptorStringValue(descriptor, PropertyID.DESCRIPTION);
-            if (!comment.isEmpty()) {
+            String description = DBTools.getDescriptorStringValue(descriptor, PropertyID.DESCRIPTION);
+            // In table creation we only handle non empty description
+            if (supportsProperties) {
+                String comment = "";
+                if (!description.isEmpty()) {
+                    comment = config.getCommentDefinition(support, ParameterDDL.COMMENT, description);
+                }
+                arguments.put(ParameterDDL.COMMENT, comment);
+            } else if (!description.isEmpty()) {
                 NamedComponent component = ComponentHelper.getTableNamedComponents(property);
-                queries.add(getColumnDescriptionQuery(config, support, component,
-                                                      column, comment, sensitive));
+                queries.add(getColumnDescriptionQuery(config, support, component, column, description, sensitive));
             }
         }
-        hasAutoIncrement |= column.isAutoIncrement();
+        String properties = "";
+        if (column.isAutoIncrement()) {
+            if (supportsProperties) {
+                properties = config.getColumnProperties(ParameterDDL.PROPERTIES, Map.of(ParameterDDL.AUTOINCREMENT, true));
+            } else {
+                properties = ParameterDDL.getColumnAutoIncrement(column);
+            }
+        }
+        arguments.put(ParameterDDL.PROPERTIES, properties);
+        parts.add(config.getColumnDefinition(arguments));
         if (column.isRowVersion()) {
             columnversion.add(column.getNewName());
         }
-        parts.add(ParameterDDL.getColumnDescription(support, column));
-        return hasAutoIncrement;
+        return column.isAutoIncrement();
     }
 
     private static boolean isCreationSupported(boolean supportsAlterPk,

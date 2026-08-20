@@ -65,7 +65,7 @@ class TabModel():
         self._pmode = 0
         self._vmode = 0
         self._value = None
-        self._protocol = 'xdbc:'
+        self._protocol = 'juda:'
         self._root = self._protocol + '*'
         self._tmp = '/tmp'
         self._url = None

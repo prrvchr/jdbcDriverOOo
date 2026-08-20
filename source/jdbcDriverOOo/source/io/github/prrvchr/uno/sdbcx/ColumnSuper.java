@@ -38,7 +38,7 @@ import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 
 public abstract class ColumnSuper
-    extends ColumnBase
+    extends ColumnMain
     implements XDataDescriptorFactory {
 
     private final ConfigSQL mConfig;

@@ -28,8 +28,6 @@ package io.github.prrvchr.uno.sdb;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XChild;
 import com.sun.star.container.XNameAccess;
@@ -73,9 +71,8 @@ public final class Connection
     // The constructor method:
     protected Connection(XComponentContext ctx,
                          Provider provider,
-                         String url,
-                         Set<String> properties) {
-        super(ctx, SERVICE, SERVICES, provider, url, properties);
+                         String url) {
+        super(ctx, SERVICE, SERVICES, provider, url);
         mSupportsDCL = provider.getConfigSQL().supportsDCLQuery();
         //mDataSource = DocumentContainer.getDataSource();
     }

@@ -28,8 +28,6 @@ package io.github.prrvchr.uno.sdbc;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XServiceInfo;
@@ -65,7 +63,7 @@ public abstract class ConnectionBase
     private final String mService;
     private final String[] mServices;
     private final Provider mProvider;
-    private final WeakMap<StatementMain, StatementMain> mStatements = new WeakMap<StatementMain, StatementMain>();
+    private final WeakMap<StatementBase, StatementBase> mStatements = new WeakMap<StatementBase, StatementBase>();
     private final List<String> mOpenResultSet = new ArrayList<>();
 
     // The constructor method:
@@ -73,14 +71,13 @@ public abstract class ConnectionBase
                              String service,
                              String[] services,
                              Provider provider,
-                             String url,
-                             Set<String> properties) {
+                             String url) {
         mContext = ctx;
         mService = service;
         mServices = services;
         mProvider = provider;
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_ESTABLISHED,
-                           PropertiesHelper.getJdbcUrl(url), String.join(", ", properties));
+                           PropertiesHelper.getJdbcUrl(url), provider.getConnectionProperties());
     }
 
     protected Provider getProvider() {
@@ -89,7 +86,7 @@ public abstract class ConnectionBase
     protected ConnectionLog getLogger() {
         return mProvider.getLogger();
     }
-    protected WeakMap<StatementMain, StatementMain> getStatements() {
+    protected WeakMap<StatementBase, StatementBase> getStatements() {
         return mStatements;
     }
 
@@ -113,8 +110,8 @@ public abstract class ConnectionBase
         }
 
         try {
-            for (Iterator<StatementMain> it = mStatements.keySet().iterator(); it.hasNext();) {
-                StatementMain statement = it.next();
+            for (Iterator<StatementBase> it = mStatements.keySet().iterator(); it.hasNext();) {
+                StatementBase statement = it.next();
                 System.out.println("Connection.dispose() dispose statement: " + statement.mQuery.toString());
                 it.remove();
                 statement.dispose();
