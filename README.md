@@ -364,7 +364,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [22]: <https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html>
 [23]: <https://github.com/prrvchr/mssql-jdbc>
 [24]: <https://github.com/spannm/ucanaccess>
-[25]: <https://prrvchr.github.io/juda/README_fr>
+[25]: <https://prrvchr.github.io/juda/>
 [26]: <https://github.com/trinodb/trino>
 [27]: <https://prrvchr.github.io/jdbcDriverOOo/#base-with-juda>
 [30]: <https://prrvchr.github.io/jdbcDriverOOo/#connection-url>
