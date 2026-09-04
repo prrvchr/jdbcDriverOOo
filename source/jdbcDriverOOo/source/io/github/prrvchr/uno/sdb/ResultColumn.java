@@ -36,11 +36,11 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
-import io.github.prrvchr.uno.sdbcx.ColumnBase;
+import io.github.prrvchr.uno.sdbcx.ColumnMain;
 
 
 public final class ResultColumn
-    extends ColumnBase {
+    extends ColumnMain {
     private static final String SERVICE = ResultColumn.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdb.ResultColumn"};
     private static final int FORMAT_KEY = 256;

@@ -56,7 +56,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class ColumnContainerBase<C extends ColumnSuper>
-    extends ContainerBase<C>
+    extends ContainerMain<C>
     implements XColumnLocate {
 
     protected final TableSuper mTable;

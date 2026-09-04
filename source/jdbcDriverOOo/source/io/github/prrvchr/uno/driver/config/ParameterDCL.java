@@ -28,10 +28,11 @@ package io.github.prrvchr.uno.driver.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.github.prrvchr.uno.driver.helper.ComponentHelper;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.buildName;
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.qualifiedNameComponents;
 
 public class ParameterDCL extends ParameterBase {
 
@@ -65,7 +66,7 @@ public class ParameterDCL extends ParameterBase {
                                                              final String grantee) {
         // These parameters do not need to be quoted, it will be used with a PreparedStatement
         Map<String, Object> arguments = new HashMap<>();
-        NamedComponent table = ComponentHelper.qualifiedNameComponents(support, tablename);
+        NamedComponent table = qualifiedNameComponents(support, tablename);
         // XXX: ${TableName} unquoted full table name
         arguments.put("TableName", tablename);
         // XXX: ${Catalog} unquoted catalog name
@@ -89,7 +90,7 @@ public class ParameterDCL extends ParameterBase {
         // XXX: ${Privileges} the list of privileges to revoke
         arguments.put("Privileges", privileges);
         // XXX: ${TableName} quoted / unquoted full qualified table name
-        arguments.put("TableName", ComponentHelper.buildName(support, table, sensitive));
+        arguments.put("TableName", buildName(support, table, sensitive));
         // XXX: ${RoleType} literal (USER or ROLE)
         arguments.put("RoleType", getRole(isrole));
         // XXX: ${Grantee} quoted / unquoted grantee name

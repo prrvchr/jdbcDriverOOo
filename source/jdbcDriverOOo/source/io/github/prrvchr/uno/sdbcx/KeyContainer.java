@@ -58,7 +58,7 @@ import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class KeyContainer
-    extends ContainerBase<Key> {
+    extends ContainerMain<Key> {
 
     private static final String SERVICE = KeyContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Keys",

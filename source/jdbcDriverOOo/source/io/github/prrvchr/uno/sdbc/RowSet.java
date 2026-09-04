@@ -29,23 +29,21 @@ import java.util.HashMap;
 
 import javax.sql.rowset.CachedRowSet;
 
-import com.sun.star.sdbc.SQLException;
-
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 
 
 public final class RowSet
-    extends RowSetBase {
+    extends RowSetMain {
     private static final String SERVICE = RowSet.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbc.ResultSet"};
 
     // The constructor method:
     protected RowSet(Connection connection,
                      CachedRowSet rowset,
-                     StatementMain statement)
-        throws SQLException {
+                     StatementBase statement)
+        throws java.sql.SQLException {
         super(SERVICE, SERVICES, connection, rowset, statement);
         registerProperties(new HashMap<PropertyID, PropertyWrapper>());
     }

@@ -200,7 +200,8 @@ public class ComponentHelper {
 
         public String enquoteIdentifier(String identifier, boolean sensitive) {
             if (sensitive) {
-                identifier = mIdentifierQuote + identifier + mIdentifierQuote;
+                String value = identifier.replace(mIdentifierQuote, mIdentifierQuote + mIdentifierQuote);
+                return mIdentifierQuote + value + mIdentifierQuote;
             }
             return identifier;
         }
@@ -210,7 +211,8 @@ public class ComponentHelper {
         }
 
         public String enquoteLiteral(String literal) {
-            return mLiteralQuote + literal + mLiteralQuote;
+            String value = literal.replace(mLiteralQuote, mLiteralQuote + mLiteralQuote);
+            return mLiteralQuote + value + mLiteralQuote;
         }
 
         public boolean isCaseSensitive() {

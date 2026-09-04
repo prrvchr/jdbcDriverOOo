@@ -29,12 +29,10 @@ import java.util.HashMap;
 
 import javax.sql.rowset.CachedRowSet;
 
-import com.sun.star.sdbc.SQLException;
-
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
-import io.github.prrvchr.uno.sdbc.StatementMain;
+import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
 public final class RowSet
@@ -46,8 +44,7 @@ public final class RowSet
     // The constructor method:
     protected RowSet(Connection connection,
                      CachedRowSet rowset,
-                     StatementMain statement)
-        throws SQLException {
+                     StatementBase statement) {
         super(SERVICE, SERVICES, connection, rowset, statement);
         registerProperties(new HashMap<PropertyID, PropertyWrapper>());
     }

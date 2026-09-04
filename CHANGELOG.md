@@ -29,18 +29,18 @@
 
 Regarding installation, configuration and use, please consult the **[documentation][4]**.
 
-### What has been done for version 0.0.1:
+### What was done for version 0.0.1:
 
 - The writing of this driver was facilitated by a [discussion with Villeroy][5], on the OpenOffice forum, which I would like to thank, because knowledge is only worth if it is shared...
 - Using the new version of HsqlDB 2.5.1.
 - Many other fix...
 
-### What has been done for version 0.0.2:
+### What was done for version 0.0.2:
 
 - Added a dialog box allowing to update the driver (hsqldb.jar) in: Tools -> Options -> Base drivers -> HsqlDB driver
 - Many other fix...
 
-### What has been done for version 0.0.3:
+### What was done for version 0.0.3:
 
 - I especially want to thank fredt at [hsqldb.org][6] for:
     - His welcome for this project and his permission to use the HsqlDB logo in the extension.
@@ -52,7 +52,7 @@ Regarding installation, configuration and use, please consult the **[documentati
 - Now correctly handles spaces in filenames and paths.
 - Many other fix...
 
-### What has been done for version 0.0.4:
+### What was done for version 0.0.4:
 
 - Rewrite of [Driver][7] in Java version 11 OpenJDK amd64 under Eclipse IDE for Java Developers version 4.23.0 with the plugins:
     - LOEclipse or LibreOffice Eclipse plugin for extension development version 4.0.1.
@@ -79,11 +79,11 @@ Regarding installation, configuration and use, please consult the **[documentati
     These new features have only been tested with the HsqlDB driver so far.
 - Many other fix...
 
-### What has been done for version 1.0.0:
+### What was done for version 1.0.0:
 
 - Integration of HyperSQL version 2.7.2.
 
-### What has been done for version 1.0.1:
+### What was done for version 1.0.1:
 
 - Integration of [SQLite JDBC][23] version 3.42.0.0. I especially want to thank [gotson][24] for the [many improvements to the SQLite JDBC driver][25] that made it possible to use SQLite in LibreOffice/OpenOffice.
 - This driver can be wrapped by another driver ([HyperSQLOOo][26] or [SQLiteOOo][27]) thanks to a connection url now modifiable.
@@ -91,18 +91,18 @@ Regarding installation, configuration and use, please consult the **[documentati
 - It is possible to disallow the use of updatable resultset in: **Tools -> Options -> Base drivers -> JDBC Driver -> UNO drivers settings -> Use bookmarks**
 - Many corrections have been made to make the extension [SQLiteOOo][27] functional.
 
-### What has been done for version 1.0.2:
+### What was done for version 1.0.2:
 
 - Integration of [MariaDB Connector/J][28] version 3.1.4.
 - Many other fix...
 
-### What has been done for version 1.0.3:
+### What was done for version 1.0.3:
 
 - Integration of [H2][29] version 2.2.220.
 - Integration of logging in the resultset ([ResultSetBase][30] and [ResultSetSuper][31]) in order to learn more about [issue 156512][32].
 - Many other fix...
 
-### What has been done for version 1.0.4:
+### What was done for version 1.0.4:
 
 - Support in the creation of tables of the [TypeInfoSettings][33] parameter allowing to recover the precision for SQL types:
     - TIME
@@ -111,34 +111,34 @@ Regarding installation, configuration and use, please consult the **[documentati
     - TIMESTAMP WITH TIME ZONE
     This is only [integrated][34] for the [HsqlDB][35] driver at the moment.
 
-### What has been done for version 1.0.5:
+### What was done for version 1.0.5:
 
 - The result of accessing the [XDatabaseMetaData.getDriverVersion()][36] method is now recorded in the log file.
 
-### What has been done for version 1.0.6:
+### What was done for version 1.0.6:
 
 - Added the Python package `packaging` to the extension's `pythonpath`. Thanks to [artem78][37] for allowing this correction by reporting this oversight in [issue #4][38].
 
-### What has been done for version 1.0.7:
+### What was done for version 1.0.7:
 
 - Now the driver throws an exception if creating a new table fails. This is to address [bug #1][39] on the [HyperSQLOOo][26] extension.
 
-### What has been done for version 1.0.8:
+### What was done for version 1.0.8:
 
 - Using the latest version of the Logging API.
 
-### What has been done for version 1.1.0:
+### What was done for version 1.1.0:
 
 - All Python packages necessary for the extension are now recorded in a [requirements.txt][40] file following [PEP 508][41].
 - Now if you are not on Windows then the Python packages necessary for the extension can be easily installed with the command:  
   `pip install requirements.txt`
 - Modification of the [Requirement][42] section.
 
-### What has been done for version 1.1.1:
+### What was done for version 1.1.1:
 
 - The driver no longer uses Bookmarkable ResultSets for performance reasons in LibreOffice Base. This can be changed in the extension options.
 
-### What has been done for version 1.1.2:
+### What was done for version 1.1.2:
 
 - Implementation of the UNO interface [com.sun.star.sdbc.XGeneratedResultSet][43]. This interface allows, when inserting several rows (ie: `INSERT INTO mytable (Column1, Column2) VALUES (data1, data2), (data1, data2), ...`) into a table with an auto-incremented primary key, to retrieve a ResultSet from the rows inserted into the table and therefore gives you access to the auto-generated keys in one go.
 - Implementation of the UNO interface [com.sun.star.sdbcx.XAlterTable][44]. This interface allows the modification of columns in a table. With HsqlDB it is now possible in Base:
@@ -148,11 +148,11 @@ Regarding installation, configuration and use, please consult the **[documentati
 - SQLite driver updated to latest version 3.45.1.0.
 - Many other fix...
 
-### What has been done for version 1.1.3:
+### What was done for version 1.1.3:
 
 - SQLite driver updated to latest version [SQLite-jdbc-3.45.1.3-SNAPSHOT.jar][45]. This new driver has been implemented to support part of the JDBC 4.1 specifications and more particularly the `java.sql.Statement.getGeneratedKeys()` interface and allows the use of the [com.sun.star.sdbc.XGeneratedResultSet][43] interface.
 
-### What has been done for version 1.1.4:
+### What was done for version 1.1.4:
 
 - SQLite driver updated to latest version [SQLite-jdbc-3.45.1.6-SNAPSHOT.jar][46].
 - Integration of the driver [PostgreSQL pgJDBC][47] version 42.7.1 in the jdbcDriverOOo archive. This integration was carried out without using a Java service specific to PostgreSQL but only by configuring the [Drivers.xcu][48] file allowing the JDBC driver to be declared to LibreOffice.
@@ -161,17 +161,17 @@ Regarding installation, configuration and use, please consult the **[documentati
 - From now on, only the HsqlDB driver has access in Base to the administration of user and group rights. This is determined by the `IgnoreDriverPrivileges` setting in the [Drivers.xcu][48] file.
 - Many improvements.
 
-### What has been done for version 1.1.5:
+### What was done for version 1.1.5:
 
 - You can now edit a view in SQL mode with the SQLite driver. For drivers that do not support view alteration, views are deleted and then recreated.
 
-### What has been done for version 1.1.6:
+### What was done for version 1.1.6:
 
 - You can now rename tables and views in Base. All the configuration required for renaming for each embedded JDBC driver is stored only in the [Drivers.xcu][48] file.
 - All JDBC drivers integrated into jdbcDriverOOo are capable of renaming tables or views and even some (ie: MariaDB and PostgreSQL) allow modifying the catalog or schema.
 - Many improvements.
 
-### What has been done for version 1.2.0:
+### What was done for version 1.2.0:
 
 - All drivers integrated into the extension are **now fully functional in Base** for managing tables and views.
 - Smart functions are called to:
@@ -180,7 +180,7 @@ Regarding installation, configuration and use, please consult the **[documentati
 - Use of [generic Java class][50] for managing containers used for managing [tables][51], [views][52], [columns][53], [keys][54] and [indexes][55]. The use of generic classes for [container][56] will make it possible to do without the UNO XPropertySet interface and to be able to transcribe the existing code into pure Java.
 - Many improvements.
 
-### What has been done for version 1.2.1:
+### What was done for version 1.2.1:
 
 - Resolution of a regression prohibiting the deletion of columns in a table.
 - Updated mariadb-java-client-3.3.3.jar driver.
@@ -189,18 +189,18 @@ Regarding installation, configuration and use, please consult the **[documentati
 - It is also possible to rename the columns declared as primary key in all embedded drivers.
 - Many improvements.
 
-### What has been done for version 1.2.2:
+### What was done for version 1.2.2:
 
 - Implementation of index management.
 - Renaming a column declared as a primary key will also rename the index associated with the primary key.
 - Only members of Java classes responding to the UNO API have a public visibility level, all other members have protected or private visibility.
 - Solved many problems and regression.
 
-### What has been done for version 1.2.3:
+### What was done for version 1.2.3:
 
 - Renaming a column declared as an index will also rename the associated column index.
 
-### What has been done for version 1.2.4:
+### What was done for version 1.2.4:
 
 - Removed SmallSQL.
 - Integration of Jaybird 5.0.4 the JDBC driver for Firebird.
@@ -213,7 +213,7 @@ Regarding installation, configuration and use, please consult the **[documentati
   - Add comments.
 - Many improvements.
 
-### What has been done for version 1.3.0:
+### What was done for version 1.3.0:
 
 - Integration of foreign key management into Base (**Tools -> Relationships...**).
   - When you rename a table, it will also rename that table's referencing in any foreign keys pointing to that table.
@@ -225,7 +225,7 @@ Regarding installation, configuration and use, please consult the **[documentati
 
 Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc][61], [sdbcx][62] and [sdb][63]), which took quite a while, but I didn't initially think I would get there.  
 
-### What has been done for version 1.3.1:
+### What was done for version 1.3.1:
 
 - Fixed the implementation of the [XRowLocate][64] interface responsible for managing Bookmarks in ResultSet. This new implementation works with all drivers except SQLite which does not support updatable ResultSet. The presence of this interface in ResultSet allows Base to edit tables even in absence of primary key. With certain drivers (HsqlDB, H2 and Derby) refreshing during entry will not be automatic and must be done manually. The use of bookmarks can be disabled in the extension's options.
 - Setting up [mock ResultSet][65] (java.sql.ResultSet) to produce ResultSets from connection data provided by the driver, more precisely from the [Drivers.xcu][48] file. The use of these simulated resultsets makes it possible to provide Base with resultsets conforming to what it expects even if the underlying driver is not capable of producing them. They are used to patch the results obtained from the `getTypeInfo()`, `getTableTypes` and `getTablePrivileges()` methods of the java.sql.DatabaseMetaData interface using respectively the `TypeInfoSettings`, `TableTypesSettings` and `TablePrivilegesSettings` properties of the [Drivers.xcu][48] file.
@@ -234,7 +234,7 @@ Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc
 - Integration of all drivers embedded in the extension (excluding SQLite) in the management of users, roles and privileges on tables and views. I suppose that many malfunctions remain to be corrected, please let me know, detecting malfunctions takes me more time than correcting them....
 - Many corrections and improvements...
 
-### What has been done for version 1.3.2:
+### What was done for version 1.3.2:
 
 The UNO SDBCX API can now be used for creating databases, as is the case for the latest versions of extensions using jdbcDriverOOo. It is possible to create tables, using the UNO API, with the following characteristics:
 - Declaration of columns of types TIMESTAMP WITH TIME ZONE, TIMESTAMP, TIME WITH TIME ZONE, TIME with precision management (ie: from 0 to 9).
@@ -246,7 +246,7 @@ Using the UNO API to create databases will allow you to use code that is indepen
 
 Clients using the jdbcDriverOOo driver can access features of the underlying JDBC driver through the [XDriver.getPropertyInfo()][70] method in order to access the necessary parameter when creating tables and display privileges correctly. These parameters being accessible directly by the driver can be obtained before any connection and therefore allows the creation of the database during the first connection.
 
-### What has been done for version 1.3.3:
+### What was done for version 1.3.3:
 
 - [Modification of the handling][71] of the `JavaDriverClassPath` connection parameter. This parameter can now designate a directory and in this case all contained jar files will be added to the `Java ClassPath`. This allows dynamic loading of JDBC drivers requiring multiple archives (ie: Derby and Jaybird embedded). This change was made to allow the new [JaybirdOOo][72] extension to work.
 - Resumed part of the implementation of `javax.sql.rowset.CachedRowSet` in the [ScrollableResultSet.java][73] and [SensitiveResultSet.java][74] ResultSet in order to simulate the `TYPE_SCROLL_SENSITIVE` type from ResultSet of type `TYPE_FORWARD_ONLY` and `TYPE_SCROLL_INSENSITIVE` respectively. This allows LibreOffice Base to use bookmarks (ie: the UNO interface [XRowLocate][64]) which allow positioned insertions, updates and deletions and therefore, for databases supporting it, the possibility of edit tables containing no primary key. In addition, an [SQL mode][75] **allows any ResultSet to be editable.** This mode can be validated in the extension's options, it is very powerful and should therefore be used with caution. Concerning result sets of type `TYPE_FORWARD_ONLY`, their implementation progressively loading the entire data of the result set into memory can lead to a memory overflow. Implementing pagination will eliminate this risk.
@@ -255,7 +255,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - The implementation of `CachedRowSet` seems to have solved the problem of inserting cells from Calc, see [issue #7][79].
 - Many corrections and improvements...
 
-### What has been done for version 1.4.0:
+### What was done for version 1.4.0:
 
 - Updated Jaybird driver to final version 5.0.5.
 - Changed the implementation of the UNO interface [com.sun.star.sdbc.XGeneratedResultSet][43]. This new implementation supports drivers that do not follow the JDBC API but offer a specific implementation (ie: MariaDB and Derby). To be activated when using odb files created with a previous version, if present, it is necessary to modify the parameter: `Query of generated values` accessible by the menu: **Edit -> Database -> Advanced Settings... -> Generated Values** by the value: `SELECT * FROM %s WHERE %s`.
@@ -265,7 +265,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - To work around [issue #368][81] the HsqlDB driver uses SQL mode updates in ResultSet.
 - Many fixes and improvements...
 
-### What has been done for version 1.4.1:
+### What was done for version 1.4.1:
 
 - New implementation, which I hope is definitive, of bookmarks. It is based on three files and is taken from Sun's implementation of `javax.sql.rowset.CachedRowSet`:
   - [ScollableResultSet.class][73]
@@ -275,13 +275,13 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Removed the use of generic classes where they were not needed. This made the driver faster...
 - Added special parameters in: **Edit -> Database -> Advanced parameters... -> Special parameters** in order to respond to the request for integration of the Trino driver (see [improvement request #8 ][83]). It is necessary to recreate the odb files in order to have access to these new parameters.
 
-### What has been done for version 1.4.2:
+### What was done for version 1.4.2:
 
 - Trino JDBC driver updated to version 453.
 - Updated the [Python packaging][84] package to version 24.1.
 - Updated the [Python setuptools][85] package to version 72.1.0 in order to respond to the [Dependabot security alert][86].
 
-### What has been done for version 1.4.3:
+### What was done for version 1.4.3:
 
 - Updated the [Python setuptools][85] package to version 73.0.1.
 - Logging accessible in extension options now displays correctly on Windows.
@@ -289,7 +289,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Changes to extension options that require a restart of LibreOffice will result in a message being displayed.
 - Support for LibreOffice version 24.8.x.
 
-### What has been done for version 1.4.4:
+### What was done for version 1.4.4:
 
 - It is now possible to insert data into an empty table when using an `TYPE_FORWARD_ONLY` ResultSet (ie: SQLite, Trino).
 - The options button is now accessible in the list of installed extensions obtained by the menu: **Tools -> Extensions Manager...**
@@ -297,11 +297,11 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - The extension options: **View system tables**, **Use bookmarks** and **Force SQL mode** will be searched in the information provided when connecting and will take precedence if present.
 - Updated Trino driver to version 455.
 
-### What has been done for version 1.4.5:
+### What was done for version 1.4.5:
 
 - Fix to allow the eMailerOOo extension to work properly in version 1.2.5.
 
-### What has been done for version 1.4.6:
+### What was done for version 1.4.6:
 
 - Modification of the implementation of the interface UNO [XPropertySet][87]. This new implementation ensures the uniqueness of [Handle][88] for each property. Since this implementation is shared with the vCardOOo extension, **it makes all existing versions of vCardOOo obsolete**. It is based on three files:
   - [PropertySet.java][89]
@@ -311,7 +311,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - New implementation of the extension options and more specifically the **JDBC Driver Options** tab which should eventually allow the configuration from scratch of a JDBC driver to be able to work with LibreOffice Base. The JDBC driver archive update operation has been simplified. It supports updating drivers that require multiple jar archives to work (ie: Derby, Jaybird 6.x). This new window, which seems quite simple, actually requires quite complicated management, so please do not hesitate to report any malfunctions.
 - Many other improvements.
 
-### What has been done for version 1.5.0:
+### What was done for version 1.5.0:
 
 - Updated the [Python packaging][84] package to version 25.0.
 - Updated the [Python setuptools][85] package to version 75.3.2.
@@ -329,7 +329,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Any errors occurring while loading the driver will be logged in the extension's log if logging has been previously enabled. This makes it easier to identify installation problems on Windows.
 - When JDBC drivers embedded with the jdbcDriverOOo extension are registered with `java.sql.DriverManager`, i.e. during the first connection requiring this driver, if this driver is already present in the Java class path then this will be detected, the driver not registred, the connection refused and the error recorded in the log.
 
-### What has been done for version 1.5.1:
+### What was done for version 1.5.1:
 
 - **Java instrumentation is now required for jdbcDriverOOo to work properly.** For LibreOffice versions prior to 25.8.x, it is currently necessary to manually install Java instrumentation. A section explaining [How to install Java instrumentation][103] has been added to the documentation. If Java instrumentation is not present, loading the JDBC drivers will fail and an error message will be present in the log.
 - Rewritten Java Service Provider Interface: `javax.sql.rowset.RowSetFactory`. This new SPI service is implemented using the [RowSetFactory.jar][104] archive, which is loaded using Java instrumentation. This new implementation has been modified to support:
@@ -352,21 +352,21 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - The new version of the SQLite driver is now compiled under Java 11 and uses `java.lang.System.Logger` as the logging facade, allowing access to it in LibreOffice. This is the only one that requires the use of the CachedRowSet option, otherwise Base will only display read-only tables and views.
 - This seems to be the most significant update to JdbcDriverOOo, and I didn't expect it to get this far. The next step will be to integrate Trino and be able to run queries distributed across different databases in LibreOffice Base. `CachedRowSet` is exactly the building block I needed to be able to complete this.
 
-### What has been done for version 1.5.2:
+### What was done for version 1.5.2:
 
 A regression in container management (tables, views, and columns) has been present since the last update. It comes from the new integration of the [ResultColumn][108] service, which requires containers capable of handling name duplication, as is sometimes the case for columns in a ResultSet. This addition caused an error in index management after deleting an item. This issue has just been fixed and implemented in both [ContainerBase.java][109] and [ContainerSuper.java][110] files.
 
-### What has been done for version 1.5.3:
+### What was done for version 1.5.3:
 
 [JaybirdEmbedded][111] archive integration allows for true embedded mode for Jaybird. It is no longer necessary to install the Firebird Server to use Firebird in embedded mode (ie: `embedded:*`).
 
-### What has been done for version 1.5.4:
+### What was done for version 1.5.4:
 
 In order to avoid any regressions on extensions using jdbcDriverOOo:
 - `CachedRowSet` will only be used if Bookmarks are used.
 - `CachedRowSet` will not be used for the `com.sun.star.sdbc` API level.
 
-### What has been done for version 1.5.5:
+### What was done for version 1.5.5:
 
 - Now, `RowSetFactory` correctly displays and/or logs messages in French and its code is fully compliant with CheckStyle rules.
 - Two new entries in the `Drivers.xcu` configuration file allow you to filter system catalogs and schemas if necessary and if they exist:
@@ -376,7 +376,7 @@ In order to avoid any regressions on extensions using jdbcDriverOOo:
 - JDBC drivers can be added to the Java ClassPath when they are loaded. This option is even required for the Jaybird 6.0.2 driver to work properly in embedded mode.
 - To ensure consistent driver loading, drivers are now loaded only using the `Class.forName()` method and then registered in `java.sql.DriverManager`.
 
-### What has been done for version 1.5.6:
+### What was done for version 1.5.6:
 
 Integration of the [Oracle JDBC driver][112] `ojdbc17.jar`. This integration required the following modifications to the underlying code:
 - Added two additional parameters to the `Drivers.xcu` file:
@@ -417,7 +417,7 @@ Supporting an additional driver like Oracle's requires a lot of work for functio
 
 If you use multiple accounts to connect to a database, you will not be able to reconnect to that database again if you opened it with an account other than the one offered and then closed it without saving the file. You must restart LibreOffice. See [tdf#167960][125].
 
-### What has been done for version 1.6.0:
+### What was done for version 1.6.0:
 
 - The naming logic for elements requiring compound names, such as tables, views, and columns, has been modified:
   - The naming rules [ComposeRule][126] have been extended with two new rules:
@@ -441,11 +441,11 @@ If you use multiple accounts to connect to a database, you will not be able to r
 
 - Has been tested under LibreOfficeDev 26.2.
 
-### What has been done for version 1.6.1:
+### What was done for version 1.6.1:
 
 - All modal windows now open correctly in modal mode.
 
-### What has been done for version 1.6.2:
+### What was done for version 1.6.2:
 
 - Added the parameter `JavaDriverDependencies` to the [Drivers.xcu][48] file to allow loading a JDBC driver as a dependency.  
   This is necessary for the UCanAccess driver to function correctly, enabling access to MS Access files.
@@ -458,7 +458,18 @@ If you use multiple accounts to connect to a database, you will not be able to r
   It includes PRs [#27321][135] and [#27324][136] enabling support for HsqlDB and editing of ResultSets.
 - Updated SQL Server driver `mssql-jdbc-13.3.0.jre11-preview.jar`. This beta version integrates the fix [#2828][137] enabling the use of relationship management in Base.
 
-### What remains to be done for version 1.6.2:
+### What was done for version 1.7.0:
+
+- **The protocol used has changed from** `xdbc` **to** `juda`.  
+  This change requires updating the data source for all existing `.odb` files.  
+  To update the data source, simply open the `.odb` file, go to **Edit -> Database -> Connection type**, and then select the option from the **Database type** list that matches the type displayed at the bottom left of the LibreOffice Base window.  
+  Close the LibreOffice Base window, saving your changes. You will then be able to reconnect.
+- Replacement of the Trino JDBC driver with the juda JDBC driver (an enhanced version of the Trino driver). This new version allows `java.sql.ResultSet` objects from Trino to be updatable.
+  This replacement also requires modifying the data source for all `.odb` files that used the Trino driver. You must select `Juda pure Java` as the **Database type**.
+- Rewriting of the `javax.sql.rowset.CachedRowSet` implementation used by jdbcDriverOOo. This new version enables write operations in Base data grids displaying query results that involve multiple tables.
+- Improved scrolling smoothness for the Base data grids through the addition of an extra caching layer.
+
+### What remains to be done for version 1.7.0:
 
 - Add new languages for internationalization...
 

@@ -30,18 +30,17 @@ import java.util.Map;
 import javax.sql.rowset.CachedRowSet;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
-import io.github.prrvchr.uno.sdbc.RowSetBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
+import io.github.prrvchr.uno.sdbc.RowSetMain;
+import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
 public abstract class RowSetSuper
-    extends RowSetBase {
+    extends RowSetMain {
 
     private boolean mCanUpdateInsertedRows = true;
 
@@ -50,8 +49,7 @@ public abstract class RowSetSuper
                           String[] services,
                           ConnectionSuper connection,
                           CachedRowSet rowset,
-                          StatementMain statement)
-        throws SQLException {
+                          StatementBase statement) {
         super(service, services, connection, rowset, statement);
     }
 

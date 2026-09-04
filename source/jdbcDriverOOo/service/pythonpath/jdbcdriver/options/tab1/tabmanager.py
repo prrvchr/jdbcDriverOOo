@@ -42,7 +42,7 @@ class TabManager():
     def __init__(self, ctx, window, instrumented, logger, *loggers):
         self._model = TabModel(ctx, instrumented)
         self._view = TabWindow(ctx, window, TabHandler(self))
-        self._manager = OptionsManager(ctx, self._view.getWindow(), instrumented, (), logger, *loggers)
+        self._manager = OptionsManager(ctx, self._view.getWindow(), instrumented, logger, *loggers)
 
 # TabManager setter methods
     def initView(self):

@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 
 public final class KeyColumns
-    extends ContainerBase<KeyColumn> {
+    extends ContainerMain<KeyColumn> {
 
     private static final String SERVICE = KeyColumns.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.KeyColumns",
@@ -86,8 +86,8 @@ public final class KeyColumns
                     break;
                 }
             }
-            ColumnMain column, refColumn = null;
-            column = (ColumnMain) mKey.getTable().getColumnsInternal().getElementByName(name);
+            ColumnBase column, refColumn = null;
+            column = (ColumnBase) mKey.getTable().getColumnsInternal().getElementByName(name);
             if (mKey.getTypeInternal() == KeyType.FOREIGN) {
                 refColumn = mKey.getRefTableInternal().getColumnsInternal().getElementByName(refColumnName);
             }

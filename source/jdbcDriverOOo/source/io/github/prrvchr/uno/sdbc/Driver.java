@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.util.Set;
-
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
@@ -50,9 +48,8 @@ public final class Driver
     @Override
     protected ConnectionBase getConnection(XComponentContext ctx,
                                            Provider provider,
-                                           String url,
-                                           Set<String> properties) {
-        return new Connection(ctx, provider, url, properties);
+                                           String url) {
+        return new Connection(ctx, provider, url);
     }
 
 }

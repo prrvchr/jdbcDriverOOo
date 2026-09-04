@@ -25,362 +25,79 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.io.InputStream;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Map;
 
-import com.sun.star.io.XInputStream;
-import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XArray;
-import com.sun.star.sdbc.XBlob;
-import com.sun.star.sdbc.XClob;
-import com.sun.star.sdbc.XConnection;
-import com.sun.star.sdbc.XParameters;
-import com.sun.star.sdbc.XPreparedBatchExecution;
-import com.sun.star.sdbc.XPreparedStatement;
-import com.sun.star.sdbc.XRef;
-import com.sun.star.sdbc.XResultSet;
-import com.sun.star.sdbc.XResultSetMetaData;
-import com.sun.star.sdbc.XResultSetMetaDataSupplier;
-import com.sun.star.uno.Any;
-import com.sun.star.util.Date;
-import com.sun.star.util.DateTime;
-import com.sun.star.util.Time;
+import com.sun.star.logging.LogLevel;
+import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.helper.StandardSQLState;
-import io.github.prrvchr.uno.driver.provider.DBTools;
+import io.github.prrvchr.uno.driver.helper.QueryHelper;
+import io.github.prrvchr.uno.driver.property.PropertyID;
+import io.github.prrvchr.uno.driver.property.PropertyWrapper;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.helper.UnoHelper;
-
 
 public abstract class PreparedStatementMain
-    extends StatementMain
-    implements XParameters,
-               XPreparedBatchExecution,
-               XPreparedStatement,
-               XResultSetMetaDataSupplier {
+    extends PreparedStatementBase {
+
+    protected boolean mUseBookmarks = false;
 
     // The constructor method:
     // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.CallableStatement()
-    // XXX: - io.github.prrvchr.uno.sdbc.PreparedStatementMain()
-    // XXX: - io.github.prrvchr.uno.sdbc.PreparedStatementBase()
-    // XXX: - io.github.prrvchr.uno.sdbc.CallableStatementBase()
+    // XXX: - io.github.prrvchr.uno.sdbc.PreparedStatement()
+    // XXX: - io.github.prrvchr.uno.sdbc.PreparedStatementSuper()
     public PreparedStatementMain(String service,
                                  String[] services,
-                                 ConnectionBase connection) {
-        super(service, services, connection);
-    }
-
-    @Override
-    protected java.sql.ResultSet getJdbcResultSet() throws SQLException {
-        try {
-            return getJdbcStatement().executeQuery();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    protected abstract PreparedStatement getJdbcStatement() throws java.sql.SQLException;
-
-    // com.sun.star.sdbc.XParameters:
-    @Override
-    public void clearParameters() throws SQLException {
-        try {
-            getJdbcStatement().clearParameters();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setArray(int index, XArray value) throws SQLException {
-        try {
-            java.sql.Array array = getJdbcStatement().getConnection().createArrayOf(value.getBaseTypeName(),
-                                                                                    value.getArray(null));
-            getJdbcStatement().setArray(index, array);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setBinaryStream(int index, XInputStream value, int lenght) throws SQLException {
-        try {
-            InputStream input = new XInputStreamToInputStreamAdapter(value);
-            getJdbcStatement().setBinaryStream(index, input, lenght);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setBlob(int index, XBlob value) throws SQLException {
-        try {
-            java.sql.Blob blob = getJdbcStatement().getConnection().createBlob();
-            blob.setBytes(1, value.getBytes(1, (int) value.length()));
-            getJdbcStatement().setBlob(index, blob);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setBoolean(int index, boolean value) throws SQLException {
-        try {
-            getJdbcStatement().setBoolean(index, value);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setByte(int index, byte value) throws SQLException {
-        try {
-            getJdbcStatement().setByte(index, value);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setBytes(int index, byte[] value) throws SQLException {
-        try {
-            getJdbcStatement().setBytes(index, value);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setCharacterStream(int index, XInputStream value, int lenght) throws SQLException {
-        try {
-            getJdbcStatement().setCharacterStream(index,
-                                new java.io.InputStreamReader(new XInputStreamToInputStreamAdapter(value)), lenght);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setClob(int index, XClob value) throws SQLException {
-        try {
-            java.sql.Clob clob = getJdbcStatement().getConnection().createClob();
-            clob.setString(1, value.toString());
-            getJdbcStatement().setClob(index, clob);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setDate(int index, Date value) throws SQLException {
-        try {
-            java.sql.Date date = java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value));
-            getJdbcStatement().setDate(index, date);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setDouble(int index, double value) throws SQLException {
-        try {
-            getJdbcStatement().setDouble(index, value);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setFloat(int index, float value) throws SQLException {
-        try {
-            getJdbcStatement().setFloat(index, value);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setInt(int index, int value) throws SQLException {
-        try {
-            getJdbcStatement().setInt(index, value);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setLong(int index, long value) throws SQLException {
-        try {
-            getJdbcStatement().setLong(index, value);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setNull(int index, int type) throws SQLException {
-        try {
-            getJdbcStatement().setNull(index, type);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setObject(int index, Object value)
+                                 ConnectionBase connection,
+                                 String sql)
         throws SQLException {
-        try {
-            if (!DBTools.setObject(getJdbcStatement(), index, value)) {
-                String error = SharedResources.getInstance().getResourceWithSubstitution(
-                        Resources.STR_UNKNOWN_PARA_TYPE, "$position$", Integer.toString(index));
-                throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-            }
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-
+        super(service, services, connection);
+        mQuery = new QueryHelper(connection.getProvider(), sql);
     }
 
     @Override
-    public void setObjectNull(int index, int type, String name) throws SQLException {
-        try {
-            getJdbcStatement().setObject(index, null);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+    protected void registerProperties(Map<PropertyID, PropertyWrapper> properties) {
+
+        properties.put(PropertyID.USEBOOKMARKS,
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS,
+                                       Boolean.toString(mUseBookmarks));
+                    return mUseBookmarks;
+                },
+                value -> {
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS,
+                                       value.toString());
+                    mUseBookmarks = (boolean) value;
+                }));
+
+        super.registerProperties(properties);
     }
 
     @Override
-    public void setObjectWithInfo(int index, Object value, int type, int scale) throws SQLException {
-        try {
-            getJdbcStatement().setObject(index, value, type, scale);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setRef(int index, XRef value) throws SQLException {
-        // XXX: Implement me!!!
-    }
-
-    @Override
-    public void setShort(int index, short value) throws SQLException {
-        try {
-            getJdbcStatement().setShort(index, value);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setString(int index, String value) throws SQLException {
-        try {
-            getJdbcStatement().setString(index, value);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setTime(int index, Time value) throws SQLException {
-        try {
-            java.sql.Time time = java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value));
-            getJdbcStatement().setTime(index, time);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void setTimestamp(int index, DateTime value) throws SQLException {
-        try {
-            java.sql.Timestamp timestamp = java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value));
-            getJdbcStatement().setTimestamp(index, timestamp);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-
-    // com.sun.star.sdbc.XPreparedBatchExecution:
-    @Override
-    public void addBatch() throws SQLException {
-        try {
-            getJdbcStatement().addBatch();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public void clearBatch() throws SQLException {
-        try {
-            getJdbcStatement().clearBatch();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public int[] executeBatch() throws SQLException {
-        try {
-            return getJdbcStatement().executeBatch();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-
-    // com.sun.star.sdbc.XPreparedStatement:
-    @Override
-    public boolean execute() throws SQLException {
-        try {
-            return getJdbcStatement().execute();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public XResultSet executeQuery() throws SQLException {
-        return getResultSet();
-    }
-
-    @Override
-    public int executeUpdate() throws SQLException {
-        try {
-            return getJdbcStatement().executeUpdate();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public XConnection getConnection() throws SQLException {
-        return mConnection;
-    }
-
-
-    // com.sun.star.sdbc.XResultSetMetaDataSupplier:
-    @Override
-    public XResultSetMetaData getMetaData() throws SQLException {
-        XResultSetMetaData metadata = null;
-        try {
-            java.sql.ResultSetMetaData md = getJdbcStatement().getMetaData();
-            if (md != null) {
-                metadata = new ResultSetMetaData(mConnection, md);
+    protected PreparedStatement getJdbcStatement()
+        throws SQLException {
+        checkDisposed();
+        if (mStatement == null) {
+            PreparedStatement statement;
+            String sql = mQuery.getQuery();
+            if (mQuery.isInsertCommand()) {
+                int option = mConnection.getProvider().getGeneratedKeysOption();
+                statement = mConnection.getProvider().getConnection().prepareStatement(sql, option);
+            } else if (mResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY ||
+                       mResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
+                int holdability = java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT;
+                //int holdability = java.sql.ResultSet.CLOSE_CURSORS_AT_COMMIT;
+                statement = mConnection.getProvider().getConnection().prepareStatement(sql,
+                                                                                        mResultSetType,
+                                                                                        mResultSetConcurrency,
+                                                                                        holdability);
             } else {
-                System.out.println("PreparedStatementMain.getMetaData() ERROR ********************************");
+                statement = mConnection.getProvider().getConnection().prepareStatement(sql);
             }
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            mStatement = setStatement(statement);
         }
-        return metadata;
+        return (PreparedStatement) mStatement;
     }
-
 
 }

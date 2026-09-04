@@ -27,8 +27,6 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.HashMap;
 
-import javax.sql.rowset.CachedRowSet;
-
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
@@ -64,14 +62,22 @@ public final class CallableStatement
             java.sql.ResultSet rs = getJdbcResultSet();
             Provider provider = getConnectionInternal().getProvider();
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            if (mUseBookmarks && provider.getConfigSQL().useCachedRowSet(rs, mQuery)) {
-                CachedRowSet crs = ResultSetHelper.getCachedRowSet(provider, rs, mQuery);
+            if (mUseBookmarks && provider.getConfigSQL().useRowSet(rs, mQuery)) {
+                javax.sql.rowset.CachedRowSet crs = ResultSetHelper.getCachedRowSet(provider, rs, mQuery);
                 if (!crs.isReadOnly()) {
-                    RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
-                    String services = String.join(", ", rowset.getSupportedServiceNames());
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
-                                       services, rowset.getLogger().getObjectId());
-                    resultset = rowset;
+                    if (provider.getConfigSQL().useCachedRowSet()) {
+                        CachedRowSet rowset = new CachedRowSet(getConnectionInternal(), crs, this);
+                        String services = String.join(", ", rowset.getSupportedServiceNames());
+                        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                           services, rowset.getLogger().getObjectId());
+                        resultset = rowset;
+                    } else {
+                        RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
+                        String services = String.join(", ", rowset.getSupportedServiceNames());
+                        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                           services, rowset.getLogger().getObjectId());
+                        resultset = rowset;
+                    }
                 } else {
                     rs = getJdbcResultSet();
                 }

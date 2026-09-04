@@ -275,7 +275,7 @@ public class CachedRowSetReader implements RowSetReader, Serializable {
                     throw new SQLException(ex.getMessage());
                 }
                 rs = pstmt.executeQuery();
-                crs.populate(rs,startPosition);
+                crs.populate(rs, startPosition);
             }
             rs.close();
         } else  {

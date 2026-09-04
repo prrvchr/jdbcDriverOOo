@@ -39,10 +39,10 @@ import traceback
 
 
 class OptionsManager():
-    def __init__(self, ctx, window, instrumented, options, logger, *loggers):
+    def __init__(self, ctx, window, instrumented, logger, *loggers):
         self._logmanager = LogManager(ctx, window, 'requirements.txt', logger, *loggers)
         self._model = OptionsModel(ctx, instrumented)
-        self._view = OptionsWindow(ctx, window, WindowHandler(self), options)
+        self._view = OptionsWindow(ctx, window, WindowHandler(self))
 
 # OptionManager setter methods
     def initView(self):
@@ -68,10 +68,16 @@ class OptionsManager():
         self._initView()
 
     def setApiLevel(self, level):
-        self._view.enableCachedRowSet(self._model.setApiLevel(level))
+        enabled = self._model.setApiLevel(level)
+        self._view.enableResultSetType(enabled)
+        self._view.enableCachedRowSet(enabled)
 
-    def setCachedRowSet(self, level):
-        self._model.setCachedRowSet(level)
+    def setResultSetType(self, level):
+        enabled = self._model.setResultSetType(level)
+        self._view.enableCachedRowSet(enabled)
+
+    def setCachedRowSet(self, state):
+        self._model.setCachedRowSet(state)
 
     def setSystemTable(self, state):
         self._model.setSystemTable(state)

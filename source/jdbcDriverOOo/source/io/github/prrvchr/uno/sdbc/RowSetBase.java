@@ -63,8 +63,7 @@ public abstract class RowSetBase
                          String[] services,
                          ConnectionBase connection,
                          CachedRowSet rowset,
-                         StatementMain statement)
-        throws SQLException {
+                         StatementBase statement) {
         super(service, services, connection, rowset, statement, true);
     }
 
@@ -105,32 +104,17 @@ public abstract class RowSetBase
     }
 
     @Override
-    public Object getBookmark()
-        throws SQLException {
-        try {
-            // XXX: Base can call getBookmark() while still on
-            // XXX: the insert row. See tdf#168145
-            if (mOnInsert) {
-                moveToCurrentRowInternal();
-            }
-            // XXX: If an insert was made, we need to validate that insert.
-            if (mRowInserted) {
-                acceptInsert();
-            }
-            Object bookmark = Any.VOID;
-            boolean showdeleted = getRowSet().getShowDeleted();
-            getRowSet().setShowDeleted(true);
-            int row = mResult.getRow();
-            getRowSet().setShowDeleted(showdeleted);
-            if (row != 0) {
-                bookmark = row;
-            }
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, bookmark.toString());
-            return bookmark;
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
+    public abstract Object getBookmark() throws SQLException;
+
+    // XXX: If the bookmark could not be located, the result set will be positioned after the last record.
+    // XXX: https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XRowLocate.html#moveRelativeToBookmark
+    @Override
+    public abstract boolean moveRelativeToBookmark(Object bookmark, int count) throws SQLException;
+
+    // XXX: If the bookmark could not be located, the result set will be positioned after the last record.
+    // XXX: https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XRowLocate.html#moveToBookmark
+    @Override
+    public abstract boolean moveToBookmark(Object bookmark) throws SQLException;
 
     @Override
     public boolean hasOrderedBookmarks()
@@ -148,51 +132,6 @@ public abstract class RowSetBase
             throw new SQLException("Bad bookmark", this, StandardSQLState.SQL_INVALID_BOOKMARK_VALUE.text(), 0, null);
         }
         return row;
-    }
-
-    // XXX: If the bookmark could not be located, the result set will be positioned after the last record.
-    // XXX: https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XRowLocate.html#moveRelativeToBookmark
-    @Override
-    public boolean moveRelativeToBookmark(Object bookmark, int count)
-        throws SQLException {
-        try {
-            boolean moved = false;
-            if (moveToBookmarkInternal(bookmark)) {
-                moved = mResult.relative(count);
-            }
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK,
-                               count, AnyConverter.toInt(bookmark), moved);
-            if (!moved) {
-                mResult.afterLast();
-            }
-            return moved;
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    // XXX: If the bookmark could not be located, the result set will be positioned after the last record.
-    // XXX: https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XRowLocate.html#moveToBookmark
-    @Override
-    public boolean moveToBookmark(Object bookmark)
-        throws SQLException {
-        try {
-            boolean moved = moveToBookmarkInternal(bookmark);
-            if (!moved) {
-                mResult.afterLast();
-            }
-            return moved;
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    private boolean moveToBookmarkInternal(Object bookmark) throws java.sql.SQLException {
-        boolean showdeleted = getRowSet().getShowDeleted();
-        getRowSet().setShowDeleted(true);
-        boolean moved = mResult.absolute(AnyConverter.toInt(bookmark));
-        getRowSet().setShowDeleted(showdeleted);
-        return moved;
     }
 
     // com.sun.star.sdbcx.XDeleteRows:
@@ -234,7 +173,7 @@ public abstract class RowSetBase
                                    StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
         }
         try {
-            insertRowInternal();
+            internalInsertRow();
             // XXX: We cannot commit this insert while we are on the insert row.
             // XXX: So we keep the fact that we performed an insert.
             mRowInserted = true;
@@ -248,7 +187,7 @@ public abstract class RowSetBase
         throws SQLException {
         try {
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENT_ROW);
-            moveToCurrentRowInternal();
+            internalMoveToCurrentRow();
             // XXX: we need to check if an insertion has not taken
             // XXX: place and in this case commit this insertion.
             if (mRowInserted) {
@@ -272,13 +211,9 @@ public abstract class RowSetBase
 
     @Override
     public void deleteRow() throws SQLException {
-        try {
-            mResult.deleteRow();
-            // XXX: the delete will be committed
-            acceptChanges();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+        super.deleteRow();
+        // XXX: the delete will be committed
+        acceptChanges();
     }
 
     // com.sun.star.sdbc.XWarningsSupplier:
@@ -294,14 +229,22 @@ public abstract class RowSetBase
         return Any.VOID;
     }
 
-    private void acceptInsert() throws java.sql.SQLException {
+    private void acceptInsert() throws SQLException {
         acceptChanges();
         // XXX: We must position the cursor on the new inserted row (ie: last row)
-        mResult.last();
+        super.last();
         mRowInserted = false;
     }
 
-    private void acceptChanges() throws java.sql.SQLException {
+    protected void acceptChanges() throws SQLException {
+        try {
+            internalAcceptChanges();
+        } catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, this);
+        }
+    }
+
+    private void internalAcceptChanges() throws java.sql.SQLException {
         try {
             getRowSet().acceptChanges(mConnection.getProvider().getConnection());
         } catch (SyncProviderException spe) {
@@ -310,10 +253,12 @@ public abstract class RowSetBase
             // XXX: If the error occurred before the data was modified, then the resolver may be null.
             if (resolver != null && resolver.getStatus() != SyncResolver.NO_ROW_CONFLICT) {
 
-                // XXX: If conflicts occur then the current operation will be canceled
-                // XXX: If we want to be able to undoDelete we need to show deleted row
-                boolean showDel = getRowSet().getShowDeleted();
-                getRowSet().setShowDeleted(true);
+                // XXX: If conflicts occur then the current operation will be canceled. If we want to
+                // XXX: be able to undo the deletion, we must ensure that the deleted rows are displayed.
+                boolean showDeleted = getRowSet().getShowDeleted();
+                if (!showDeleted) {
+                    getRowSet().setShowDeleted(true);
+                }
 
                 while (resolver.nextConflict()) {
                     switch (resolver.getStatus()) {
@@ -332,8 +277,10 @@ public abstract class RowSetBase
                 // XXX: the cursor position of the CachedRowSet
                 resolver.close();
 
-                // reset CachedRowSet
-                getRowSet().setShowDeleted(showDel);
+                // XXX: Reset CachedRowSet showDeleted status
+                if (!showDeleted) {
+                    getRowSet().setShowDeleted(false);
+                }
             }
 
             // XXX: we throw the original SQLException if exist

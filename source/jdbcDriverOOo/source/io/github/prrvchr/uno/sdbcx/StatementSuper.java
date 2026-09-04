@@ -35,11 +35,11 @@ import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
 import io.github.prrvchr.uno.driver.logger.ConnectionLog;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
-import io.github.prrvchr.uno.sdbc.StatementBase;
+import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public abstract class StatementSuper
-    extends StatementBase {
+    extends StatementMain {
 
     protected boolean mUseBookmarks = false;
 

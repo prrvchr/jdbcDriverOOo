@@ -34,7 +34,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
-
 import io.github.prrvchr.java.rowset.JdbcRowSetResourceBundle;
 
 public class RowSetHelper {

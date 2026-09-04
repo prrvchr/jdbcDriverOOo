@@ -16,7 +16,10 @@
     <module name="TrailingComment">
       <property name="legalComment" value="\$NON-NLS-[0-9]+\$"/>
     </module>
-    <module name="AvoidInlineConditionals"/>
+    <module name="AvoidInlineConditionals">
+      <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
     <module name="HiddenField"/>
     <module name="UnnecessaryParentheses"/>
     <module name="AvoidStarImport"/>
@@ -29,11 +32,11 @@
     <module name="SimplifyBooleanReturn"/>
     <module name="StaticVariableName">
       <property name="applyToPublic" value="false"/>
-      <property name="format" value="^s[A-Z][a-zA-Z0-9]*$"/>
+      <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
     </module>
     <module name="ParameterName"/>
     <module name="MemberName">
-      <property name="format" value="^m[A-Z][a-zA-Z0-9]*$"/>
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
     </module>
     <module name="ConstantName">
       <property name="applyToPrivate" value="false"/>
@@ -49,7 +52,7 @@
     <module name="NestedTryDepth"/>
     <module name="PackageDeclaration"/>
     <module name="ReturnCount">
-      <property name="max" value="1"/>
+      <property name="max" value="3"/>
     </module>
     <module name="SimplifyBooleanExpression"/>
     <module name="BooleanExpressionComplexity"/>
@@ -86,7 +89,7 @@
   <module name="FileTabCharacter"/>
   <module name="LineLength">
     <property name="fileExtensions" value="java"/>
-    <property name="max" value="120"/>
+    <property name="max" value="132"/>
   </module>
   <module name="RegexpHeader">
     <property name="severity" value="info"/>

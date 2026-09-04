@@ -29,7 +29,10 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.6.2][5]
+# version [1.7.0][5]
+
+**Cette nouvelle version ne permettra pas de se connecter avec des fichiers .odb créés avec une version antérieure sans redéfinir la source de données.**  
+Veuillez consulter [Ce qui a été fait pour la version 1.7.0][5] pour connaître la procédure à suivre.
 
 ## Introduction:
 
@@ -40,17 +43,18 @@ Cette extension est la transcription en Java pur de l'API [java.sql.*][9] vers l
 
 Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB][13] version 2.7.4
-- [SQLite via xerial sqlite-jdbc][14] version 3.50.2.1-SNAPSHOT
-- [MariaDB via Connector/J][15] version 3.5.3
-- [PostgreSQL via pgJDBC][16] version 42.7.5
-- [H2 Database Engine][17] version 2.2.224
+- [SQLite via xerial sqlite-jdbc][14] version 3.51.1.1-SNAPSHOT
+- [MariaDB via Connector/J][15] version 3.5.10
+- [PostgreSQL via pgJDBC][16] version 42.7.13
+- [H2 Database Engine][17] version 2.5.250
 - [Apache Derby][18] version 11.16.1.1
-- Firebird via [Jaybird][19] version 6.0.3 et [JaybirdEmbedded][20] version 1.0.0
-- [MySQL via Connector/J][21] version 9.3.0
-- Oracle Database 23ai Free version 23.9.0.25.07 via [ojdbc17.jar][22].
-- Microsoft SQL Server via [mssql-jdbc-13.3.0.jre11-preview.jar][23].
+- Firebird via [Jaybird][19] version 6.0.6 et [JaybirdEmbedded][20] version 1.0.0
+- [MySQL via Connector/J][21] version 26.7.0
+- Oracle Database 26ai (23.26.3.0) JDBC Driver via [ojdbc17.jar][22].
+- Microsoft SQL Server via [mssql-jdbc-13.4.0.jre11.jar][23].
 - Microsoft Access via [ucanaccess-5.1.4.jar][24].
-- [Trino ou PrestoSQL][25] version 479-SNAPSHOT.
+- [juda][25] version 484-SNAPSHOT une version amélioré de [Trino][26].  
+  Pour plus d'informations sur l'utilisation du pilote juda, veuillez consulter la section [Base avec juda][27].
 
 Grâce aux pilotes fournissant un moteur de base de données intégré tels que: HsqlDB, H2, SQLite, Derby, UCanAccess ou Jaybird, il est possible dans Base de créer et gérer très facilement des bases de données, aussi facilement que de créer des documents Writer.  
 Vous trouverez les informations nécessaires à la création d'une base de données avec ces pilotes dans la section: [URL de connexion][30]
@@ -69,7 +73,7 @@ ___
 ## Prérequis:
 
 jdbcDriverOOo est un pilote JDBC écrit en Java.  
-Son utilisation nécessite [l'installation et la configuration][35] dans LibreOffice d'un **JRE ou JDK Java version 17 ou ultérieure**.  
+Son utilisation nécessite [l'installation et la configuration][35] dans LibreOffice d'un **JDK Java version 17 ou ultérieure**.  
 Je vous recommande [Adoptium][36] comme source d'installation de Java.
 
 **Si vous utilisez une version de LibreOffice antérieure à 25.8.x, vous devez installer manuellement l'instrumentation Java.** Pour installer l'instrumentation Java avec LibreOffice, veuillez consulter la section [Comment installer l'Instrumentation Java][37].
@@ -110,7 +114,7 @@ La journalisation `Driver` doit d'abord être activée, puis LibreOffice redéma
 
 **Attention ne pas oublier:**
 - De mettre à jour la version du JRE ou JDK Java installée sur votre ordinateur si nécessaire, cette nouvelle version de jdbcDriverOOo nécessite **Java version 17 ou ultérieure** au lieu de Java 11 auparavant.
-- D'installer l'instrumentation Java si LibreOffice est inférieur à 25.8, veuillez suivre la description dans la section [Comment installer l'instrumentation Java][35].
+- D'installer l'instrumentation Java si LibreOffice est inférieur à 25.8, veuillez suivre la description dans la section [Comment installer l'instrumentation Java][37].
 
 ___
 
@@ -208,6 +212,17 @@ Cette fonctionnalité est une extension de l'API UNO et ne sera disponible que s
 
 ___
 
+## Base avec juda:
+
+Le pilote **juda** vous permet de vous connecter à un serveur juda (un serveur Trino amélioré).  
+Tout ce qui concerne la configuration du serveur juda est expliqué dans le dépôt [juda][56].  
+
+Si le serveur juda s'exécute sur la même machine que celle où vous utilisez LibreOffice pour vous y connecter, vous devez utiliser l'URL suivante dans Base:
+- `//localhost:8080`, après avoir sélectionné `Juda pure Java` comme type de source de données.
+Sinon, remplacez `localhost` par l'adresse IP du serveur Juda.
+
+___
+
 ## URL de connexion:
 
 Certaines bases de données comme HsqlDB, H2, SQLite, Derby, UCanAccess ou Firebird via Jaybird permettent la création de la base de données lors de la connexion si cette base de données n'existe pas encore.
@@ -235,7 +250,7 @@ Pour créer une base de données, dans LibreOffice allez dans le menu: **Fichier
   - Windows: `embedded:C:\Utilisateurs\prrvc\testdb\firebird?createDatabaseIfNotExist=true`
 
   Firebird utilise [JaybirdEmbedded][20] pour fonctionner en mode embarqué. Vous trouverez les plateformes prises en charge dans la documentation de [JaybirdEmbedded][20].  
-  Pour les plateformes non prises en charge, vous pouvez toujours installer [Firebird Server][56] correspondant à votre plateforme.
+  Pour les plateformes non prises en charge, vous pouvez toujours installer [Firebird Server][57] correspondant à votre plateforme.
 
 Une fois le fichier **odb** créé et ouvert dans **LibreOffice Base**, il peut être **nécessaire, voire recommandé**, de supprimer l'option de création existante dans l'URL de connexion.  
 Pour ce faire, dans **Base**, accédez au menu: **Édition > Base de données > Propriétés... > Général**. Vous devrez enregistrer le fichier et le rouvrir pour que les modifications soient prises en compte.
@@ -247,7 +262,7 @@ ___
 Afin d'utiliser les services Java SPI offerts par l'implémentation `RowSetFactory.jar`, l'instrumentation Java doit être installée sous LibreOffice.  
 Cela se fait automatiquement à partir de la version 25.8.x de LibreOffice, mais doit être fait manuellement pour les versions inférieures.  
 Voici les différentes étapes:
-- Télécharger l'archive [InstrumentationAgent.jar][57] et placez-la dans un dossier.
+- Télécharger l'archive [InstrumentationAgent.jar][58] et placez-la dans un dossier.
 - Dans LibreOffice, par le menu: **Outils -> Options -> LibreOffice -> Avancé -> Options Java -> Paramètres -> Paramètre de démarrage Java** ajouter la commande:
     - Pour Windows: `-javaagent:c:\dossier\InstrumentationAgent.jar`.
     - Pour Linux: `-javaagent:/dossier/InstrumentationAgent.jar`.
@@ -255,18 +270,18 @@ Voici les différentes étapes:
     Bien entendu, le chemin vers l'archive reste à adapter à votre cas d'utilisation.
 - Redémarrez LibreOffice pour prendre en compte ces modifications.
 
-Si vous pensez qu'il serait bon d'éviter cette manipulation, demandez à LibreOffice de [rétroporter l'instrumentation Java][58].
+Si vous pensez qu'il serait bon d'éviter cette manipulation, demandez à LibreOffice de [rétroporter l'instrumentation Java][59].
 
 ___
 
 ## Comment créer l'extension:
 
-Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][59]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
+Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][60]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
 Pour créer l'extension jdbcDriverOOo avec l'aide d'Apache Ant, vous devez:
-- Installer le [SDK Java][60] version 17 ou supérieure.
-- Installer [Apache Ant][61] version 1.10.0 ou supérieure.
-- Installer [LibreOffice et son SDK][62] version 7.x ou supérieure.
-- Cloner le dépôt [jdbcDriverOOo][63] sur GitHub dans un dossier.
+- Installer le [SDK Java][61] version 17 ou supérieure.
+- Installer [Apache Ant][62] version 1.10.0 ou supérieure.
+- Installer [LibreOffice et son SDK][63] version 7.x ou supérieure.
+- Cloner le dépôt [jdbcDriverOOo][64] sur GitHub dans un dossier.
 - Depuis ce dossier, accédez au répertoire: `source/jdbcDriverOOo/`
 - Dans ce répertoire, modifiez le fichier `build.properties` afin que les propriétés `office.install.dir` et `sdk.dir` pointent vers les dossiers d'installation de LibreOffice et de son SDK, respectivement.
 - Lancez la création de l'archive avec la commande: `ant`
@@ -299,7 +314,7 @@ ___
 Ce pilote a été écrit pour contourner certains problèmes inhérents à l'implémentation UNO du pilote JDBC intégré dans LibreOffice / OpenOffice, à savoir:
 
 - L'impossibilité de fournir le chemin de l'archive Java du driver (hsqldb.jar) lors du chargement du pilote JDBC.
-- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][64].
+- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][65].
 
 Afin de profiter des dernières fonctionnalités offertes par les bases de données et entre autre HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
@@ -313,7 +328,8 @@ Afin de ne pas empêcher le pilote JDBC natif de fonctionner, il se charge lors 
 - `xdbc:mariadb:*`
 - `xdbc:...`
 
-mais utilise le protocole `jdbc:*` en interne pour se connecter.
+mais utilise le protocole `jdbc:*` en interne pour se connecter.  
+**Depuis la version 1.7.0 le protocole** `xdbc` **à été remplacé par** `juda`.
 
 Il permet également d'offrir des fonctionnalités que le pilote JDBC implémenté dans LibreOffice ne fournit pas, à savoir:
 
@@ -321,13 +337,13 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - L'utilisation du type SQL Array dans les requêtes.
 - Tout ce que nous sommes prêts à mettre en œuvre.
 
-### [Toutes les changements sont consignées dans l'Historique des versions][65]
+### [Toutes les changements sont consignées dans l'Historique des versions][66]
 
 [1]: </img/jdbcdriver.svg#collapse>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-162>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-170>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -347,14 +363,16 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [22]: <https://www.oracle.com/fr/database/technologies/appdev/jdbc-downloads.html>
 [23]: <https://github.com/prrvchr/mssql-jdbc>
 [24]: <https://github.com/spannm/ucanaccess>
-[25]: <https://trino.io/docs/current/client/jdbc.html#installing>
+[25]: <https://prrvchr.github.io/juda/README_fr>
+[26]: <https://github.com/trinodb/trino>
+[27]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#base-avec-juda>
 [30]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#url-de-connexion>
 [31]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [32]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
 [33]: <https://github.com/sponsors/prrvchr>
 [34]: <https://appdefensealliance.dev/casa>
 [35]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
-[36]: <https://adoptium.net/temurin/releases/?version=17&package=jre>
+[36]: <https://adoptium.net/fr/temurin/releases?version=17&os=any&arch=any>
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#comment-installer-linstrumentation-java>
 [38]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [39]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
@@ -374,13 +392,14 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [53]: <img/jdbcDriverOOo-8_fr.png>
 [54]: <img/jdbcDriverOOo-9_fr.png>
 [55]: <img/jdbcDriverOOo-10_fr.png>
-[56]: <https://firebirdsql.org/en/firebird-5-0-3>
-[57]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/InstrumentationAgent.jar>
-[58]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167071>
-[59]: <https://github.com/LibreOffice/loeclipse>
-[60]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
-[61]: <https://ant.apache.org/manual/install.html>
-[62]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
-[63]: <https://github.com/prrvchr/jdbcDriverOOo.git>
-[64]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
-[65]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>
+[56]: <https://prrvchr.github.io/juda/README_fr>
+[57]: <https://firebirdsql.org/en/firebird-5-0-3>
+[58]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/InstrumentationAgent.jar>
+[59]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167071>
+[60]: <https://github.com/LibreOffice/loeclipse>
+[61]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
+[62]: <https://ant.apache.org/manual/install.html>
+[63]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
+[64]: <https://github.com/prrvchr/jdbcDriverOOo.git>
+[65]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
+[66]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>

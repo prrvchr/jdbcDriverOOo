@@ -61,7 +61,8 @@ public abstract class ConfigBase extends ParameterBase {
 
     // Connection Infos properties
     public static final String SHOW_SYSTEM_TABLE = "ShowSystemTable";
-    public static final String CACHED_ROWSET = "CachedRowSet";
+    public static final String RESULTSET_TYPE = "ResultSetType";
+    public static final String USE_CACHED_ROWSET = "UseCachedRowSet";
     public static final String CONNECTION_URL = "Url";
     public static final String TYPE_INFO_SETTINGS = "TypeInfoSettings";
     public static final String TABLE_TYPES_SETTINGS = "TableTypesSettings";
@@ -91,7 +92,8 @@ public abstract class ConfigBase extends ParameterBase {
     protected final boolean mIsInstrumented;
     protected Object[] mPrivileges = null;
     protected RowSetData mTableData = null;
-    protected Short mCachedRowSet = null;
+    protected Short mResultSetType = null;
+    protected Boolean mUseCachedRowSet = null;
 
     private Boolean mAddIndexAppendix = null;
     private Boolean mIgnoreCurrency = null;
@@ -484,7 +486,8 @@ public abstract class ConfigBase extends ParameterBase {
         // XXX: Options.xcs default properties
         try {
 
-            setCachedRowSet(opts);
+            setResultSetType(opts);
+            setUseCachedRowSet(opts);
             setShowSystemTable(opts);
             setPropertiesMetaData(url, metadata, rewriteTable);
 
@@ -493,19 +496,35 @@ public abstract class ConfigBase extends ParameterBase {
         }
     }
 
-    private void setCachedRowSet(final XNameAccess opts)
+    private void setResultSetType(final XNameAccess opts)
         throws NoSuchElementException, WrappedTargetException {
         // XXX: If CachedRowSet is not provided in the connection information properties
         // XXX: It will be obtained from the Options.xcu configuration file
-        if (mCachedRowSet == null) {
-            short cachedRowSet = 1;
-            if (opts.hasByName(CACHED_ROWSET)) {
-                Object obj = opts.getByName(CACHED_ROWSET);
+        if (mResultSetType == null) {
+            short resultSetType = 1;
+            if (opts.hasByName(RESULTSET_TYPE)) {
+                Object obj = opts.getByName(RESULTSET_TYPE);
                 if (obj != null && AnyConverter.isShort(obj)) {
-                    cachedRowSet = AnyConverter.toShort(obj);
+                    resultSetType = AnyConverter.toShort(obj);
                 }
             }
-            mCachedRowSet = cachedRowSet;
+            mResultSetType = resultSetType;
+        }
+    }
+
+    private void setUseCachedRowSet(final XNameAccess opts)
+        throws NoSuchElementException, WrappedTargetException {
+        // XXX: If CachedRowSet is not provided in the connection information properties
+        // XXX: It will be obtained from the Options.xcu configuration file
+        if (mUseCachedRowSet == null) {
+            boolean useCachedRowSet = false;
+            if (opts.hasByName(USE_CACHED_ROWSET)) {
+                Object obj = opts.getByName(USE_CACHED_ROWSET);
+                if (obj != null && AnyConverter.isBoolean(obj)) {
+                    useCachedRowSet = AnyConverter.toBoolean(obj);
+                }
+            }
+            mUseCachedRowSet = useCachedRowSet;
         }
     }
 
@@ -590,8 +609,11 @@ public abstract class ConfigBase extends ParameterBase {
                 case SHOW_SYSTEM_TABLE:
                     mShowSystemTable = getBooleanConfig(obj, mShowSystemTable);
                     break;
-                case CACHED_ROWSET:
-                    mCachedRowSet = getShortConfig(obj, mCachedRowSet);
+                case RESULTSET_TYPE:
+                    mResultSetType = getShortConfig(obj, mResultSetType);
+                    break;
+                case USE_CACHED_ROWSET:
+                    mUseCachedRowSet = getBooleanConfig(obj, mUseCachedRowSet);
                     break;
                 case CONNECTION_URL:
                     mUrl = getStringConfig(obj, mUrl);
@@ -751,7 +773,7 @@ public abstract class ConfigBase extends ParameterBase {
             }
         }
     }
- 
+
     private void setSystemProperties(final XHierarchicalNameAccess config, final String subProtocol) {
         Object[] properties = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
                                                                               SYSTEM_PROPERTIES);

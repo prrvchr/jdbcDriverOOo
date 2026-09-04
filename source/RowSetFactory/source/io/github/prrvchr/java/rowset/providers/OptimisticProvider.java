@@ -139,7 +139,7 @@ public final class OptimisticProvider extends SyncProvider implements Serializab
     /**
      * The version number of this SyncProvider implementation.
      */
-    private String versionNumber = "1.0";
+    private String versionNumber = "1.1.0";
 
     /**
      * ResourceBundle.

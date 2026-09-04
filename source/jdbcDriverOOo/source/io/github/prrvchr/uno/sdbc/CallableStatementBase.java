@@ -46,7 +46,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class CallableStatementBase
-    extends PreparedStatementMain
+    extends PreparedStatementBase
     implements XOutParameters,
                XRow {
 

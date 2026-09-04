@@ -54,7 +54,7 @@
     <module name="NestedTryDepth"/>
     <module name="PackageDeclaration"/>
     <module name="ReturnCount">
-      <property name="max" value="1"/>
+      <property name="max" value="3"/>
     </module>
     <module name="SimplifyBooleanExpression"/>
     <module name="BooleanExpressionComplexity"/>

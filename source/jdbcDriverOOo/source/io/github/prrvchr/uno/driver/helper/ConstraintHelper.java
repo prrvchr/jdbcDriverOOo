@@ -37,7 +37,6 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
-import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
@@ -45,6 +44,11 @@ import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.provider.DBTools;
+
+import static com.sun.star.uno.UnoRuntime.queryInterface;
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.buildName;
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.qualifiedNameComponents;
+import static io.github.prrvchr.uno.driver.helper.ComponentHelper.quoteTableName;
 
 public class ConstraintHelper {
 
@@ -57,14 +61,14 @@ public class ConstraintHelper {
         throws SQLException {
         try {
             int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.TYPE);
-            String tablename = ComponentHelper.buildName(support, table, sensitive);
+            String tablename = buildName(support, table, sensitive);
             String keyname = KeyHelper.getKeyName(name, table.getTableName(), type);
             keyname = support.enquoteIdentifier(keyname, sensitive);
             String[] columns = getKeyColumns(support, descriptor, PropertyID.NAME, sensitive);
             Map<String, Object> arguments = ParameterDDL.getCreateConstraint(tablename, keyname, columns);
             if (type == KeyType.FOREIGN) {
                 String reftable = DBTools.getDescriptorStringValue(descriptor, PropertyID.REFERENCEDTABLE);
-                reftable = ComponentHelper.quoteTableName(support, reftable, sensitive);
+                reftable = quoteTableName(support, reftable, sensitive);
                 columns = getKeyColumns(support, descriptor, PropertyID.RELATEDCOLUMN, sensitive);
                 int update = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.UPDATERULE);
                 int delete = DBTools.getDescriptorIntegerValue(descriptor, PropertyID.DELETERULE);
@@ -82,9 +86,33 @@ public class ConstraintHelper {
                                          PropertyID name,
                                          boolean sensitive)
         throws SQLException {
-        XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
-        XIndexAccess indexes = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
+        XColumnsSupplier supplier = queryInterface(XColumnsSupplier.class, descriptor);
+        XIndexAccess indexes = queryInterface(XIndexAccess.class, supplier.getColumns());
         return getKeyColumns(support, indexes, name, sensitive);
+    }
+
+    public static List<String> getPrimaryKeys(XPropertySet descriptor)
+        throws SQLException {
+        List<String> primaryKeys = new ArrayList<>();
+        XIndexAccess keys = queryInterface(XKeysSupplier.class, descriptor).getKeys();
+        if (keys != null) {
+            try {
+                for (int i = 0; i < keys.getCount(); i++) {
+                    XPropertySet properties = queryInterface(XPropertySet.class, keys.getByIndex(i));
+                    if (properties != null) {
+                        int keyType = DBTools.getDescriptorIntegerValue(properties, PropertyID.TYPE);
+                        if (keyType == KeyType.PRIMARY) {
+                            XColumnsSupplier supplier = queryInterface(XColumnsSupplier.class, properties);
+                            XIndexAccess columns = queryInterface(XIndexAccess.class, supplier.getColumns());
+                            primaryKeys = getKeyColumns(columns, PropertyID.NAME);
+                        }
+                    }
+                }
+            } catch (WrappedTargetException | IndexOutOfBoundsException e) {
+                throw new SQLException(e.getLocalizedMessage(), e);
+            }
+        }
+        return primaryKeys;
     }
 
     public static List<String> getCreatePrimaryKeyParts(NamedSupport support,
@@ -92,13 +120,12 @@ public class ConstraintHelper {
                                                         boolean sensitive)
         throws SQLException {
         List<String> queries = new ArrayList<>();
-        XKeysSupplier keysSupplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
-        XIndexAccess keys = keysSupplier.getKeys();
+        XIndexAccess keys = queryInterface(XKeysSupplier.class, descriptor).getKeys();
         if (keys != null) {
             boolean hasPrimaryKey = false;
             try {
                 for (int i = 0; i < keys.getCount(); i++) {
-                    XPropertySet columnProperties = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
+                    XPropertySet columnProperties = queryInterface(XPropertySet.class, keys.getByIndex(i));
                     if (columnProperties != null) {
                         setCreatePrimaryKeyQueries(support, queries, columnProperties, sensitive, hasPrimaryKey);
                     }
@@ -118,8 +145,8 @@ public class ConstraintHelper {
         throws SQLException {
         StringBuilder buffer = new StringBuilder();
         int keyType = DBTools.getDescriptorIntegerValue(columnProperties, PropertyID.TYPE);
-        XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, columnProperties);
-        XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
+        XColumnsSupplier columnsSupplier = queryInterface(XColumnsSupplier.class, columnProperties);
+        XIndexAccess columns = queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
         if (columns != null && columns.getCount() > 0) {
             if (keyType == KeyType.PRIMARY) {
                 if (hasPrimaryKey) {
@@ -136,8 +163,8 @@ public class ConstraintHelper {
                 buffer.append("FOREIGN KEY");
                 
                 String refTable = DBTools.getDescriptorStringValue(columnProperties, PropertyID.REFERENCEDTABLE);
-                NamedComponent nameComponents = ComponentHelper.qualifiedNameComponents(support, refTable);
-                String composedName = ComponentHelper.buildName(support, nameComponents, true);
+                NamedComponent nameComponents = qualifiedNameComponents(support, refTable);
+                String composedName = buildName(support, nameComponents, true);
                 if (composedName.isEmpty()) {
                     String msg = "ConstraintHelper::setCreatePrimaryKeyQueries: Error Referenced table can't de read";
                     throw new SQLException(msg);
@@ -171,19 +198,25 @@ public class ConstraintHelper {
                                           PropertyID name,
                                           boolean sensitive)
         throws SQLException {
+        return getKeyColumns(indexes, name).stream()
+                .map(e -> support.enquoteIdentifier(e, sensitive))
+                .toList().toArray(new String[0]);
+    }
+
+    private static List<String> getKeyColumns(XIndexAccess indexes,
+                                              PropertyID name)
+        throws SQLException {
         List<String> columns = new ArrayList<>();
         try {
             for (int i = 0; i < indexes.getCount(); i++) {
-                XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, indexes.getByIndex(i));
+                XPropertySet property = queryInterface(XPropertySet.class, indexes.getByIndex(i));
                 if (property != null) {
-                    String value = DBTools.getDescriptorStringValue(property, name);
-                    columns.add(support.enquoteIdentifier(value, sensitive));
+                    columns.add(DBTools.getDescriptorStringValue(property, name));
                 }
             }
         } catch (IndexOutOfBoundsException | WrappedTargetException e) {
             throw new SQLException(e.getLocalizedMessage(), e);
         }
-        return columns.toArray(new String[0]);
+        return columns;
     }
-
 }

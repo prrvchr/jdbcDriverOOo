@@ -39,16 +39,16 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class KeyColumn
-    extends ColumnMain 
+    extends ColumnBase 
     implements XDataDescriptorFactory {
 
     private static final String SERVICE = KeyColumn.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.KeyColumn"};
 
-    protected ColumnMain mRelatedColumn;
+    protected ColumnBase mRelatedColumn;
 
     // The constructor method:
-    public KeyColumn(final ColumnMain column, final ColumnMain refColumn) {
+    public KeyColumn(final ColumnBase column, final ColumnBase refColumn) {
         super(SERVICE, SERVICES, column);
         mRelatedColumn = refColumn;
         registerProperties();

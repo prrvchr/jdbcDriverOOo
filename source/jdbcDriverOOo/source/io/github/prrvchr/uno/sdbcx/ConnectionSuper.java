@@ -27,7 +27,6 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.sql.ResultSet;
 
 import com.sun.star.container.ElementExistException;
@@ -62,9 +61,8 @@ public abstract class ConnectionSuper
                               String service,
                               String[] services,
                               Provider provider,
-                              String url,
-                              Set<String> properties) {
-        super(ctx, service, services, provider, url, properties);
+                              String url) {
+        super(ctx, service, services, provider, url);
     }
 
     protected Provider getProvider() {

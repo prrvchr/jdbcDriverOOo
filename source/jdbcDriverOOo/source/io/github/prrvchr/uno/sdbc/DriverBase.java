@@ -27,9 +27,6 @@ package io.github.prrvchr.uno.sdbc;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
@@ -135,11 +132,10 @@ public abstract class DriverBase
             // XXX: If the necessary Java instrumentation is not installed a warning will be throw.
             try {
                 XNameAccess config = getOptionConfig(mContext, IDENTIFIER, this);
-                Properties properties = PropertiesHelper.getJdbcConnectionProperties(info);
                 Provider provider = new Provider(mContext, mLogger, mDriver, config,
-                                                 url, info, properties, mApi);
+                                                 url, info, mApi);
                 UnoHelper.disposeComponent(config);
-                connection = getConnection(mContext, provider, url, properties.stringPropertyNames());
+                connection = getConnection(mContext, provider, url);
                 String services = String.join(", ", connection.getSupportedServiceNames());
                 mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services,
                                connection.getProvider().getLogger().getObjectId());
@@ -195,8 +191,7 @@ public abstract class DriverBase
     // Protected methods:
     protected abstract ConnectionBase getConnection(XComponentContext ctx,
                                                     Provider provider,
-                                                    String url,
-                                                    Set<String> properties);
+                                                    String url);
 
     // Private methods:
     private boolean isJavaLoggerEnabled(XComponentContext context) throws SQLException {

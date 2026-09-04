@@ -84,7 +84,7 @@ public abstract class ResultSetBase
 
     protected ConnectionBase mConnection;
     protected java.sql.ResultSet mResult;
-    protected StatementMain mStatement;
+    protected StatementBase mStatement;
     // XXX: We need to know when we are on the insert row
     // XXX: see tdf#167434: SDBC method cancelRowUpdates caller on insert row
     protected boolean mOnInsert = false;
@@ -100,8 +100,7 @@ public abstract class ResultSetBase
     public ResultSetBase(String service,
                          String[] services,
                          ConnectionBase connection,
-                         java.sql.ResultSet result)
-        throws SQLException {
+                         java.sql.ResultSet result) {
         this(service, services, connection, result, null, false);
     }
 
@@ -109,8 +108,7 @@ public abstract class ResultSetBase
                          String[] services,
                          ConnectionBase connection,
                          java.sql.ResultSet result,
-                         String method)
-        throws SQLException {
+                         String method) {
         this(service, services, connection, result, null, false, method);
     }
 
@@ -118,9 +116,8 @@ public abstract class ResultSetBase
                          String[] services,
                          ConnectionBase connection,
                          java.sql.ResultSet result,
-                         StatementMain statement,
-                         boolean bookmark)
-        throws SQLException {
+                         StatementBase statement,
+                         boolean bookmark) {
         this(service, services, connection, result, statement, bookmark, "");
     }
 
@@ -128,10 +125,9 @@ public abstract class ResultSetBase
                          String[] services,
                          ConnectionBase connection,
                          java.sql.ResultSet resultset,
-                         StatementMain statement,
+                         StatementBase statement,
                          boolean bookmark,
-                         String method)
-        throws SQLException {
+                         String method) {
         mService = service;
         mServices = services;
         mConnection = connection;
@@ -331,7 +327,7 @@ public abstract class ResultSetBase
         try {
             resetOnInsertRow();
             boolean moved = mResult.absolute(row);
-            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, row, moved);
+            // mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, row, moved);
             return moved;
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -475,7 +471,6 @@ public abstract class ResultSetBase
     public void refreshRow()
         throws SQLException {
         try {
-            System.out.println("ResultSetBase.refreshRow() *****************");
             mResult.refreshRow();
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -562,13 +557,13 @@ public abstract class ResultSetBase
                                    StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
         }
         try {
-            insertRowInternal();
+            internalInsertRow();
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
-    protected void insertRowInternal()
+    protected void internalInsertRow()
         throws java.sql.SQLException {
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW);
         mResult.insertRow();
@@ -618,7 +613,7 @@ public abstract class ResultSetBase
         try {
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
             if (isOnInsertRow()) {
-                moveToCurrentRowInternal();
+                internalMoveToCurrentRow();
             } else {
                 mResult.cancelRowUpdates();
             }
@@ -646,13 +641,13 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENT_ROW);
-            moveToCurrentRowInternal();
+            internalMoveToCurrentRow();
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
-    protected void moveToCurrentRowInternal()
+    protected void internalMoveToCurrentRow()
         throws java.sql.SQLException {
         resetOnInsertRow();
         mResult.moveToCurrentRow();
@@ -855,8 +850,8 @@ public abstract class ResultSetBase
             if (value == null) {
                 value = "";
             }
-            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_PARAMETER, value, "getString",
-                    Integer.toString(index));
+            /*mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_PARAMETER, value, "getString",
+                    Integer.toString(index));*/
             return value;
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

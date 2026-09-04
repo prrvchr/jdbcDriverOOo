@@ -31,7 +31,7 @@ import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.property.PropertyWrapper;
-import io.github.prrvchr.uno.sdbc.StatementMain;
+import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
 public final class ResultSet
@@ -49,7 +49,7 @@ public final class ResultSet
 
     public ResultSet(ConnectionSuper connection,
                      java.sql.ResultSet result,
-                     StatementMain statement)
+                     StatementBase statement)
         throws SQLException {
         super(SERVICE, SERVICES, connection, result, statement, false, false);
         registerProperties(new HashMap<PropertyID, PropertyWrapper>());

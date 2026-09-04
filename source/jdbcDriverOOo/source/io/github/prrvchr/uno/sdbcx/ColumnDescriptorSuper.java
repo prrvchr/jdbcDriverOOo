@@ -37,12 +37,12 @@ public abstract class ColumnDescriptorSuper
     extends ColumnDescriptorBase {
 
     protected String mAutoIncrementCreation = "";
-    private TableMain mTable;
+    private TableBase mTable;
 
     // The constructor method:
     public ColumnDescriptorSuper(final String service,
                                  final String[] services,
-                                 final TableMain table,
+                                 final TableBase table,
                                  final boolean sensitive) {
         super(service, services, sensitive);
         mTable = table;

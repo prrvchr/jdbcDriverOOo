@@ -28,10 +28,10 @@ package io.github.prrvchr.uno.driver.config;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,13 +45,9 @@ import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
-
 public class ConfigSQL extends ConfigBase {
 
-
-    public static final String KEY_PREFIX = "${";
-    public static final String KEY_SUFFIX = "}";
-    public static final String KEY_PATTERN = "[$][{]([\\w+\\.*]+)}";
+    public static final String KEY_PATTERN = "[$][?]?[{]([\\w+\\.*]+)}";
 
     private static final String SQL_COMMAND_SUFFIX = "SQLCommandSuffix";
     private static final String SUPPORTS_DCL_QUERY = "SupportsDCLQuery";
@@ -107,11 +103,11 @@ public class ConfigSQL extends ConfigBase {
         mStringsProperties = new HashMap<>();
     }
 
-    public boolean useCachedRowSet(final ResultSet rs, final QueryHelper query)
+    public boolean useRowSet(final ResultSet rs, final QueryHelper query)
         throws SQLException {
         boolean use = false;
         if (mIsInstrumented) {
-            switch (mCachedRowSet) {
+            switch (mResultSetType) {
                 case 0:
                     use = false;
                     break;
@@ -122,6 +118,14 @@ public class ConfigSQL extends ConfigBase {
                     use = true;
                     break;
             }
+        }
+        return use;
+    }
+
+    public boolean useCachedRowSet() {
+        boolean use = false;
+        if (mIsInstrumented) {
+            use = mUseCachedRowSet;
         }
         return use;
     }
@@ -253,25 +257,31 @@ public class ConfigSQL extends ConfigBase {
 
     protected final String format(final String command,
                                   final Map<String, Object> parameters) {
-        List<Object> values = new ArrayList<>();
-        String template = format(command, parameters, values, "%s");
-        return String.format(template, values.toArray());
+        return format(command, parameters, Optional.empty());
     }
 
     protected final String format(final String command,
                                   final Map<String, Object> parameters,
-                                  final List<Object> values,
-                                  final String token) {
-        StringBuilder template = new StringBuilder(command);
-        for (String key : getFormatKeys(command)) {
-            String parameter = KEY_PREFIX + key + KEY_SUFFIX;
-            int index = template.indexOf(parameter);
-            if (index != -1) {
-                template.replace(index, index + parameter.length(), token);
-                values.add(parameters.get(key));
+                                  final List<Object> values) {
+        return format(command, parameters, Optional.of(values));
+    }
+
+    private final String format(final String command,
+                                final Map<String, Object> parameters,
+                                final Optional<List<Object>> values) {
+        Pattern pattern = Pattern.compile(KEY_PATTERN);
+        Matcher matcher = pattern.matcher(command);
+        return matcher.replaceAll(match -> {
+            String key = match.group(1);
+            if (!parameters.containsKey(key)) {
+                return match.group(0);
             }
-        }
-        return template.toString();
+            if (values.isPresent() && match.group(0).startsWith("$?")) {
+                values.get().add(parameters.get(key));
+                return "?";
+            }
+            return parameters.get(key).toString();
+        });
     }
 
     private boolean hasRequiredMetaData(final QueryHelper query) {
@@ -322,15 +332,6 @@ public class ConfigSQL extends ConfigBase {
             }
         }
         return values;
-    }
-
-    private final String[] getFormatKeys(final String template) {
-        List<String> keys = new ArrayList<>();
-        Matcher matcher = Pattern.compile(KEY_PATTERN).matcher(template);
-        while (matcher.find()) {
-            keys.add(matcher.group(1));
-        }
-        return keys.toArray(new String[keys.size()]);
     }
 
     private boolean getSupportsDCLQuery() {

@@ -72,7 +72,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class TableSuper
-    extends TableBase
+    extends TableMain
     implements XColumnsSupplier,
                XIndexesSupplier,
                XKeysSupplier,
@@ -436,7 +436,7 @@ public abstract class TableSuper
                                String table,
                                String name) throws SQLException, java.sql.SQLException {
         boolean renamed = false;
-        String query = "";
+        List<String> queries = new ArrayList<>();
         ViewContainer views = getConnection().getViewsInternal();
         View view = (View) views.getElementByName(table);
         if (view == null) {
@@ -452,18 +452,20 @@ public abstract class TableSuper
                 renamed = true;
             } else {
                 getConnection().getViewsInternal().removeView(view);
-                query = DBTools.getCreateViewQuery(provider.getConfigDDL(),
-                                                   provider.getNamedSupport(rule),
-                                                   component, view.mCommand, isCaseSensitive());
-                getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_RENAME_QUERY, name, query);
-                if (DBTools.executeSQLQuery(provider, query)) {
+                queries = DBTools.getCreateViewQueries(provider.getConfigDDL(),
+                                                       provider.getNamedSupport(rule),
+                                                       component, view.mCommand, isCaseSensitive());
+                for (String query : queries) {
+                    getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_RENAME_QUERY, name, query);
+                }
+                if (DBTools.executeSQLQueries(provider, queries)) {
                     views.rename(table, name);
                     renamed = true;
                 }
             }
         } catch (ElementExistException e) {
             int resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, String.join("; ", queries));
             java.sql.SQLException ex = new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             throw UnoHelper.getSQLException(ex, this);
         }

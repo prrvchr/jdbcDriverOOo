@@ -25,56 +25,77 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Iterator;
 
+import javax.swing.event.EventListenerList;
+
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ContainerEvent;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XContainer;
 import com.sun.star.container.XContainerListener;
-import com.sun.star.lang.EventObject;
+import com.sun.star.container.XEnumeration;
+import com.sun.star.container.XEnumerationAccess;
+import com.sun.star.container.XIndexAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.IndexOutOfBoundsException;
-import com.sun.star.lib.uno.helper.InterfaceContainer;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.XAppend;
-import com.sun.star.sdbcx.XDataDescriptorFactory;
-import com.sun.star.sdbcx.XDrop;
-import com.sun.star.uno.Any;
-import com.sun.star.util.XRefreshListener;
-import com.sun.star.util.XRefreshable;
+import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.lang.XServiceInfo;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.container.BiMapMain;
-import io.github.prrvchr.uno.driver.helper.StandardSQLState;
 import io.github.prrvchr.uno.driver.property.PropertyID;
 import io.github.prrvchr.uno.driver.provider.DBTools;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.helper.ServiceInfo;
 
 
 public abstract class ContainerBase<T extends Descriptor>
-    extends ContainerMain<T>
-    implements XAppend,
-               XDrop,
-               XDataDescriptorFactory,
-               XRefreshable {
+    extends WeakBase
+    implements XServiceInfo,
+               XContainer,
+               XNameAccess,
+               XIndexAccess,
+               XEnumerationAccess {
 
-    private InterfaceContainer mRefresh = new InterfaceContainer();
+    protected Object mLock;
+    protected BiMap<T> mBimap;
+    protected boolean mSensitive;
+    private final String mService;
+    private final String[] mServices;
+    private final EventListenerList mContainer = new EventListenerList();
 
     // The constructor method:
     public ContainerBase(String service,
+                         String[] services,
+                         Object lock,
+                         boolean sensitive) {
+        this(service, services, lock, null, sensitive);
+    }
+
+    public ContainerBase(String service,
                      String[] services,
                      Object lock,
-                     boolean sensitive) {
-        super(service, services, lock, new BiMapMain<>(), sensitive);
+                     boolean sensitive,
+                     String[] names) {
+        this(service, services, lock, null, sensitive, names);
     }
 
     public ContainerBase(String service,
                          String[] services,
                          Object lock,
+                         BiMap<T> bimap,
                          boolean sensitive,
                          String[] names) {
-        super(service, services, lock, new BiMapMain<>(names), sensitive);
+        this(service, services, lock, bimap, sensitive);
+        if (bimap != null) {
+            mBimap = bimap;
+        } else {
+            mBimap = new BiMapMain<>(names);
+        }
     }
 
     public ContainerBase(String service,
@@ -82,240 +103,335 @@ public abstract class ContainerBase<T extends Descriptor>
                          Object lock,
                          BiMap<T> bimap,
                          boolean sensitive) {
-        super(service, services, lock, bimap, sensitive);
+        mService = service;
+        mServices = services;
+        mLock = lock;
+        mSensitive = sensitive;
+        if (bimap != null) {
+            mBimap = bimap;
+        } else {
+            mBimap = new BiMapMain<>();
+        }
     }
 
-    // com.sun.star.util.XRefreshable
-    @Override
-    public void refresh() {
-        Iterator<?> iterator;
+    protected XContainerListener[] getContainerListeners() {
+        return mContainer.getListeners(XContainerListener.class);
+    }
+
+    // Would be from com.sun.star.lang.XComponent ;)
+    public void dispose() {
+        //EventObject event = new EventObject(this);
+        //mContainer.disposeAndClear(event);
         synchronized (mLock) {
             mBimap.clear();
-            refreshInternal();
-            iterator = mRefresh.iterator();
-        }
-        // early disposal
-        if (iterator != null) {
-            broadcastRefreshed(iterator);
         }
     }
 
+    // com.sun.star.lang.XServiceInfo:
     @Override
-    public void addRefreshListener(XRefreshListener listener) {
-        synchronized (mLock) {
-            mRefresh.add(listener);
-        }
+    public String getImplementationName() {
+        return ServiceInfo.getImplementationName(mService);
     }
 
     @Override
-    public void removeRefreshListener(XRefreshListener listener) {
-        synchronized (mLock) {
-            mRefresh.remove(listener);
-        }
-    }
-
-    // com.sun.star.sdbcx.XDrop:
-    @Override
-    public void dropByIndex(int index)
-        throws SQLException,
-               IndexOutOfBoundsException {
-        if (index < 0 || index >= getCount()) {
-            throw new IndexOutOfBoundsException();
-        }
-        try {
-            removeElement(index);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+    public String[] getSupportedServiceNames() {
+        return ServiceInfo.getSupportedServiceNames(mServices);
     }
 
     @Override
-    public void dropByName(String name)
-        throws SQLException, NoSuchElementException {
+    public boolean supportsService(String service) {
+        return ServiceInfo.supportsService(mServices, service);
+    }
+
+    // com.sun.star.container.XNameAccess:
+    @Override
+    public Object getByName(String name)
+        throws NoSuchElementException,
+           WrappedTargetException {
         if (!hasByName(name)) {
             throw new NoSuchElementException();
         }
         try {
-            removeElement(name, true);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            return getElementByName(name);
+        } catch (SQLException e) {
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor() {
-        return createDescriptor();
+    public String[] getElementNames() {
+        return mBimap.getElementNames();
+    }
+
+    @Override
+    public boolean hasByName(String name) {
+        return mBimap.hasByName(name);
     }
 
 
-    // com.sun.star.sdbcx.XAppend
+    // com.sun.star.container.XElementAccess:
     @Override
-    public void appendByDescriptor(XPropertySet descriptor)
-        throws SQLException, ElementExistException {
+    public Type getElementType() {
+        return new Type(XPropertySet.class);
+    }
+
+    @Override
+    public boolean hasElements() {
+        return !mBimap.isEmpty();
+    }
+
+
+    // com.sun.star.container.XIndexAccess:
+    @Override
+    public Object getByIndex(int index)
+        throws IndexOutOfBoundsException,
+               WrappedTargetException {
+        if (index < 0 || index >= getCount()) {
+            throw new IndexOutOfBoundsException();
+        }
         try {
-            T element = appendElement(descriptor);
-            if (element == null) {
-                String name = getElementName(descriptor);
-                String error = String.format("Table: %s can't be created!!!", name);
-                throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-            }
-            // XXX: appendElement() can change the name!!!
-            String name = getElementName(descriptor);
-            synchronized (mLock) {
-                mBimap.addElement(name, element);
-            }
-
-            broadcastElementInserted(element, name);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            return getElementByIndex(index);
+        } catch (SQLException e) {
+            throw DBTools.getWrappedException(e, this);
         }
     }
 
-    // Protected methods
-    protected void refill(String[] names) {
-        synchronized (mLock) {
-            // XXX: We only add new elements, as per the C++ implementation.
-            for (String name : names) {
-                if (!hasByName(name)) {
-                    mBimap.addElement(name, null);
-                }
-            }
-        }
+    @Override
+    public int getCount() {
+        return mBimap.getCount();
     }
+
 
     // XXX: For all container but TableContainerMain has its own method
-    protected String getElementName(XPropertySet descriptor) throws java.sql.SQLException {
+    protected String getElementName(XPropertySet descriptor) throws SQLException {
         return DBTools.getDescriptorStringValue(descriptor, PropertyID.NAME);
     }
 
-    protected void replaceElement(String oldname, String newname) {
-        // XXX: We can set the name only for simple name (ie: column, index...)
-        replaceElement(oldname, newname, true);
+
+    // com.sun.star.container.XContainer:
+    @Override
+    public void addContainerListener(XContainerListener listener) {
+        mContainer.add(XContainerListener.class, listener);
     }
 
-    protected void replaceElement(String oldname, String newname, boolean rename) {
-        System.out.println("ContainerSuper.replaceElement() 1");
-        if (!newname.equals(oldname) && hasByName(oldname)) {
-            T element = null;
-            synchronized (mLock) {
-                element = mBimap.renameElement(oldname, newname);
+    @Override
+    public void removeContainerListener(XContainerListener listener) {
+        mContainer.remove(XContainerListener.class, listener);
+    }
+
+
+    // com.sun.star.container.XEnumerationAccess:
+    @Override
+    public XEnumeration createEnumeration() {
+        return createEnumerationInternal();
+    }
+
+
+    // Protected methods
+    protected boolean isCaseSensitive() {
+        return mSensitive;
+    }
+
+    protected Iterator<String> getActiveNames() {
+        return getActiveNames(null);
+    }
+
+    protected Iterator<String> getActiveNames(Collection<String> filter) {
+        class Elements implements Iterator<String> {
+            int mIndex = 0;
+
+            @Override
+            public boolean hasNext() {
+                boolean next = false;
+                while (mIndex < mBimap.getCount()) {
+                    String name = mBimap.getName(mIndex);
+                    if (filter == null || !filter.contains(name)) {
+                        T element = mBimap.getByIndex(mIndex);
+                        if (element != null) {
+                            next = true;
+                            break;
+                        }
+                    }
+                    mIndex++;
+                }
+                return next;
             }
-            if (element != null && rename) {
-                // XXX: We cannot set the name of composed names (ie: table and view)
-                element.setName(newname);
+
+            @Override
+            public String next() throws java.util.NoSuchElementException {
+                if (!hasNext()) {
+                    throw new java.util.NoSuchElementException();
+                }
+                return mBimap.getName(mIndex++);
             }
-            if (element != null) {
-                broadcastElementReplaced(element, oldname, newname);
-            }
+        }
+        return new Elements();
+    }
+
+    protected Iterator<T> getActiveElements() {
+        return getActiveElements(null);
+    }
+
+    protected Iterator<T> getActiveElements(Collection<String> filter) {
+        return getActiveElements(filter, false);
+    }
+
+    protected void removeContainerElement(int index) {
+        removeContainerElement(index, true);
+    }
+
+    protected void removeContainerElement(String name, boolean dispose) {
+        int index = mBimap.getIndex(name);
+        removeContainerElement(index, dispose);
+    }
+
+    protected void removeContainerElement(int index, boolean dispose) {
+        System.out.println("ContainerBase.removeContainerElement() 1 index: "  + index);
+        T element = null;
+        String name;
+        synchronized (mLock) {
+            name = mBimap.getName(index);
+            element = mBimap.removeElement(index);
+        }
+        broadcastElementRemoved(element, name);
+        if (dispose && element != null) {
+            element.dispose();
         }
     }
 
-    protected void removeElement(int index)
-        throws java.sql.SQLException {
-        System.out.println("ContainerSuper.removeElement() 1 index: "  + index);
-        removeElement(index, true);
+    protected XEnumeration createEnumerationInternal() {
+        return new ContainerEnumeration(this);
     }
 
-    protected void removeElement(String name,
-                                 boolean really)
-        throws java.sql.SQLException {
-        int index = mBimap.getIndex(name);
-        removeElement(index, really);
+    // Abstract protected methods
+    protected abstract T createElement(int index) throws SQLException;
+
+    protected T getElementByName(String name)
+        throws SQLException {
+        return getElementByIndex(mBimap.getIndex(name));
     }
 
-    protected XPropertySet cloneDescriptor(XPropertySet descriptor) {
-        XPropertySet element = createDescriptor();
-        UnoHelper.copyProperties(descriptor, element);
+    protected T getElementByIndex(int index)
+        throws SQLException {
+        T element = mBimap.getByIndex(index);
+        if (element == null) {
+            synchronized (mLock) {
+                try {
+                    element = createElement(index);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    System.out.println("ContainerBase.getElementByIndex() 1 index: "  + index);
+                    try {
+                        removeContainerElement(index);
+                    } catch (Exception ignored) { }
+                    throw new SQLException(e.getMessage());
+                }
+                mBimap.setElement(index, element);
+            }
+        }
         return element;
     }
 
-    protected abstract XPropertySet createDescriptor();
-
-    protected void insertElement(String name,
-                                 T element) {
-        if (!hasByName(name)) {
-            synchronized (mLock) {
-                mBimap.addElement(name, element);
-            }
-        }
-    }
-
-    @Override
-    protected T createElement(int index) throws java.sql.SQLException {
-        String name = mBimap.getName(index);
-        return createElement(name);
-    }
-
-    // Abstract protected methods
-    protected abstract T createElement(String name) throws java.sql.SQLException;
-
-    // XXX: Shared methods between ContainerMain, ContainerBase and ContainerSuper
-    // XXX: ContainerBase support duplicate name and the contents will not be sorted.
-    // XXX: ContainerSuper does not support duplicate names and the contents will be sorted alphabetically.
-    // Abstract protected methods
-    protected abstract void refreshInternal();
-    protected abstract T appendElement(XPropertySet descriptor) throws java.sql.SQLException;
-    protected abstract void removeDataBaseElement(int index, String name) throws java.sql.SQLException;
-
-    @Override
-    protected void broadcastRefreshed() {
-        broadcastRefreshed(mRefresh.iterator());
-    }
-
-    @Override
-    protected Iterator<T> getActiveElements(Collection<String> filter) {
-        return getActiveElements(filter, true);
-    }
-
-    private void removeElement(int index,
-                               boolean really)
-        throws java.sql.SQLException {
-        if (really) {
-            String name = mBimap.getName(index);
-            removeDataBaseElement(index, name);
-        }
-        removeContainerElement(index);
-    }
-
-    private void broadcastElementReplaced(T element, String oldname, String newname) {
-        broadcastContainerElementReplaced(element, oldname, newname);
+    private void broadcastElementRemoved(T element, String name) {
+        broadcastContainerElementRemoved(element, name);
         broadcastRefreshed();
     }
 
-    protected void broadcastElementInserted(T element, String name) {
-        broadcastContainerElementInserted(element, name);
-        broadcastRefreshed();
-    }
-
-    private void broadcastContainerElementReplaced(T element, String oldname, String newname) {
+    private void broadcastContainerElementRemoved(T element, String name) {
         ContainerEvent event = null;
         for (XContainerListener listener : getContainerListeners()) {
             if (event == null) {
-                event = new ContainerEvent(this, newname, element, oldname);
+                event = new ContainerEvent(this, name, element, null);
             }
-            listener.elementReplaced(event);
+            listener.elementRemoved(event);
         }
     }
 
-    private void broadcastContainerElementInserted(T element, String name) {
-        // XXX: notify our container listeners
-        ContainerEvent event = new ContainerEvent(this, name, element, null);
-        for (XContainerListener listener : getContainerListeners()) {
-            listener.elementInserted(event);
-        }
+    protected abstract void broadcastRefreshed();
+
+    protected Iterator<T> getElements() {
+        return getElements(null, true);
     }
 
-    private void broadcastRefreshed(Iterator<?> refresh) {
-        EventObject event = null;
-        while (refresh.hasNext()) {
-            if (event == null) {
-                event = new EventObject(this);
+    protected Iterator<T> getElements(Collection<String> filter, boolean remove) {
+        class Elements implements Iterator<T> {
+            private int mIndex = 0;
+
+            @Override
+            public boolean hasNext() {
+                boolean next = false;
+                while (mIndex < getCount()) {
+                    String name = mBimap.getName(mIndex);
+                    if (filter == null || !filter.contains(name)) {
+                        next = true;
+                        break;
+                    }
+                    mIndex++;
+                }
+                return next;
             }
-            XRefreshListener listener = (XRefreshListener) refresh.next();
-            listener.refreshed(event);
+
+            @Override
+            public T next() throws java.util.NoSuchElementException {
+                if (!hasNext()) {
+                    throw new java.util.NoSuchElementException();
+                }
+                try {
+                    return getElementByIndex(mIndex++);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    throw new java.util.NoSuchElementException(e);
+                }
+            }
+
+            @Override
+            public void remove() {
+                if (remove) {
+                    mBimap.removeElement(--mIndex);
+                }
+            }
         }
+        return new Elements();
     }
+
+    public Iterator<T> getActiveElements(Collection<String> filter, boolean remove) {
+        class Elements implements Iterator<T> {
+            private int mIdx = 0;
+
+            @Override
+            public boolean hasNext() {
+                boolean next = false;
+                while (mIdx < getCount()) {
+                    String name = mBimap.getName(mIdx);
+                    if (filter == null || !filter.contains(name)) {
+                        T element = mBimap.getByIndex(mIdx);
+                        if (element != null) {
+                            next = true;
+                            break;
+                        }
+                    }
+                    mIdx++;
+                }
+                return next;
+            }
+
+            @Override
+            public T next() throws java.util.NoSuchElementException {
+                if (!hasNext()) {
+                    throw new java.util.NoSuchElementException();
+                }
+                return mBimap.getByIndex(mIdx++);
+            }
+
+            @Override
+            public void remove() {
+                if (remove) {
+                    mBimap.removeElement(--mIdx);
+                }
+            }
+        }
+        return new Elements();
+    }
+
 
 }

@@ -32,6 +32,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.AbstractMap.SimpleImmutableEntry;
 
 import javax.sql.rowset.CachedRowSet;
@@ -52,7 +53,7 @@ public class ResultSetHelper {
     static final String ROWSET_FACTORY = "io.github.prrvchr.java.rowset.RowSetFactoryImpl";
     static final String ROWSET_PROVIDER = "io.github.prrvchr.java.rowset.providers.OptimisticProvider";
 
-    private static RowSetFactory sFactory = null;
+    private static RowSetFactory Factory = null;
 
     public static CachedRowSet getCachedRowSet(ResultSet result) throws SQLException {
         try {
@@ -203,11 +204,11 @@ public class ResultSetHelper {
 
     private static RowSetFactory getRowSetFactory()
         throws java.sql.SQLException {
-        if (sFactory == null) {
+        if (Factory == null) {
             SyncFactory.registerProvider(ROWSET_PROVIDER);
-            sFactory = RowSetProvider.newFactory(ROWSET_FACTORY, null);
+            Factory = RowSetProvider.newFactory(ROWSET_FACTORY, null);
         }
-        return sFactory;
+        return Factory;
     }
 
     private static void setCustomRowSet(CachedRowSet rowset, RowSetData data, int count)
@@ -248,33 +249,25 @@ public class ResultSetHelper {
                     rowset.updateNull(index);
                 } else {
                     switch (rowset.getMetaData().getColumnType(index)) {
-                        case Types.BIGINT:
-                            rowset.updateLong(index, Long.valueOf(value));
-                            break;
-                        case Types.INTEGER:
-                        case Types.SMALLINT:
-                            rowset.updateInt(index, Integer.valueOf(value));
-                            break;
-                        case Types.TINYINT:
-                            rowset.updateShort(index, Short.valueOf(value));
-                            break;
-                        case Types.BIT:
-                        case Types.BOOLEAN:
-                            rowset.updateBoolean(index, Boolean.valueOf(value));
-                            break;
-                        case Types.LONGVARCHAR:
-                        case Types.VARCHAR:
-                        case Types.CHAR:
-                            rowset.updateString(index, value);
-                            break;
-                        case Types.DOUBLE:
-                            rowset.updateDouble(index, Double.valueOf(value));
-                            break;
-                        case Types.FLOAT:
-                            rowset.updateFloat(index, Float.valueOf(value));
-                            break;
-                        default:
-                            rowset.updateObject(index, value);
+                        case Types.BIGINT -> rowset.updateLong(index, Long.valueOf(value));
+
+                        case Types.INTEGER,
+                             Types.SMALLINT -> rowset.updateInt(index, Integer.valueOf(value));
+
+                        case Types.TINYINT -> rowset.updateShort(index, Short.valueOf(value));
+
+                        case Types.BIT,
+                             Types.BOOLEAN -> rowset.updateBoolean(index, Boolean.valueOf(value));
+
+                        case Types.LONGVARCHAR,
+                             Types.VARCHAR,
+                             Types.CHAR -> rowset.updateString(index, value);
+
+                        case Types.DOUBLE -> rowset.updateDouble(index, Double.valueOf(value));
+
+                        case Types.FLOAT -> rowset.updateFloat(index, Float.valueOf(value));
+
+                        default -> rowset.updateObject(index, value);
                     }
                 }
             }
@@ -286,31 +279,79 @@ public class ResultSetHelper {
     private static void setCachedRowSetKeyDesc(Connection connection, CachedRowSet crs)
         throws java.sql.SQLException {
 
-        int[] keys = new int[0];
+        boolean isReadOnly = true;
+        List<Integer> keys = new ArrayList<>();
         ResultSetMetaData md = crs.getMetaData();
         if (!crs.isReadOnly() && md.getColumnCount() > 0) {
-            // XXX: The table corresponding to the first column of the CachedRowSet will be the updated table
-            String catalog = md.getCatalogName(1);
-            String schema = md.getSchemaName(1);
-            String table = md.getTableName(1);
-            List<String> pkNames = getPrimaryKeys(connection.getMetaData(), catalog, schema, table);
-            if (pkNames.isEmpty()) {
-                // XXX: A natural compound key will be constructed from the table columns
-                keys = getKeyDescFromTableColumns(md, catalog, schema, table);
-            } else {
-                // XXX: We have primary keys and we use them
-                keys = getKeyDescFromPrimaryKeys(md, pkNames, catalog, schema, table);
-            }
-            crs.setReadOnly(keys.length == 0);
-            crs.setKeyColumns(keys);
+            isReadOnly = setCachedRowSetKeyDesc(connection, md, keys);
+        }
+        crs.setReadOnly(isReadOnly);
+        if (!isReadOnly && !keys.isEmpty()) {
+            crs.setKeyColumns(keys.stream().mapToInt(Integer::intValue).toArray());
         }
     }
 
-    private static final List<String> getPrimaryKeys(DatabaseMetaData dbmd, String catalog, String schema, String table)
+    private static boolean setCachedRowSetKeyDesc(Connection connection, ResultSetMetaData md, List<Integer> keys)
+        throws java.sql.SQLException {
+        boolean isReadOnly = false;
+        List<Table> tables = new ArrayList<>();
+        for (int i = 1; i <= md.getColumnCount(); i++) {
+            // XXX: The columns will be retrieved in the order of their table appearance.
+            Table table = new Table(md, i);
+            if (!table.isTableFullyNamed()) {
+                if (md.isReadOnly(i)) {
+                    continue;
+                }
+                isReadOnly = true;
+                break;
+            }
+            if (!tables.contains(table)) {
+                List<String> primaryKeys = getPrimaryKeys(connection.getMetaData(), table);
+                List<Integer> pkIndexes = getCachedRowSetKeyDesc(md, primaryKeys, table);
+                if (!primaryKeys.isEmpty() && pkIndexes.isEmpty()) {
+                    isReadOnly = true;
+                    break;
+                }
+                keys.addAll(pkIndexes);
+                tables.add(table);
+            }
+        }
+        return isReadOnly;
+    }
+
+    private static List<Integer> getCachedRowSetKeyDesc(ResultSetMetaData md, List<String> primaryKeys, Table table)
+        throws java.sql.SQLException {
+        List<Integer> keys = new ArrayList<>();
+        if (primaryKeys.isEmpty()) {
+            // XXX: A natural compound key will be constructed from the table columns
+            keys = getKeyDescFromTableColumns(md, table);
+        } else {
+            // XXX: We have primary keys and we need to use all of them
+            keys = getKeyDescFromPrimaryKeys(md, primaryKeys, table);
+        }
+        return keys;
+    }
+
+    private record Table(Optional<String> catalog, Optional<String> schema, String table) {
+
+        private Table(ResultSetMetaData md, int index)
+                throws java.sql.SQLException {
+            this(Optional.ofNullable(md.getCatalogName(index)),
+                 Optional.ofNullable(md.getSchemaName(index)),
+                 md.getTableName(index));
+        }
+
+        private boolean isTableFullyNamed() {
+            return table != null;
+        }
+    }
+
+    private static final List<String> getPrimaryKeys(DatabaseMetaData dbmd, Table table)
         throws java.sql.SQLException {
         final int COLUMN_NAME = 4;
         List<String> keys = new ArrayList<>();
-        try (ResultSet rs = dbmd.getPrimaryKeys(catalog, schema, table)) {
+
+        try (ResultSet rs = dbmd.getPrimaryKeys(table.catalog.orElse(null), table.schema.orElse(null), table.table)) {
             while (rs.next()) {
                 String column = rs.getString(COLUMN_NAME);
                 if (!rs.wasNull()) {
@@ -321,10 +362,8 @@ public class ResultSetHelper {
         return keys;
     }
 
-    private static int[] getKeyDescFromTableColumns(ResultSetMetaData md,
-                                                    String catalog,
-                                                    String schema,
-                                                    String table)
+    private static List<Integer> getKeyDescFromTableColumns(ResultSetMetaData md,
+                                                            Table table)
         throws java.sql.SQLException {
         List<Integer> keys = new ArrayList<>();
         for (int i = 1; i <= md.getColumnCount(); i++) {
@@ -337,45 +376,28 @@ public class ResultSetHelper {
                 case java.sql.Types.OTHER:
                     break;
                 default:
-                    if (isSameTableColumn(md, catalog, schema, table, i)) {
+                    if (table.equals(new Table(md, i))) {
                         keys.add(i);
                     }
             }
         }
-        return keys.stream().mapToInt(Integer::intValue).toArray();
+        return keys;
     }
 
-    private static boolean isSameTableColumn(ResultSetMetaData md, String catalog, String schema, String table, int i)
+    private static List<Integer> getKeyDescFromPrimaryKeys(ResultSetMetaData md,
+                                                           List<String> primaryKeys,
+                                                           Table table)
         throws java.sql.SQLException {
-        return compare(md.getCatalogName(i), catalog) &&
-               compare(md.getSchemaName(i), schema) &&
-               compare(md.getTableName(i), table);
-    }
-
-    private static boolean compare(String str1, String str2) {
-        return str1 == null && str2 == null || str1.equals(str2);
-    }
-
-    private static int[] getKeyDescFromPrimaryKeys(ResultSetMetaData md,
-                                                   List<String> pkNames,
-                                                   String catalog,
-                                                   String schema,
-                                                   String table)
-        throws java.sql.SQLException {
-        List<Integer> pkIndexes = new ArrayList<>();
+        List<Integer> keys = new ArrayList<>();
         for (int i = 1; i <= md.getColumnCount(); i++) {
-            if (pkNames.contains(md.getColumnName(i)) &&
-                isSameTableColumn(md, catalog, schema, table, i)) {
-                pkIndexes.add(i);
+            if (primaryKeys.contains(md.getColumnName(i)) && table.equals(new Table(md, i))) {
+                keys.add(-i);
             }
         }
-        int[] keys = null;
-        if (pkIndexes.size() == pkNames.size()) {
-            keys = pkIndexes.stream().mapToInt(Integer::intValue).toArray();
-        } else {
-            keys = new int[0];
+        if (keys.size() == primaryKeys.size()) {
+            return keys;
         }
-        return keys;
+        return List.of();
     }
 
 }

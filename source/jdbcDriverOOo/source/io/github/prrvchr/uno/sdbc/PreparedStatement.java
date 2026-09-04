@@ -39,7 +39,7 @@ import io.github.prrvchr.uno.driver.provider.Resources;
 
 
 public final class PreparedStatement
-    extends PreparedStatementBase {
+    extends PreparedStatementMain {
 
     private static final String SERVICE = PreparedStatement.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbc.PreparedStatement"};
