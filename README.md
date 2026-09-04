@@ -91,7 +91,7 @@ The minimum version of LibreOffice supported by the jdbcDriverOOo extension depe
   - Your system-provided Python packages are out of date. The extension's logging will allow you to check if this is the case. It is accessible via the menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC driver -> UNO driver settings -> View log -> System Info** and requires restarting LibreOffice after activation.  
   If outdated packages appear, you can update them with the command:  
   `pip install --upgrade <package-name>`  
-  For more information see: [What has been done for version 1.1.0][41].
+  For more information see: [What was done for version 1.1.0][41].
 
 ___
 
@@ -378,7 +378,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [38]: <https://www.libreoffice.org/download/download-libreoffice/>
 [39]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
 [40]: <https://prrvchr.github.io/HyperSQLOOo/>
-[41]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
+[41]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-was-done-for-version-110>
 [42]: <img/jdbcDriverOOo.svg#middle>
 [43]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
 [44]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.7.0#right>
