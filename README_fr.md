@@ -219,7 +219,8 @@ Tout ce qui concerne la configuration du serveur juda est expliqué dans le dép
 
 Si le serveur juda s'exécute sur la même machine que celle où vous utilisez LibreOffice pour vous y connecter, vous devez utiliser l'URL suivante dans Base:
 - `//localhost:8080`, après avoir sélectionné `Juda pure Java` comme type de source de données.
-Sinon, remplacez `localhost` par l'adresse IP du serveur Juda.
+
+Sinon, remplacez `localhost` par l'adresse IP du serveur juda.
 
 ___
 

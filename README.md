@@ -214,11 +214,12 @@ ___
 
 ## Base with juda:
 
-The Juda driver allows you to connect to a Juda server (an enhanced Trino server).  
-Everything regarding Juda server configuration is explained in the [juda][56] repository.  
+The **juda** driver allows you to connect to a juda server (an enhanced Trino server).  
+Everything regarding juda server configuration is explained in the [juda][56] repository.  
 
 If the juda server is running on the same machine where you are using LibreOffice to connect to it, you must use the following URL in Base:
 - `//localhost:8080`, after selecting `Juda pure Java` as the data source type.
+
 Otherwise, replace `localhost` with the IP address of the juda server.
 
 ___
