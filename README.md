@@ -343,7 +343,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-170>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-was-done-for-version-170>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -380,7 +380,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [41]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
 [42]: <img/jdbcDriverOOo.svg#middle>
 [43]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[44]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.6.2#right>
+[44]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.7.0#right>
 [45]: <img/jdbcDriverOOo-1.png>
 [46]: <img/jdbcDriverOOo-2.png>
 [47]: <img/jdbcDriverOOo-3.png>
