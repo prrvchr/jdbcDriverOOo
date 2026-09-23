@@ -33,64 +33,57 @@ from com.sun.star.awt import XCallback
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
 from .tabmodel import TabModel
 from .tabview import TabView
 from .tabhandler import TabHandler
 
 from .properties import PropertiesManager
-from .properties import WindowHandler
 
 from .dialog import DriverView
 from .dialog import DialogHandler
 
-from ...unotool import getArgumentSet
+from .task import DriverVersion
+
 from ...unotool import getFilePicker
-from ...unotool import getSimpleFile
-from ...unotool import getUrl
 
 from ...dbconfig import g_jar
-
-from threading import Lock
-import traceback
 
 
 class TabManager(unohelper.Base,
                  XCallback):
     def __init__(self, ctx, window):
         self._ctx = ctx
-        self._lock = Lock()
+        self._disabled = False
         self._disposed = False
         self._dialog = None
         xdl = 'Option2Dialog'
-        self._model = TabModel(ctx, self._lock, xdl)
+        self._model = TabModel(ctx, xdl)
         self._view = TabView(ctx, window, TabHandler(self), xdl)
         self._properties = PropertiesManager(ctx, self._view.getWindow(), self)
+
+# TabManager setter methods
+    def dispose(self):
+        if self._properties:
+            self._properties.dispose()
+        self._view.dispose()
+        self._disposed = True
+
+    def setDriverVersions(self):
+        self._model.loadSetting()
         self._view.setDrivers(self._model.getDrivers())
         # FIXME: If we changed the driver selection then the
         # FIXME: handler will fire twice, we disable the first one
         self._disabled = True
         self._view.selectDriver(0)
+        runner = DriverVersion(self._ctx, self.notify, *self._model.getRunnerData())
+        runner.start()
 
-# XCallback
-    def notify(self, data):
-        self._notify(getArgumentSet(data, False))
-
-# TabManager setter methods
-    def dispose(self):
-        with self._lock:
-            self._properties.dispose()
-            self._view.dispose()
-            self._disposed = True
-
-    def setDriverVersions(self, apilevel):
-        self._model.setDriverVersions(apilevel, self)
-
-    def loadSetting(self):
-        self._model.loadSetting()
-        self._view.setDrivers(self._model.getDrivers())
+    def notify(self, versions):
+        if not self._disposed and versions:
+            self._model.setDriverVersions(versions)
+            driver = self._view.getDriver()
+            if driver in versions:
+                self._view.setVersion(versions[driver])
 
 # TabManager getter methods
     def saveSetting(self):
@@ -171,16 +164,16 @@ class TabManager(unohelper.Base,
             return
         self._properties.exitEditProperty()
         driver = self._view.getDriver()
-        property = self._properties.getPropertiesItem()
+        prop = self._properties.getPropertiesItem()
         properties, updatable = self._model.getProperties(driver, group)
         self._properties.setProperties(properties, updatable)
         if properties:
-            index = properties.index(property) if property in properties else 0
+            index = properties.index(prop) if prop in properties else 0
             self._disabled = True
             self._properties.selectProperty(index)
 
     # PropertiesWindow.xdl handler entries
-    def setProperty(self, property):
+    def setProperty(self, prop):
         # FIXME: If we changed the property selection then the handler
         # FIXME: will fire twice, the first one is ignored
         if self._disabled:
@@ -191,7 +184,7 @@ class TabManager(unohelper.Base,
         # FIXME: If we are in edit value mode, we must exit it
         if self._model.isEditValue():
             self._properties.cancelValue()
-        value, updatable, index, enable = self._model.getProperty(driver, group, property)
+        value, updatable, index, enable = self._model.getProperty(driver, group, prop)
         # FIXME: The handler should only be disabled if the type is actually changed.
         self._disabled = index != self._properties.getTypesIndex()
         self._properties.selectType(index)
@@ -212,8 +205,8 @@ class TabManager(unohelper.Base,
     def removeProperty(self):
         driver = self._view.getDriver()
         group = self._view.getGroup()
-        property = self._properties.getPropertiesItem()
-        properties = self._model.removeProperty(driver, group, property)
+        prop = self._properties.getPropertiesItem()
+        properties = self._model.removeProperty(driver, group, prop)
         self._properties.setProperties(properties, True)
         if properties:
             self._disabled = True
@@ -269,8 +262,8 @@ class TabManager(unohelper.Base,
     def setPropertyValue(self, value):
         driver = self._view.getDriver()
         group = self._view.getGroup()
-        property = self._properties.getPropertiesItem()
-        self._model.setPropertyValue(driver, group, property, value)
+        prop = self._properties.getPropertiesItem()
+        self._model.setPropertyValue(driver, group, prop, value)
 
     def editValue(self):
         self._model.setValueMode(1)
@@ -283,15 +276,15 @@ class TabManager(unohelper.Base,
     def removeValue(self):
         driver = self._view.getDriver()
         group = self._view.getGroup()
-        property = self._properties.getPropertiesItem()
+        prop = self._properties.getPropertiesItem()
         index = self._properties.getValuesIndex()
-        values = self._model.removePropertyValue(driver, group, property, index)
+        values = self._model.removePropertyValue(driver, group, prop, index)
         self._setPropertyValue(values)
         if values:
             self._properties.selectPropertyValue(max(0, index - 1))
 
     def confirmValue(self):
-        value =  self._properties.getPropertyValue()
+        value = self._properties.getPropertyValue()
         # FIXME: If we edit the value of a new property, we save the result
         # FIXME: of this edition not in the model but only on the view.
         if self._model.isNewProperty():
@@ -306,13 +299,13 @@ class TabManager(unohelper.Base,
         else:
             driver = self._view.getDriver()
             group = self._view.getGroup()
-            property = self._properties.getPropertiesItem()
+            prop = self._properties.getPropertiesItem()
             if self._model.isNewValue():
-                values = self._model.addPropertyValue(driver, group, property, value)
+                values = self._model.addPropertyValue(driver, group, prop, value)
                 index = len(values) - 1
             else:
                 index = self._properties.getValuesIndex()
-                values = self._model.editPropertyValue(driver, group, property, value, index)
+                values = self._model.editPropertyValue(driver, group, prop, value, index)
         self._setPropertyValue(values)
         if values:
             self._properties.selectPropertyValue(index)
@@ -395,10 +388,3 @@ class TabManager(unohelper.Base,
                 self._properties.selectPropertyValue(index)
         else:
             self._properties.setTextFieldValue(value, updatable)
-
-    def _notify(self, versions):
-        if not self._disposed:
-            driver = self._view.getDriver()
-            if driver in versions:
-                self._view.setVersion(versions[driver])
-

@@ -31,8 +31,6 @@ from .....unotool import getContainerWindow
 
 from .....configuration import g_identifier
 
-import traceback
-
 
 class PropertyView():
     def __init__(self, ctx, window, handler):
@@ -161,4 +159,3 @@ class PropertyView():
 
     def _getRemoveValue(self):
         return self._window.getControl('CommandButton3')
-

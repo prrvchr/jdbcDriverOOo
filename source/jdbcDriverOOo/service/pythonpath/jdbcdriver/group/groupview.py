@@ -29,8 +29,6 @@
 
 from ..admin import AdminView
 
-import traceback
-
 
 class GroupView(AdminView):
     def __init__(self, ctx, handler, parent):
@@ -41,4 +39,3 @@ class GroupView(AdminView):
 
     def _getSetRole(self):
         return self._dialog.getControl('CommandButton6')
-

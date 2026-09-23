@@ -34,4 +34,3 @@ from .memberview import MemberView
 from .passwordview import PasswordView
 
 from .privilegeview import PrivilegeView
-

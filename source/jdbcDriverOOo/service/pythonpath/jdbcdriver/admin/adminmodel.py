@@ -27,27 +27,16 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
-from com.sun.star.sdbc import SQLException
 
 from com.sun.star.sdbcx.PrivilegeObject import TABLE
 
 from com.sun.star.style.HorizontalAlignment import CENTER
-from com.sun.star.style.HorizontalAlignment import LEFT
-
-from com.sun.star.container import ElementExistException
 
 from ..unotool import getStringResource
 from ..unotool import hasInterface
 
 from ..configuration import g_identifier
-
-import traceback
 
 
 class AdminModel(unohelper.Base):
@@ -59,18 +48,18 @@ class AdminModel(unohelper.Base):
         self._username = username
         self._grantee = ''
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
-        self._resources = {'DropGroupTitle'        : 'MessageBox.DropGroup.Title',
-                           'DropGroupMessage'      : 'MessageBox.DropGroup.Message',
-                           'DropUserTitle'         : 'MessageBox.DropUser.Title',
-                           'DropUserMessage'       : 'MessageBox.DropUser.Message',
-                           'UsersTitle'            : 'UsersDialog.Title',
-                           'GroupsTitle'           : 'GroupsDialog.Title',
-                           'RolesTitle'            : 'RolesDialog.Title',
-                           'PrivilegeErrorTitle'   : 'MessageBox.Privilege.Error.Title',
-                           'CreateUserErrorTitle'  : 'MessageBox.CreateUser.Error.Title',
-                           'CreateGroupErrorTitle' : 'MessageBox.CreateGroup.Error.Title',
-                           'SetMembersErrorTitle'  : 'MessageBox.SetMembers.Error.Title',
-                           'SetPasswordErrorTitle' : 'MessageBox.SetPassword.Error.Title'}
+        self._resources = {'DropGroupTitle':         'MessageBox.DropGroup.Title',
+                           'DropGroupMessage':       'MessageBox.DropGroup.Message',
+                           'DropUserTitle':          'MessageBox.DropUser.Title',
+                           'DropUserMessage':        'MessageBox.DropUser.Message',
+                           'UsersTitle':             'UsersDialog.Title',
+                           'GroupsTitle':            'GroupsDialog.Title',
+                           'RolesTitle':             'RolesDialog.Title',
+                           'PrivilegeErrorTitle':    'MessageBox.Privilege.Error.Title',
+                           'CreateUserErrorTitle':   'MessageBox.CreateUser.Error.Title',
+                           'CreateGroupErrorTitle':  'MessageBox.CreateGroup.Error.Title',
+                           'SetMembersErrorTitle':   'MessageBox.SetMembers.Error.Title',
+                           'SetPasswordErrorTitle':  'MessageBox.SetPassword.Error.Title'}
 
     def _getColumn(self, column, title, index, width=70, flex=1, align=CENTER):
         column.ColumnWidth = width
@@ -173,7 +162,7 @@ class AdminModel(unohelper.Base):
             if member not in elements:
                 grantees.dropByName(member)
         # TODO: We need to refresh the members of members
-        #self._members.refresh()
+        # self._members.refresh()
         # TODO: If it is a group to update privilege inheritance, we need to refresh grid privileges
         if isgroup:
             self._grid.refresh()
@@ -200,7 +189,7 @@ class AdminModel(unohelper.Base):
 
     def hasGrantablePrivileges(self):
         table = self._grid.getSelectedIdentifier('0')
-        privilege, grantable, inherited = self._grid.getGranteePrivileges(table)
+        _, grantable, _ = self._grid.getGranteePrivileges(table)
         return grantable != 0
 
     def getPrivileges(self):
@@ -305,5 +294,3 @@ class AdminModel(unohelper.Base):
     def _getRolesTitle(self):
         resource = self._resources.get('RolesTitle')
         return self._resolver.resolveString(resource) % self._grantee
-
-

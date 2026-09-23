@@ -34,8 +34,6 @@ from .grid import GridModel as GridModelBase
 from ..unotool import createService
 from ..unotool import getPropertyValueSet
 
-import traceback
-
 
 class GridModel(GridModelBase):
     def __init__(self, ctx, user, groups, grantees, tables, flags, isuser, url):
@@ -58,6 +56,7 @@ class GridModel(GridModelBase):
     @property
     def RowCount(self):
         return self._row
+
     @property
     def ColumnCount(self):
         return self._column
@@ -210,4 +209,3 @@ class GridModel(GridModelBase):
                 yield from self._getParentRoles(name, parents)
         if self._groups.hasByName(role):
             yield self._groups.getByName(role)
-

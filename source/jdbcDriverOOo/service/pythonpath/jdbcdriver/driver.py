@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf_8 -*-
+# -*- coding: utf-8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.lang import XServiceInfo
@@ -35,9 +34,6 @@ from com.sun.star.lang import XServiceInfo
 from com.sun.star.sdbc import XDriver
 
 from .unotool import createService
-
-
-import traceback
 
 
 class Driver(unohelper.Base,
@@ -61,13 +57,16 @@ class Driver(unohelper.Base,
 
     def getMajorVersion(self):
         return self._driver.getMajorVersion()
+
     def getMinorVersion(self):
-        return getMajorVersion.getMinorVersion()
+        return self._driver.getMinorVersion()
 
     # XServiceInfo
     def supportsService(self, service):
         return service in self._services
+
     def getImplementationName(self):
         return self._implementation
+
     def getSupportedServiceNames(self):
         return self._services

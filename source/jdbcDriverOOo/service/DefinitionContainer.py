@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.lang import XComponent
@@ -35,10 +34,6 @@ from com.sun.star.lang import XServiceInfo
 from com.sun.star.lang import XInitialization
 
 from jdbcdriver import createService
-
-from jdbcdriver import g_identifier
-
-import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -60,26 +55,30 @@ class DefinitionContainer(unohelper.Base,
             if not DefinitionContainer._init:
                 DefinitionContainer._init = True
                 print("DefinitionContainer.__init__() 3 *************************************")
-                #self.initialize(args)
+                # self.initialize(args)
 
     _init = False
 
 # XComponent
     def dispose(self):
         pass
+
     def addEventListener(self, listener):
         self._listeners.append(listener)
+
     def removeEventListener(self, listener):
         if listener in self._listeners:
             self._listeners.remove(listener)
 
 # XServiceInfo
     def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ServiceName1, service)
+        return g_ImplementationHelper.supportsService(g_ServiceNames1, service)
+
     def getImplementationName(self):
-        return g_ServiceName1
+        return g_ServiceNames1
+
     def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ServiceName1)
+        return g_ImplementationHelper.getSupportedServiceNames(g_ServiceNames1)
 
 # XInitialization
     def initialize(self, arguments):

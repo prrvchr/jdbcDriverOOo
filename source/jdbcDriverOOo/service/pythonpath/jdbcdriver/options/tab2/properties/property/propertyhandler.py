@@ -40,7 +40,7 @@ class WindowHandler(unohelper.Base,
         self._manager = manager
 
     # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
+    def callHandlerMethod(self, _window, event, method):
         try:
             handled = False
             if method == 'SetType':
@@ -71,7 +71,7 @@ class WindowHandler(unohelper.Base,
                 self._manager.cancelValue()
                 handled = True
             return handled
-        except Exception as e:
+        except Exception:
             msg = "TabHandler.callHandlerMethod() Error: %s" % traceback.format_exc()
             print(msg)
 
@@ -85,4 +85,3 @@ class WindowHandler(unohelper.Base,
                 'RemoveValue',
                 'Confirm',
                 'Cancel')
-

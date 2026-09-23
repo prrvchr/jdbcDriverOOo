@@ -27,14 +27,10 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.awt.MessageBoxType import ERRORBOX
 from com.sun.star.awt.MessageBoxType import QUERYBOX
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.sdbc import SQLException
 from com.sun.star.container import ElementExistException
@@ -77,11 +73,9 @@ from ..unotool import createMessageBox
 from ..unotool import getResourceLocation
 from ..unotool import getStringResource
 
-from ..configuration import g_extension
 from ..configuration import g_identifier
 
 from collections import OrderedDict
-import traceback
 
 
 class AdminManager(unohelper.Base):
@@ -117,6 +111,7 @@ class AdminManager(unohelper.Base):
         if self._disabled:
             self._disabled = enabled = False
         return enabled
+
     def _disableHandler(self):
         self._disabled = True
 
@@ -265,7 +260,7 @@ class AdminManager(unohelper.Base):
     def setPassword(self, pwd):
         confirmation = self._dialog.getConfirmation()
         self._dialog.enableOk(self._model.isPasswordConfirmed(pwd, confirmation))
- 
+
     def setPasswordConfirmation(self, confirmation):
         pwd = self._dialog.getPassword()
         self._dialog.enableOk(self._model.isPasswordConfirmed(pwd, confirmation))
@@ -381,4 +376,3 @@ class AdminManager(unohelper.Base):
             else:
                 revoke |= flag
         return grant, revoke
-

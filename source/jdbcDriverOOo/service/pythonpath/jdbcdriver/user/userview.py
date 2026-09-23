@@ -29,8 +29,6 @@
 
 from ..admin import AdminView
 
-import traceback
-
 
 class UserView(AdminView):
     def __init__(self, ctx, handler, parent):
@@ -49,5 +47,3 @@ class UserView(AdminView):
 
     def _getSetPassword(self):
         return self._dialog.getControl('CommandButton6')
-
-

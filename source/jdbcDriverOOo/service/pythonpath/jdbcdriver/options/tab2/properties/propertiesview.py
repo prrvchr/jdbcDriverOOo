@@ -31,8 +31,6 @@ from ....unotool import getContainerWindow
 
 from ....configuration import g_identifier
 
-import traceback
-
 
 class PropertiesView():
     def __init__(self, ctx, window, handler):
@@ -107,4 +105,3 @@ class PropertiesView():
 
     def _getConfirm(self):
         return self._window.getControl('CommandButton4')
-
