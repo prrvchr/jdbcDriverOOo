@@ -92,14 +92,12 @@ public final class PreparedStatement
                 javax.sql.rowset.CachedRowSet crs = ResultSetHelper.getCachedRowSet(provider, rs, mQuery);
                 if (!crs.isReadOnly()) {
                     if (provider.getConfigSQL().useCachedRowSet()) {
-                        System.out.println("PreparedStatement.getResultSet() 1");
                         CachedRowSet rowset = new CachedRowSet(getConnectionInternal(), crs, this);
                         String services = String.join(", ", rowset.getSupportedServiceNames());
                         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
                                            services, rowset.getLogger().getObjectId());
                         resultset = rowset;
                     } else {
-                        System.out.println("PreparedStatement.getResultSet() 2");
                         RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
                         String services = String.join(", ", rowset.getSupportedServiceNames());
                         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,

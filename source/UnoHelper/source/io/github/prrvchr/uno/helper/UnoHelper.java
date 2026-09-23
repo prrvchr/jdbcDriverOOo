@@ -29,6 +29,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +40,8 @@ import com.sun.star.beans.Property;
 import com.sun.star.beans.NamedValue;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.beans.PropertyVetoException;
+import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XIntrospection;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.beans.XPropertySetInfo;
@@ -48,10 +52,12 @@ import com.sun.star.deployment.XPackageInformationProvider;
 import com.sun.star.i18n.XLocaleData;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.Locale;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lang.XMultiServiceFactory;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.lib.util.StringHelper;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.resource.XStringResourceResolver;
 import com.sun.star.sdbc.SQLException;
@@ -68,9 +74,15 @@ import com.sun.star.util.DateTime;
 import com.sun.star.util.DateTimeWithTimezone;
 import com.sun.star.util.Time;
 import com.sun.star.util.TimeWithTimezone;
+import com.sun.star.util.XMacroExpander;
 
 
 public class UnoHelper {
+
+    private static volatile XMultiServiceFactory DefaultProvider = null;
+    private static volatile XMacroExpander MacroExpander = null;
+    private static volatile XPackageInformationProvider PackageProvider = null;
+    private static final String EXPAND_PROTOCOL = "vnd.sun.star.expand:";
 
     public static void ensure(boolean condition, String message) {
         ensure(condition, message, null);
@@ -112,20 +124,14 @@ public class UnoHelper {
         if (src == null || dst == null) {
             return;
         }
-        
+
         XPropertySetInfo srcPropertySetInfo = src.getPropertySetInfo();
         XPropertySetInfo dstPropertySetInfo = dst.getPropertySetInfo();
-        
+
         for (Property srcProperty : srcPropertySetInfo.getProperties()) {
             if (dstPropertySetInfo.hasPropertyByName(srcProperty.Name)) {
                 try {
-                    Property dstProperty = dstPropertySetInfo.getPropertyByName(srcProperty.Name);
-                    if ((dstProperty.Attributes & PropertyAttribute.READONLY) == 0) {
-                        Object value = src.getPropertyValue(srcProperty.Name);
-                        if ((dstProperty.Attributes & PropertyAttribute.MAYBEVOID) == 0 || value != null) {
-                            dst.setPropertyValue(srcProperty.Name, value);
-                        }
-                    }
+                    copyProperty(dstPropertySetInfo, src, dst, srcProperty);
                 } catch (Exception e) {
                     String error = "Could not copy property '" + srcProperty.Name + "' to the destination set";
                     XServiceInfo serviceInfo = UnoRuntime.queryInterface(XServiceInfo.class, dst);
@@ -134,6 +140,21 @@ public class UnoHelper {
                     }
                     System.out.println("UnoHelper.copyProperties() ERROR: " + error);
                 }
+            }
+        }
+    }
+
+    private static void copyProperty(final XPropertySetInfo dstPropertySetInfo,
+                                     final XPropertySet src,
+                                     final XPropertySet dst,
+                                     final Property srcProperty)
+        throws UnknownPropertyException, WrappedTargetException, IllegalArgumentException, PropertyVetoException {
+        Property dstProperty = dstPropertySetInfo.getPropertyByName(srcProperty.Name);
+        if ((dstProperty.Attributes & PropertyAttribute.READONLY) == 0) {
+            Object value = src.getPropertyValue(srcProperty.Name);
+            if ((dstProperty.Attributes & PropertyAttribute.MAYBEVOID) == 0 ||
+                value != null && !AnyConverter.isVoid(value)) {
+                dst.setPropertyValue(srcProperty.Name, value);
             }
         }
     }
@@ -193,23 +214,53 @@ public class UnoHelper {
         return UnoRuntime.queryInterface(XHierarchicalNameAccess.class, getConfig(context, path, update, null));
     }
 
+    public static String expandURL(final XComponentContext context,
+                                   final String url) {
+        String expanded = url;
+        if (url != null && url.startsWith(EXPAND_PROTOCOL)) {
+            if (MacroExpander == null) {
+                Object service = context.getValueByName("/singletons/com.sun.star.util.theMacroExpander");
+                MacroExpander = UnoRuntime.queryInterface(XMacroExpander.class, service);
+            }
+            String macro = URLDecoder.decode(StringHelper.replace(url.substring(EXPAND_PROTOCOL.length()),
+                                                                  '+', "%2B"), StandardCharsets.UTF_8);
+            expanded = MacroExpander.expandMacros(macro);
+        }
+        return expanded;
+    }
+
+    private static XMultiServiceFactory getDefaultProvider(final XComponentContext context) {
+        if (DefaultProvider == null) {
+            Object service = context.getValueByName("/singletons/com.sun.star.configuration.theDefaultProvider");
+            DefaultProvider = UnoRuntime.queryInterface(XMultiServiceFactory.class, service);
+        }
+        return DefaultProvider;
+    }
+
     private static Object getConfig(final XComponentContext context,
                                     final String path,
                                     final boolean update,
                                     final String language)
         throws Exception {
         String service = "com.sun.star.configuration.Configuration";
-        final XMultiServiceFactory provider = getMultiServiceFactory(context, service + "Provider");
-        ArrayList<NamedValue> arguments = new ArrayList<>(Arrays.asList(new NamedValue("nodepath", path)));
-        if (language != null) {
-            arguments.add(new NamedValue("Locale", language));
-        }
         if (update) {
             service += "UpdateAccess";
         } else {
             service += "Access";
         }
-        return provider.createInstanceWithArguments(service, arguments.toArray());
+        ArrayList<NamedValue> arguments = new ArrayList<>(Arrays.asList(new NamedValue("nodepath", path)));
+        if (language != null) {
+            arguments.add(new NamedValue("Locale", language));
+        }
+        return getDefaultProvider(context).createInstanceWithArguments(service, arguments.toArray());
+    }
+
+    private static XPackageInformationProvider getPackageProvider(final XComponentContext context) {
+        if (PackageProvider == null) {
+            Object service = context.getValueByName("/singletons/com.sun.star.deployment.PackageInformationProvider");
+            PackageProvider = UnoRuntime.queryInterface(XPackageInformationProvider.class, service);
+        }
+        return PackageProvider;
     }
 
     public static String getPackageLocation(XComponentContext context, String identifier, String path) {
@@ -218,14 +269,7 @@ public class UnoHelper {
     }
 
     public static String getPackageLocation(XComponentContext context, String identifier) {
-        String location = "";
-        XPackageInformationProvider provider = null;
-        String service = "/singletons/com.sun.star.deployment.PackageInformationProvider";
-        provider = UnoRuntime.queryInterface(XPackageInformationProvider.class, context.getValueByName(service));
-        if (provider != null) {
-            location = provider.getPackageLocation(identifier);
-        }
-        return location;
+        return getPackageProvider(context).getPackageLocation(identifier);
     }
 
     public static Locale getCurrentLocale(XComponentContext context)

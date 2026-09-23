@@ -68,4 +68,3 @@ class DriverView(unohelper.Base):
 
     def _getConfirm(self):
         return self._dialog.getControl('CommandButton3')
-

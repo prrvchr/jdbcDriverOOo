@@ -27,9 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ..admin import AdminView
-
-import traceback
+from ..admin.adminview import AdminView
 
 
 class GroupView(AdminView):
@@ -41,4 +39,3 @@ class GroupView(AdminView):
 
     def _getSetRole(self):
         return self._dialog.getControl('CommandButton6')
-

@@ -63,8 +63,13 @@ public class ResourceBasedEventLogger
 
     // The constructor method:
     public ResourceBasedEventLogger(ResourceBasedEventLogger logger) {
-        this(logger.mContext, logger.mIdentifier, logger.mPath, logger.mBasename, logger.getName());
+        super(logger);
+        mIdentifier = logger.mIdentifier;
+        mPath = logger.mPath;
+        mBasename = logger.mBasename;
+        mBundle = logger.mBundle;
     }
+
     public ResourceBasedEventLogger(XComponentContext context,
                                     String identifier,
                                     String path,

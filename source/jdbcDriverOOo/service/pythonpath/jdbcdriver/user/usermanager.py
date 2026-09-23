@@ -27,17 +27,14 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ..admin import AdminManager
+from ..admin.adminmanager import AdminManager
 
 from .userview import UserView
 
 from .userhandler import DialogHandler
 
-import traceback
-
 
 class UserManager(AdminManager):
-    def __init__(self, ctx, connection, parent, groups):
+    def __init__(self, ctx, connection, groups, parent=None):
         view = UserView(ctx, DialogHandler(self), parent)
         super(UserManager, self).__init__(ctx, view, connection, groups, True)
-

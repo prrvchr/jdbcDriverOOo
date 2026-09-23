@@ -41,6 +41,11 @@
       <service name="com.sun.star.sdbc.Driver"/>
     </implementation>
   </component>
+  <component loader="com.sun.star.loader.Python" uri="service/Drivers.py">
+    <implementation name="io.github.prrvchr.jdbcDriverOOo.Drivers">
+      <service name="io.github.prrvchr.jdbcDriverOOo.Drivers"/>
+    </implementation>
+  </component>
   <component loader="com.sun.star.loader.Python" uri="service/LoggerPool.py">
     <implementation name="io.github.prrvchr.jdbcDriverOOo.LoggerPool">
       <service name="io.github.prrvchr.jdbcDriverOOo.LoggerPool"/>
@@ -55,6 +60,12 @@
   <component loader="com.sun.star.loader.Python" uri="service/Dispatcher.py">
     <implementation name="io.github.prrvchr.jdbcDriverOOo.Dispatcher">
       <service name="io.github.prrvchr.jdbcDriverOOo.Dispatcher"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/Setup.py">
+    <implementation name="io.github.prrvchr.jdbcDriverOOo.Setup">
+      <service name="io.github.prrvchr.jdbcDriverOOo.Setup"/>
+      <service name="com.sun.star.task.Job"/>
     </implementation>
   </component>
 </components>

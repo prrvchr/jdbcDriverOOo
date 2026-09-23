@@ -36,16 +36,16 @@ from com.sun.star.lang import XEventListener
 import traceback
 
 
-class EventListener(unohelper.Base,
-                    XEventListener):
+class OptionsListener(unohelper.Base,
+                      XEventListener):
     def __init__(self, manager):
         self._manager = manager
 
 # com.sun.star.lang.XEventListener
-    def disposing(self, source):
+    def disposing(self, event):
         try:
-            self._manager.dispose()
-        except:
+            self._manager.dispose(event.Source)
+        except Exception:
             print("EventListener.disposing() ERROR: %s" % traceback.format_exc())
 
 
@@ -62,4 +62,3 @@ class TabListener(unohelper.Base,
 # com.sun.star.lang.XEventListener
     def disposing(self, source):
         pass
-

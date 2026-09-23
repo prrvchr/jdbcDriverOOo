@@ -27,17 +27,14 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ..admin import AdminManager
+from ..admin.adminmanager import AdminManager
 
 from .groupview import GroupView
 
 from .grouphandler import DialogHandler
 
-import traceback
-
 
 class GroupManager(AdminManager):
-    def __init__(self, ctx, connection, parent, groups):
+    def __init__(self, ctx, connection, groups, parent=None):
         view = GroupView(ctx, DialogHandler(self), parent)
         super(GroupManager, self).__init__(ctx, view, connection, groups, False)
-

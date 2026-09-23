@@ -591,6 +591,7 @@ public abstract class ConfigBase extends ParameterBase {
                     break;
                 case AUTO_INCREMENT_CREATION:
                     mAutoIncrementCreation = getStringConfig(obj, mAutoIncrementCreation);
+                    break;
                 case IGNORE_DRIVER_PRIVILEGES:
                     mIgnoreDriverPrivileges = getBooleanConfig(obj, mIgnoreDriverPrivileges);
                     break;
@@ -635,8 +636,12 @@ public abstract class ConfigBase extends ParameterBase {
     }
 
     private Short getShortConfig(final Object obj, Short value) {
-        if (obj != null && AnyConverter.isShort(obj)) {
-            value = AnyConverter.toShort(obj);
+        if (obj != null) {
+            if (obj instanceof Number) {
+                value = ((Number) obj).shortValue();
+            } else if (AnyConverter.isShort(obj)) {
+                value = AnyConverter.toShort(obj);
+            }
         }
         return value;
     }

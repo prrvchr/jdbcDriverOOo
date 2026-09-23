@@ -27,14 +27,12 @@ package io.github.prrvchr.uno.driver.provider;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.sql.Driver;
 import java.sql.SQLException;
@@ -46,10 +44,7 @@ import java.util.Map;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lib.util.StringHelper;
-import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
-import com.sun.star.util.XMacroExpander;
 
 import io.github.prrvchr.java.instrumentation.InstrumentationAgent;
 import io.github.prrvchr.uno.driver.helper.PropertiesHelper;
@@ -71,7 +66,6 @@ public class DriverManager {
     private static final String JAR_URL_PREFIX = JAR + ":";
     private static final String JAR_URL_SUFFIX = "!/";
     private static final String DOT = ".";
-    private static final String EXPAND_PROTOCOL = "vnd.sun.star.expand:";
 
     private static final Map<String, String> mRegisteredClass = new HashMap<>();
     private static final Map<String, Driver> mRegisteredDriver = new HashMap<>();
@@ -199,7 +193,7 @@ public class DriverManager {
                                                                     DRIVER_CLASS_PATH, null);
         String url = null;
         if (path != null && !path.isBlank()) {
-            url = expandURL(context, path);
+            url = UnoHelper.expandURL(context, path);
         }
         if (url == null) {
             final int resource = Resources.STR_LOG_DRIVER_CLASS_NOT_FOUND;
@@ -260,26 +254,6 @@ public class DriverManager {
             final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, clsname);
             throw new SQLException(msg, StandardSQLState.SQL_UNABLE_TO_CONNECT.text(), e);
         }
-    }
-
-    private static final String expandURL(final XComponentContext context,
-                                          final String url)
-        throws SQLException {
-        String expanded = url;
-        if (url.startsWith(EXPAND_PROTOCOL)) {
-            try {
-                final Object service = context.getValueByName("/singletons/com.sun.star.util.theMacroExpander");
-                final XMacroExpander expander = UnoRuntime.queryInterface(XMacroExpander.class, service);
-                // decode uric class chars
-                String macro = URLDecoder.decode(StringHelper.replace(url.substring(EXPAND_PROTOCOL.length()),
-                                                                      '+', "%2B"), "UTF-8");
-                // expand macro string
-                expanded = expander.expandMacros(macro);
-            } catch (UnsupportedEncodingException e) {
-                throw new SQLException(e.getLocalizedMessage(), StandardSQLState.SQL_UNABLE_TO_CONNECT.text());
-            }
-        }
-        return expanded;
     }
 
     private static final File[] getDriverArchiveFiles(final String location,

@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.frame import XDispatchProvider
@@ -35,13 +34,10 @@ from com.sun.star.frame import XDispatchProvider
 from com.sun.star.lang import XInitialization
 from com.sun.star.lang import XServiceInfo
 
-from jdbcdriver import Dispatch
+from jdbcdriver.dispatch import Dispatch
 
-from jdbcdriver import hasFrameInterface
+from jdbcdriver.unotool import hasFrameInterface
 
-from jdbcdriver import g_identifier
-
-import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -63,7 +59,7 @@ class Dispatcher(unohelper.Base,
             self._frame = args[0]
 
 # XDispatchProvider
-    def queryDispatch(self, url, frame, flags):
+    def queryDispatch(self, url, _frame, _flags):
         dispatch = None
         if url.Protocol == 'jdbcdriver:':
             dispatch = Dispatch(self._ctx, self._frame)
@@ -79,8 +75,10 @@ class Dispatcher(unohelper.Base,
     # XServiceInfo
     def supportsService(self, service):
         return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+
     def getImplementationName(self):
         return g_ImplementationName
+
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
@@ -88,4 +86,3 @@ class Dispatcher(unohelper.Base,
 g_ImplementationHelper.addImplementation(Dispatcher,                      # UNO object class
                                          g_ImplementationName,            # Implementation name
                                          g_ServiceNames)                  # List of implemented services
-

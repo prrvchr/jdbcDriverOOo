@@ -27,14 +27,10 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.awt.MessageBoxType import ERRORBOX
 from com.sun.star.awt.MessageBoxType import QUERYBOX
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.sdbc import SQLException
 from com.sun.star.container import ElementExistException
@@ -56,10 +52,10 @@ from com.sun.star.view.SelectionType import SINGLE
 
 from .adminmodel import AdminModel
 
-from .dialog import GranteeView
-from .dialog import MemberView
-from .dialog import PasswordView
-from .dialog import PrivilegeView
+from .dialog.granteeview import GranteeView
+from .dialog.memberview import MemberView
+from .dialog.passwordview import PasswordView
+from .dialog.privilegeview import PrivilegeView
 
 from .adminhandler import GroupsHandler
 from .adminhandler import NewGroupHandler
@@ -68,7 +64,7 @@ from .adminhandler import UsersHandler
 from .adminhandler import NewUserHandler
 from .adminhandler import PasswordHandler
 
-from .grid import GridSelectionListener
+from .grid.gridhandler import GridSelectionListener
 
 from .gridmanager import GridManager
 from .gridmodel import GridModel
@@ -77,11 +73,9 @@ from ..unotool import createMessageBox
 from ..unotool import getResourceLocation
 from ..unotool import getStringResource
 
-from ..configuration import g_extension
 from ..configuration import g_identifier
 
 from collections import OrderedDict
-import traceback
 
 
 class AdminManager(unohelper.Base):
@@ -99,12 +93,13 @@ class AdminManager(unohelper.Base):
         self._flags = tuple(columns.values())
         self._view = view
         window = self._view.getGridWindow()
+        size = self._view.getGridSize()
         url = getResourceLocation(ctx, g_identifier, 'img')
         model = GridModel(ctx, user, groups, grantees, tables, self._flags, isuser, url)
         resolver = getStringResource(ctx, g_identifier, 'dialogs', 'PrivilegesDialog')
         resources = (resolver, 'PrivilegesDialog.CheckBox%s.Label')
         listener = GridSelectionListener(self)
-        manager = GridManager(ctx, datasource, listener, self._columns, url, model, window, 'AdminGrid', SINGLE, resources, None, True)
+        manager = GridManager(ctx, datasource, listener, self._columns, url, model, window, size, 'AdminGrid', SINGLE, resources, None, True)
         self._model = AdminModel(ctx, manager, users, members, tables, name)
         self._dialog = None
         self._disabled = True
@@ -117,6 +112,7 @@ class AdminManager(unohelper.Base):
         if self._disabled:
             self._disabled = enabled = False
         return enabled
+
     def _disableHandler(self):
         self._disabled = True
 
@@ -265,7 +261,7 @@ class AdminManager(unohelper.Base):
     def setPassword(self, pwd):
         confirmation = self._dialog.getConfirmation()
         self._dialog.enableOk(self._model.isPasswordConfirmed(pwd, confirmation))
- 
+
     def setPasswordConfirmation(self, confirmation):
         pwd = self._dialog.getPassword()
         self._dialog.enableOk(self._model.isPasswordConfirmed(pwd, confirmation))
@@ -276,7 +272,7 @@ class AdminManager(unohelper.Base):
     def dropUser(self):
         self._dropGrantee(*self._model.getDropUserInfo())
 
-    def changeGridSelection(self, index, grid):
+    def changeGridSelection(self, index, _grid):
         enabled = self._model.hasGrantablePrivileges() if index != -1 else False
         self._view.enableSetPrivileges(enabled)
 
@@ -310,7 +306,7 @@ class AdminManager(unohelper.Base):
         msgbox.execute()
         msgbox.dispose()
 
-    def _getRoles(self, xdl, handler, grantees, title, availables, isgroup=True):
+    def _getRoles(self, xdl, handler, grantees, title, availables, _isgroup=True):
         roles = None
         parent = self._view.getPeer()
         members = grantees.getElementNames()
@@ -344,9 +340,9 @@ class AdminManager(unohelper.Base):
                 if len(columns):
                     break
         else:
-            columns = {'Select': SELECT, 'Insert':     INSERT,    'Update': UPDATE,
-                       'Delete': DELETE, 'Read':       READ,      'Create': CREATE,
-                       'Alter':  ALTER,  'References': REFERENCE, 'Drop':   DROP}
+            columns = {'Select': SELECT, 'Insert':     INSERT,    'Update': UPDATE,  # noqa
+                       'Delete': DELETE, 'Read':       READ,      'Create': CREATE,  # noqa
+                       'Alter':  ALTER,  'References': REFERENCE, 'Drop':   DROP}    # noqa
         return columns
 
     def _getEvenLength(self, length):
@@ -381,4 +377,3 @@ class AdminManager(unohelper.Base):
             else:
                 revoke |= flag
         return grant, revoke
-

@@ -59,13 +59,20 @@ import com.sun.star.uno.XComponentContext;
 
 
 public class EventLogger {
-    private static XLoggerPool sPOOL;
-    private static String sSERVICE = "io.github.prrvchr.jdbcDriverOOo.LoggerPool";
+    private static XLoggerPool POOL;
+    private static String SERVICE = "io.github.prrvchr.jdbcDriverOOo.LoggerPool";
+
     protected XComponentContext mContext;
     private String mName;
     private XLogger mLogger;
-    
+
     // The constructor method:
+    protected EventLogger(EventLogger logger) {
+        mContext = logger.mContext;
+        mName = logger.mName;
+        mLogger = logger.mLogger;
+    }
+
     public EventLogger(XComponentContext context)
         throws com.sun.star.uno.Exception {
         this(context, "");
@@ -85,13 +92,13 @@ public class EventLogger {
                        String name) {
         mContext = context;
         mName = name;
-        if (sPOOL == null) {
-            sPOOL = getLoggerPool();
+        if (POOL == null) {
+            POOL = getLoggerPool();
         }
         if (!name.isEmpty()) {
-            mLogger = sPOOL.getNamedLogger(name);
+            mLogger = POOL.getNamedLogger(name);
         } else {
-            mLogger = sPOOL.getDefaultLogger();
+            mLogger = POOL.getDefaultLogger();
         }
     }
 
@@ -294,7 +301,7 @@ public class EventLogger {
     private XLoggerPool getLoggerPool() {
         XLoggerPool pool = null;
         try {
-            Object object = mContext.getServiceManager().createInstanceWithContext(sSERVICE, mContext);
+            Object object = mContext.getServiceManager().createInstanceWithContext(SERVICE, mContext);
             pool = UnoRuntime.queryInterface(XLoggerPool.class, object);
         } catch (Exception e) { }
         if (pool == null) {

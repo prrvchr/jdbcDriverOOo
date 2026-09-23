@@ -32,6 +32,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbcx.XCreateCatalog;
+import com.sun.star.sdbcx.XDropCatalog;
 import com.sun.star.sdbcx.XDataDefinitionSupplier;
 import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.uno.Exception;
@@ -47,7 +48,8 @@ import io.github.prrvchr.uno.sdbc.DriverBase;
 public abstract class DriverSuper
     extends DriverBase
     implements XDataDefinitionSupplier,
-               XCreateCatalog {
+               XCreateCatalog,
+               XDropCatalog {
 
     // The constructor method:
     public DriverSuper(XComponentContext ctx,
@@ -65,6 +67,12 @@ public abstract class DriverSuper
         System.out.println("DriverSuper.createCatalog 1 ********************************");
     }
 
+    // com.sun.star.sdbcx.XDropCatalog:
+    @Override
+    public void dropCatalog(String name, PropertyValue[] properties)
+        throws SQLException {
+        System.out.println("DriverSuper.dropCatalog 1 ********************************");
+    }
 
     // com.sun.star.lang.XDataDefinitionSupplier:
     @Override

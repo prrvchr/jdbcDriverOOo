@@ -294,8 +294,8 @@ public class TableWriter implements Serializable {
 
         Table(ResultSetMetaData md, int index)
             throws java.sql.SQLException {
-            this(Optional.ofNullable(md.getCatalogName(index)),
-                 Optional.ofNullable(md.getSchemaName(index)),
+            this(Optional.ofNullable(md.getCatalogName(index)).filter(s -> !s.isBlank()),
+                 Optional.ofNullable(md.getSchemaName(index)).filter(s -> !s.isBlank()),
                  md.getTableName(index));
         }
     }

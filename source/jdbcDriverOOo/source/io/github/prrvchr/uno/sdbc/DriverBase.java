@@ -61,12 +61,15 @@ public abstract class DriverBase
                XDriver {
 
     public static final String IDENTIFIER = "io.github.prrvchr.jdbcDriverOOo";
+
+    private static volatile XHierarchicalNameAccess Driver;
+    private static volatile XNameAccess Option;
+
     protected final ResourceBasedEventLogger mLogger;
     private final String mService;
     private final String[] mServices;
     private final String mApi;
     private XComponentContext mContext;
-    private XHierarchicalNameAccess mDriver;
 
     // The constructor method:
     public DriverBase(final XComponentContext context,
@@ -78,6 +81,13 @@ public abstract class DriverBase
         mService = service;
         mServices = services;
         mApi = api;
+        // XXX: Initializing static fields...
+        if (Driver == null) {
+            Driver = getDriverConfig(context, "org.openoffice.Office.DataAccess.Drivers", this);
+        }
+        if (Option == null) {
+            Option = getOptionConfig(mContext, IDENTIFIER, this);
+        }
         // XXX: We are loading the logger provider...
         SharedResources.registerClient(context, IDENTIFIER, "resource", "Driver");
         mLogger = new ResourceBasedEventLogger(context, IDENTIFIER, "resource",
@@ -88,19 +98,18 @@ public abstract class DriverBase
         if (DriverManager.isJavaInstrumantationInstalled()) {
             // XXX: We are loading configurations...
             DriverManager.setJavaRowSetFactory(context, IDENTIFIER);
-            if (isJavaLoggerEnabled(context)) {
+            if (isJavaLoggerEnabled()) {
                 DriverManager.setJavaLoggerService(context, IDENTIFIER);
             }
         }
-        mDriver = getDriverConfig(context, "org.openoffice.Office.DataAccess.Drivers", this);
     }
 
     // com.sun.star.lang.XComponent:
     @Override
     public synchronized void dispose() {
+        super.dispose();
         mContext = null;
         SharedResources.revokeClient();
-        UnoHelper.disposeComponent(mDriver);
     }
 
     // com.sun.star.lang.XServiceInfo:
@@ -131,10 +140,8 @@ public abstract class DriverBase
         if (isValidURL(url)) {
             // XXX: If the necessary Java instrumentation is not installed a warning will be throw.
             try {
-                XNameAccess config = getOptionConfig(mContext, IDENTIFIER, this);
-                Provider provider = new Provider(mContext, mLogger, mDriver, config,
+                Provider provider = new Provider(mContext, mLogger, Driver, Option,
                                                  url, info, mApi);
-                UnoHelper.disposeComponent(config);
                 connection = getConnection(mContext, provider, url);
                 String services = String.join(", ", connection.getSupportedServiceNames());
                 mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services,
@@ -155,10 +162,7 @@ public abstract class DriverBase
     public DriverPropertyInfo[] getPropertyInfo(String url, PropertyValue[] infos)
         throws SQLException {
         if (!isValidURL(url)) {
-            final int resource = Resources.STR_URI_SYNTAX_ERROR;
-            final String message = SharedResources.getInstance().getResourceWithSubstitution(resource, url);
-            java.sql.SQLException e = new java.sql.SQLException(message, StandardSQLState.SQL_GENERAL_ERROR.text());
-            throw UnoHelper.getSQLException(e, this);
+            return new DriverPropertyInfo[0];
         }
         List<DriverPropertyInfo> properties = new ArrayList<DriverPropertyInfo>();
         try {
@@ -166,16 +170,16 @@ public abstract class DriverBase
             for (PropertyValue info : infos) {
                 if (!setStaticPropertyInfo(properties, info)) {
                     String path = PropertiesHelper.getConfigPropertiesPath(protocol, info.Name);
-                    if (!mDriver.hasByHierarchicalName(path)) {
+                    if (!Driver.hasByHierarchicalName(path)) {
                         path = PropertiesHelper.getDefaultConfigPropertiesPath(info.Name);
                     }
-                    if (mDriver.hasByHierarchicalName(path)) {
+                    if (Driver.hasByHierarchicalName(path)) {
                         setConfigPropertyInfo(properties, info, path);
                     }
                 }
             }
         } catch (NoSuchElementException e) {
-            throw UnoHelper.getSQLException(e, this);
+            return new DriverPropertyInfo[0];
         }
         return properties.toArray(new DriverPropertyInfo[0]);
     }
@@ -194,16 +198,16 @@ public abstract class DriverBase
                                                     String url);
 
     // Private methods:
-    private boolean isJavaLoggerEnabled(XComponentContext context) throws SQLException {
+    private boolean isJavaLoggerEnabled() {
         boolean enabled = false;
         try {
-            XHierarchicalNameAccess config = getDriverConfig(context, IDENTIFIER, this);
-            Object obj = config.getByHierarchicalName("EnableJavaSystemLogger");
-            if (obj != null && AnyConverter.isBoolean(obj)) {
-                enabled = AnyConverter.toBoolean(obj);
+            if (Option != null && Option.hasByName("EnableJavaSystemLogger")) {
+                Object obj = Option.getByName("EnableJavaSystemLogger");
+                if (obj != null && AnyConverter.isBoolean(obj)) {
+                    enabled = AnyConverter.toBoolean(obj);
+                }
             }
-            UnoHelper.disposeComponent(config);
-        } catch (NoSuchElementException e) { }
+        } catch (Exception e) { }
         return enabled;
     }
 
@@ -214,22 +218,18 @@ public abstract class DriverBase
 
     private boolean setStaticPropertyInfo(List<DriverPropertyInfo> properties,
                                           PropertyValue info) {
-        boolean retrieved = false;
-        String description;
-        Boolean state;
-        String[] choices;
-        switch (info.Name) {
-            case "SupportsInstrumentationAgent":
-                state = (Boolean) DriverManager.isJavaInstrumantationInstalled();
-                choices = new String[]{"false", "true"};
-                description = "Is Java Instrumentation Agent installed.";
-                // XXX: Name, Description, IsRequired, Value, Choices
+        return switch (info.Name) {
+            case "SupportsInstrumentationAgent" -> {
+                String value = Boolean.toString(DriverManager.isJavaInstrumantationInstalled());
+                String[]choices = new String[]{"false", "true"};
+                String description = "Is Java Instrumentation Agent installed.";
+                boolean required = false;
                 properties.add(new DriverPropertyInfo("SupportsInstrumentationAgent",
-                               description, false, state.toString(), choices));
-                retrieved = true;
-                break;
-        }
-        return retrieved;
+                               description, required, value, choices));
+                yield true;
+            }
+            default -> false;
+        };
     }
 
     private void setConfigPropertyInfo(List<DriverPropertyInfo> properties,
@@ -241,28 +241,28 @@ public abstract class DriverBase
         Object[] values;
         switch (info.Name) {
             case "IsAutoRetrievingEnabled":
-                state = (Boolean) mDriver.getByHierarchicalName(path);
+                state = (Boolean) Driver.getByHierarchicalName(path);
                 choices = new String[]{"false", "true"};
                 description = "Retrieve generated values.";
                 properties.add(new DriverPropertyInfo("IsAutoRetrievingEnabled",
                                description, true, state.toString(), choices));
                 break;
             case "IgnoreCurrency":
-                state = (Boolean) mDriver.getByHierarchicalName(path);
+                state = (Boolean) Driver.getByHierarchicalName(path);
                 choices = new String[]{"false", "true"};
                 description = "Ignore currency type.";
                 properties.add(new DriverPropertyInfo("IgnoreCurrency",
                                description, false, state.toString(), choices));
                 break;
             case "IgnoreDriverPrivileges":
-                state = (Boolean) mDriver.getByHierarchicalName(path);
+                state = (Boolean) Driver.getByHierarchicalName(path);
                 choices = new String[]{"false", "true"};
                 description = "Ignore DatabaseMetaData.getTablePrivileges method.";
                 properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges",
                                description, false, state.toString(), choices));
                 break;
             case "AutoRetrievingStatement":
-                value = (String) mDriver.getByHierarchicalName(path);
+                value = (String) Driver.getByHierarchicalName(path);
                 choices = new String[]{value, };
                 description = "Last inserted id statement.";
                 properties.add(new DriverPropertyInfo("AutoRetrievingStatement",
@@ -270,49 +270,49 @@ public abstract class DriverBase
                 break;
             // Test
             case "AutoIncrementCreation":
-                value = (String) mDriver.getByHierarchicalName(path);
+                value = (String) Driver.getByHierarchicalName(path);
                 choices = new String[]{value, };
                 description = "Auto-increment creation statement.";
                 properties.add(new DriverPropertyInfo("AutoIncrementCreation",
                                description, true, value, choices));
                 break;
             case "RowVersionCreation":
-                values = (Object[]) mDriver.getByHierarchicalName(path);
+                values = (Object[]) Driver.getByHierarchicalName(path);
                 value = (String) values[0];
                 description = "Row version creation statement.";
                 properties.add(new DriverPropertyInfo("RowVersionCreation",
                                description, true, value, (String[]) values));
                 break;
             case "TypeInfoSettings":
-                values = (Object[]) mDriver.getByHierarchicalName(path);
+                values = (Object[]) Driver.getByHierarchicalName(path);
                 value = (String) values[0];
                 description = "Defines how the type info of the database metadata should be manipulated.";
                 properties.add(new DriverPropertyInfo("TypeInfoSettings",
                                description, true, "", (String[]) values));
                 break;
             case "PrivilegesSettings":
-                values = (Object[]) mDriver.getByHierarchicalName(path);
+                values = (Object[]) Driver.getByHierarchicalName(path);
                 value = (String) values[0];
                 description = "Lists privileges supported by the underlying driver.";
                 properties.add(new DriverPropertyInfo("PrivilegesSettings",
                                description, true, value, (String[]) values));
                 break;
             case "UseCatalogInSelect":
-                state = (Boolean) mDriver.getByHierarchicalName(path);
+                state = (Boolean) Driver.getByHierarchicalName(path);
                 choices = new String[]{"false", "true"};
                 description = "Use Catalog in view creation.";
                 properties.add(new DriverPropertyInfo("UseCatalogInSelect",
                                description, true, state.toString(), choices));
                 break;
             case "UseSchemaInSelect":
-                state = (Boolean) mDriver.getByHierarchicalName(path);
+                state = (Boolean) Driver.getByHierarchicalName(path);
                 choices = new String[]{"false", "true"};
                 description = "Use Catalog in view creation.";
                 properties.add(new DriverPropertyInfo("UseSchemaInSelect",
                                description, true, state.toString(), choices));
                 break;
             case "UseCatalogInView":
-                state = (Boolean) mDriver.getByHierarchicalName(path);
+                state = (Boolean) Driver.getByHierarchicalName(path);
                 choices = new String[]{"false", "true"};
                 description = "Use Catalog in view creation.";
                 properties.add(new DriverPropertyInfo("IsAutoRetrievingEnabled",

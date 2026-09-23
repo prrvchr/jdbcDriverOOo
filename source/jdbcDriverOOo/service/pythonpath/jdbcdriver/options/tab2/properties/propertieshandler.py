@@ -40,7 +40,7 @@ class WindowHandler(unohelper.Base,
         self._manager = manager
 
     # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
+    def callHandlerMethod(self, _window, event, method):
         try:
             handled = False
             if method == 'SetProperty':
@@ -65,7 +65,7 @@ class WindowHandler(unohelper.Base,
                 self._manager.cancelProperty()
                 handled = True
             return handled
-        except Exception as e:
+        except Exception:
             msg = "WindowHandler.callHandlerMethod() Error: %s" % traceback.format_exc()
             print(msg)
 
@@ -77,4 +77,3 @@ class WindowHandler(unohelper.Base,
                 'SetPropertyName',
                 'Confirm',
                 'Cancel')
-

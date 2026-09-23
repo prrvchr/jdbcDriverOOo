@@ -27,20 +27,29 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from ....unotool.layout import Layout
+
+from ....unotool.sublayout import SubLayout
+
 from ....unotool import getContainerWindow
 
 from ....configuration import g_identifier
-
-import traceback
 
 
 class PropertiesView():
     def __init__(self, ctx, window, handler):
         self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'PropertiesWindow')
+        self._layout = SubLayout(Layout(self._window, **self._getLayouts()))
         self._window.setVisible(True)
         self.setStep(1)
 
 # PropertiesView getter methods
+    def getFrame(self):
+        return self._getFrame()
+
+    def getLayout(self):
+        return self._layout
+
     def getWindow(self):
         return self._window
 
@@ -52,7 +61,12 @@ class PropertiesView():
 
 # PropertiesView setter methods
     def dispose(self):
-        self._window.dispose()
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+        if self._window:
+            self._window.dispose()
+            self._window = None
 
     def setProperties(self, values, updatable):
         control = self._getProperties()
@@ -85,11 +99,28 @@ class PropertiesView():
     def setPropertyName(self, value):
         self._getPropertyName().Text = value
 
+# PropertiesView private getter methods
+    def _getLayouts(self):
+        return {'horizontals': self._getHorizontals(),
+                'tops': self._getTops()}
+
+    def _getHorizontals(self):
+        yield self._getFrame()
+        yield self._getPropertyName()
+        yield self._getProperties()
+
+    def _getTops(self):
+        for index in range(1, 6):
+            yield self._getButton(index)
+
 # PropertiesView private setter methods
     def _enableEdit(self, enable):
         self._getEditProperty().Model.Enabled = enable
 
 # PropertiesView private control methods
+    def _getFrame(self):
+        return self._window.getControl('FrameControl1')
+
     def _getProperties(self):
         return self._window.getControl('ListBox1')
 
@@ -108,3 +139,5 @@ class PropertiesView():
     def _getConfirm(self):
         return self._window.getControl('CommandButton4')
 
+    def _getButton(self, index):
+        return self._window.getControl(f'CommandButton{index}')

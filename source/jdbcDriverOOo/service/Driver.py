@@ -29,57 +29,43 @@
 
 import unohelper
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
+from jdbcdriver.sdbc.driver import Driver as SdbcDriver
+from jdbcdriver.sdbcx.driver import Driver as SdbcxDriver
 
-from com.sun.star.uno import Exception as UNOException
+from jdbcdriver.unotool import getConfiguration
 
-from jdbcdriver import createService
-from jdbcdriver import getConfiguration
-from jdbcdriver import getLogger
+from jdbcdriver.logger.helper import getLogger
 
-from jdbcdriver import g_basename
-from jdbcdriver import g_defaultlog
-from jdbcdriver import g_identifier
-from jdbcdriver import g_services
+from jdbcdriver.configuration import g_basename
+from jdbcdriver.configuration import g_defaultlog
+from jdbcdriver.configuration import g_identifier
+from jdbcdriver.configuration import g_services
 
 from threading import Lock
-import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
 g_ImplementationName = 'io.github.prrvchr.jdbcDriverOOo.Driver'
-g_ServiceNames = ('io.github.prrvchr.jdbcDriverOOo.Driver', 'com.sun.star.sdbc.Driver')
+g_ServiceNames = ('io.github.prrvchr.jdbcDriverOOo.Driver',
+                  'com.sun.star.sdbc.Driver')
 
-# XXX: This class is simply a bootstrap to enable the following:
-# XXX: - Provide a single entry for different services meeting the required API levels
-# XXX: - Log any errors that occur while loading the Java driver
 
 class Driver():
-    def __new__(cls, ctx, *args, **kwargs):
+    def __new__(cls, ctx):
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
                     logger = getLogger(ctx, g_defaultlog, g_basename)
                     level = getConfiguration(ctx, g_identifier).getByName('ApiLevel')
                     service = g_services[level]
-                    try:
-                        cls._instance = createService(ctx, service)
-                        logger.logprb(INFO, 'Driver', '__new__', 101, g_ImplementationName, service)
-                    except UNOException as e:
-                        if cls._logger is None:
-                            cls._logger = logger
-                        logger.logprb(SEVERE, 'Driver', '__new__', 102, g_ImplementationName, service, e.Message)
-                        raise e
+                    instance = SdbcDriver if level == 0 else SdbcxDriver
+                    cls._instance = instance(ctx, logger, service, g_ImplementationName)
         return cls._instance
 
-    # XXX: If the driver fails to load then we keep a reference
-    # XXX: to the logger so we can read the error message later
-    _logger = None
     _instance = None
     _lock = Lock()
+
 
 g_ImplementationHelper.addImplementation(Driver,                          # UNO object class
                                          g_ImplementationName,            # Implementation name
                                          g_ServiceNames)                  # List of implemented services
-

@@ -27,9 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ..admin import AdminView
-
-import traceback
+from ..admin.adminview import AdminView
 
 
 class UserView(AdminView):
@@ -49,5 +47,3 @@ class UserView(AdminView):
 
     def _getSetPassword(self):
         return self._dialog.getControl('CommandButton6')
-
-

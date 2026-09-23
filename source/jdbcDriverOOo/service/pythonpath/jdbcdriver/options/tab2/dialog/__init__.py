@@ -26,8 +26,3 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
-
-from .driverview import DriverView
-
-from .driverhandler import DialogHandler
-

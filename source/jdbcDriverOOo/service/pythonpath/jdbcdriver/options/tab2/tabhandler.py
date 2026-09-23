@@ -33,13 +33,14 @@ from com.sun.star.awt import XContainerWindowEventHandler
 
 import traceback
 
+
 class TabHandler(unohelper.Base,
                  XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
     # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
+    def callHandlerMethod(self, _window, event, method):
         try:
             handled = False
             if method == 'SetDriver':
@@ -73,7 +74,7 @@ class TabHandler(unohelper.Base,
                 self._manager.setGroup(event.Source.getSelectedItem())
                 handled = True
             return handled
-        except Exception as e:
+        except Exception:
             msg = "TabHandler.callHandlerMethod() Error: %s" % traceback.format_exc()
             print(msg)
 
@@ -88,4 +89,3 @@ class TabHandler(unohelper.Base,
                 'UpdateArchive',
                 'ViewArchive',
                 'SetGroup')
-

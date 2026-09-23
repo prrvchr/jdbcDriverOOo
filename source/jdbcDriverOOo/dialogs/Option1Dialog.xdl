@@ -25,17 +25,23 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="Option1Dialog" dlg:left="0" dlg:top="0" dlg:width="260" dlg:height="200" dlg:help-text="&amp;Option1Dialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;Option1Dialog.Title" dlg:withtitlebar="false">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="Option1Dialog" dlg:left="0" dlg:top="0" dlg:width="279" dlg:height="230" dlg:help-text="&amp;Option1Dialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;Option1Dialog.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="0" dlg:left="100" dlg:top="140" dlg:width="70" dlg:height="15" dlg:help-text="&amp;Option1Dialog.CheckBox1.HelpText" dlg:value="&amp;Option1Dialog.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
+    <dlg:titledbox dlg:id="FrameControl1" dlg:tab-index="0" dlg:left="0" dlg:top="0" dlg:width="279" dlg:height="140" dlg:help-text="&amp;Option1Dialog.FrameControl1.HelpText">
+      <dlg:title dlg:value="&amp;Option1Dialog.FrameControl1.Label"/>
+    </dlg:titledbox>
+    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="1" dlg:left="10" dlg:top="140" dlg:width="120" dlg:height="15" dlg:help-text="&amp;Option1Dialog.CheckBox1.HelpText" dlg:value="&amp;Option1Dialog.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:JavaLogger" script:language="UNO"/>
     </dlg:checkbox>
-    <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="1" dlg:left="180" dlg:top="140" dlg:width="70" dlg:height="15" dlg:help-text="&amp;Option1Dialog.CheckBox2.HelpText" dlg:value="&amp;Option1Dialog.CheckBox2.Label" dlg:valign="center" dlg:checked="true">
+    <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="2" dlg:left="150" dlg:top="140" dlg:width="120" dlg:height="15" dlg:help-text="&amp;Option1Dialog.CheckBox2.HelpText" dlg:value="&amp;Option1Dialog.CheckBox2.Label" dlg:valign="center" dlg:checked="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ClassPath" script:language="UNO"/>
     </dlg:checkbox>
+    <dlg:titledbox dlg:id="FrameControl2" dlg:tab-index="3" dlg:left="0" dlg:top="160" dlg:width="279" dlg:height="40" dlg:help-text="&amp;Option1Dialog.FrameControl2.HelpText">
+      <dlg:title dlg:value="&amp;Option2Dialog.FrameControl2.Label"/>
+    </dlg:titledbox>
   </dlg:bulletinboard>
 </dlg:window>
 

@@ -28,6 +28,8 @@ package io.github.prrvchr.uno.sdbc;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XServiceInfo;
@@ -103,25 +105,29 @@ public abstract class ConnectionBase
     // com.sun.star.lang.XComponent
     @Override
     public synchronized void dispose() {
-        if (!mOpenResultSet.isEmpty()) {
-            System.out.println("Connection.dispose() Open ResultSet: " + String.join(", ", mOpenResultSet));
-        } else {
-            System.out.println("Connection.dispose() No ResultSet Open...");
-        }
-
         try {
+            if (!mOpenResultSet.isEmpty()) {
+                System.out.println("Connection.dispose() Open ResultSet: " + String.join(", ", mOpenResultSet));
+            } else {
+                System.out.println("Connection.dispose() No ResultSet Open...");
+            }
             for (Iterator<StatementBase> it = mStatements.keySet().iterator(); it.hasNext();) {
                 StatementBase statement = it.next();
-                System.out.println("Connection.dispose() dispose statement: " + statement.mQuery.toString());
+                System.out.println("Connection.dispose() dispose statement: " + Objects.toString(statement.mQuery, ""));
                 it.remove();
-                statement.dispose();
+                try {
+                    statement.dispose();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
             }
             getProvider().closeConnection();
-        } catch (java.sql.SQLException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             System.out.println("Connection.dispose() ERROR:\n" + UnoHelper.getStackTrace(e));
+        } finally {
+            super.dispose();
         }
-        super.dispose();
     }
 
     // com.sun.star.lang.XServiceInfo:

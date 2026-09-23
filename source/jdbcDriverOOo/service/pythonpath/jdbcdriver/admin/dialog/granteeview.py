@@ -80,4 +80,3 @@ class GranteeView(unohelper.Base):
 
     def _getOk(self):
         return self._dialog.getControl('CommandButton2')
-

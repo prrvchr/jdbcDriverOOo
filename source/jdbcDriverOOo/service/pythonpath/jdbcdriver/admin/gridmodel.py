@@ -29,12 +29,10 @@
 
 from com.sun.star.sdbcx.PrivilegeObject import TABLE
 
-from .grid import GridModel as GridModelBase
+from .grid.gridmodel import GridModel as GridModelBase
 
 from ..unotool import createService
 from ..unotool import getPropertyValueSet
-
-import traceback
 
 
 class GridModel(GridModelBase):
@@ -58,6 +56,7 @@ class GridModel(GridModelBase):
     @property
     def RowCount(self):
         return self._row
+
     @property
     def ColumnCount(self):
         return self._column
@@ -73,7 +72,7 @@ class GridModel(GridModelBase):
             return table
         return self._getPrivilegeImage(table, column)
 
-    def getCellToolTip(self, column, row):
+    def getCellToolTip(self, _column, _row):
         return ""
 
     def getRowData(self, row):
@@ -135,7 +134,7 @@ class GridModel(GridModelBase):
         return self._images[index]
 
     def _getDataPrivileges(self, table, column):
-        flag = self._flags[column -1]
+        flag = self._flags[column - 1]
         privilege = grantable = inherited = 0
         if self._grantee is not None:
             privilege, grantable, inherited = self._getTablePrivileges(table)
@@ -210,4 +209,3 @@ class GridModel(GridModelBase):
                 yield from self._getParentRoles(name, parents)
         if self._groups.hasByName(role):
             yield self._groups.getByName(role)
-

@@ -40,7 +40,7 @@ class DialogHandler(unohelper.Base,
         self._manager = manager
 
     # XDialogEventHandler
-    def callHandlerMethod(self, dialog, event, method):
+    def callHandlerMethod(self, _dialog, event, method):
         try:
             handled = False
             if method == 'SetSubProtocol':
@@ -56,7 +56,7 @@ class DialogHandler(unohelper.Base,
                 self._manager.setArchive()
                 handled = True
             return handled
-        except Exception as e:
+        except Exception:
             msg = "WindowHandler.callHandlerMethod() Error: %s" % traceback.format_exc()
             print(msg)
 
@@ -65,4 +65,3 @@ class DialogHandler(unohelper.Base,
                 'SetDriverName',
                 'SetJavaClass',
                 'SetArchive')
-
