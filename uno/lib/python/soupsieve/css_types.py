@@ -155,11 +155,11 @@ class Namespaces(ImmutableDict):
     def _validate(self, arg: dict[str, str] | Iterable[tuple[str, str]]) -> None:
         """Validate arguments."""
 
-        if isinstance(arg, dict):
-            if not all(isinstance(v, str) for v in arg.values()):
-                raise TypeError(f'{self.__class__.__name__} values must be hashable')
-        elif not all(isinstance(k, str) and isinstance(v, str) for k, v in arg):
-            raise TypeError(f'{self.__class__.__name__} keys and values must be Unicode strings')
+        if not all(
+            isinstance(k, str) and isinstance(v, str)
+            for k, v in (arg.items() if isinstance(arg, dict) else arg)
+        ):
+            raise TypeError(f'{self.__class__.__name__} values must be hashable')
 
 
 class CustomSelectors(ImmutableDict):
@@ -173,11 +173,11 @@ class CustomSelectors(ImmutableDict):
     def _validate(self, arg: dict[str, str] | Iterable[tuple[str, str]]) -> None:
         """Validate arguments."""
 
-        if isinstance(arg, dict):
-            if not all(isinstance(v, str) for v in arg.values()):
-                raise TypeError(f'{self.__class__.__name__} values must be hashable')
-        elif not all(isinstance(k, str) and isinstance(v, str) for k, v in arg):
-            raise TypeError(f'{self.__class__.__name__} keys and values must be Unicode strings')
+        if not all(
+            isinstance(k, str) and isinstance(v, str)
+            for k, v in (arg.items() if isinstance(arg, dict) else arg)
+        ):
+            raise TypeError(f'{self.__class__.__name__} values must be hashable')
 
 
 class Selector(Immutable):
@@ -351,24 +351,27 @@ class SelectorLang(Immutable):
 class SelectorList(Immutable):
     """Selector list."""
 
-    __slots__ = ("selectors", "is_not", "is_html", "_hash")
+    __slots__ = ("selectors", "is_not", "is_html", "count", "_hash")
 
     selectors: tuple[Selector | SelectorNull, ...]
     is_not: bool
     is_html: bool
+    count: int
 
     def __init__(
         self,
         selectors: Iterable[Selector | SelectorNull] | None = None,
         is_not: bool = False,
-        is_html: bool = False
+        is_html: bool = False,
+        count: int = 0,
     ) -> None:
         """Initialize."""
 
         super().__init__(
             selectors=tuple(selectors) if selectors is not None else (),
             is_not=is_not,
-            is_html=is_html
+            is_html=is_html,
+            count=count
         )
 
     def __iter__(self) -> Iterator[Selector | SelectorNull]:

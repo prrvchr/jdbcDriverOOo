@@ -8,13 +8,9 @@ Layer Security (TLS a.k.a. SSL).
 """
 
 import imaplib
-import io
 import socket
 import ssl
-from typing import Optional, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing_extensions import Buffer
+from typing import Optional
 
 
 def wrap_socket(
@@ -35,34 +31,15 @@ class IMAP4_TLS(imaplib.IMAP4):
     def __init__(
         self,
         host: str,
-        port: int,
-        ssl_context: Optional[ssl.SSLContext],
+        port: int = 993,
+        ssl_context: Optional[ssl.SSLContext] = None,
         timeout: Optional[float] = None,
     ):
         self.ssl_context = ssl_context
         self._timeout = timeout
-        imaplib.IMAP4.__init__(self, host, port)
-        self.file: io.BufferedReader
+        super().__init__(host, port)
 
-    def open(
-        self, host: str = "", port: int = 993, timeout: Optional[float] = None
-    ) -> None:
-        self.host = host
-        self.port = port
-        sock = socket.create_connection(
-            (host, port), timeout if timeout is not None else self._timeout
-        )
-        self.sock = wrap_socket(sock, self.ssl_context, host)
-        self.file = self.sock.makefile("rb")
+    def _create_socket(self, timeout: Optional[float]) -> socket.socket:
+        sock = socket.create_connection((self.host, self.port), timeout=timeout)
 
-    def read(self, size: int) -> bytes:
-        return self.file.read(size)
-
-    def readline(self) -> bytes:
-        return self.file.readline()
-
-    def send(self, data: "Buffer") -> None:
-        self.sock.sendall(data)
-
-    def shutdown(self) -> None:
-        imaplib.IMAP4.shutdown(self)
+        return wrap_socket(sock, self.ssl_context, self.host)

@@ -27,13 +27,11 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .taskevent import TaskEvent
-
-from .statusindicator import StatusIndicator
-
+from .unotool import checkInternet
 from .unotool import checkVersion
 from .unotool import createMessageBox
 from .unotool import createService
+from .unotool import deregisterStartupJob
 from .unotool import executeDesktopDispatch
 from .unotool import executeDispatch
 from .unotool import executeFrameDispatch
@@ -55,6 +53,7 @@ from .unotool import getDispatcher
 from .unotool import getDialog
 from .unotool import getDialogUrl
 from .unotool import getDocument
+from .unotool import getDriverManager
 from .unotool import getExceptionMessage
 from .unotool import getExtensionVersion
 from .unotool import getFilePicker
@@ -63,6 +62,7 @@ from .unotool import getFileUrl
 from .unotool import getInteractionHandler
 from .unotool import getInterfaceNames
 from .unotool import getInterfaceTypes
+from .unotool import getJobListener
 from .unotool import getLastNamedParts
 from .unotool import getLibreOfficeInfo
 from .unotool import getLibreOfficeVersion
@@ -77,6 +77,7 @@ from .unotool import getProperty
 from .unotool import getPropertyValue
 from .unotool import getPropertyValueSet
 from .unotool import getResourceLocation
+from .unotool import getRowSet
 from .unotool import getSequenceInputStream
 from .unotool import getSimpleFile
 from .unotool import getStreamSequence
@@ -85,18 +86,22 @@ from .unotool import getStringResourceWithLocation
 from .unotool import getTempFile
 from .unotool import getToolKit
 from .unotool import getTopWindow
-from .unotool import getTopWindowPosition
 from .unotool import getTypeDetection
 from .unotool import getUriFactory
 from .unotool import getUrl
 from .unotool import getUrlPresentation
 from .unotool import getUrlTransformer
+from .unotool import getWindowPosition
 from .unotool import hasFrameInterface
 from .unotool import hasInterface
 from .unotool import hasService
+from .unotool import hasStartupJob
+from .unotool import notifyDispatch
 from .unotool import parseDateTime
 from .unotool import parseUrl
-from .unotool import saveTopWindowPosition
+from .unotool import registerStartupJob
+from .unotool import saveWindowPosition
 from .unotool import setProgress
+from .unotool import setWindowPosition
 from .unotool import unparseDateTime
 from .unotool import unparseTimeStamp

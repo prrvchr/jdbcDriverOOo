@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+-->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="SetupWindow" dlg:page="1" dlg:left="0" dlg:top="0" dlg:width="270" dlg:height="135" dlg:help-text="&amp;SetupWindow.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;SetupWindow.Title" dlg:withtitlebar="false">
+  <dlg:styles>
+    <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
+  </dlg:styles>
+  <dlg:bulletinboard>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="0" dlg:left="20" dlg:top="15" dlg:width="230" dlg:height="20" dlg:help-text="&amp;SetupWindow.Label1.HelpText" dlg:value="&amp;SetupWindow.Label1.Label.1" dlg:align="center" dlg:multiline="true"/>
+    <dlg:progressmeter dlg:id="ProgressBar2" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.ProgressBar2.HelpText" dlg:value="0" dlg:page="2"/>
+    <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="20" dlg:top="60" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.Label2.HelpText" dlg:align="center" dlg:page="2"/>
+    <dlg:text dlg:id="Label3" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label3.HelpText" dlg:align="center" dlg:page="3" dlg:multiline="true"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label4.HelpText" dlg:align="center" dlg:page="4" dlg:multiline="true"/>
+    <dlg:progressmeter dlg:id="ProgressBar5" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.ProgressBar5.HelpText" dlg:value="0" dlg:page="5"/>
+    <dlg:text dlg:id="Label5" dlg:tab-index="2" dlg:left="20" dlg:top="60" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.Label5.HelpText" dlg:align="center" dlg:page="5"/>
+    <dlg:text dlg:id="Label6" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label6.HelpText" dlg:align="center" dlg:page="6" dlg:multiline="true"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label7" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label7.HelpText" dlg:align="center" dlg:page="7" dlg:multiline="true"/>
+    <dlg:progressmeter dlg:id="ProgressBar8" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.ProgressBar8.HelpText" dlg:value="0" dlg:page="8"/>
+    <dlg:text dlg:id="Label8" dlg:tab-index="2" dlg:left="20" dlg:top="60" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.Label8.HelpText" dlg:align="center" dlg:page="8"/>
+    <dlg:text dlg:id="Label9" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label9.HelpText" dlg:align="center" dlg:page="9" dlg:multiline="true"/>
+    <dlg:text dlg:id="Label10" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label10.HelpText" dlg:align="center" dlg:page="10" dlg:multiline="true"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label11" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label11.HelpText" dlg:align="center" dlg:page="11" dlg:multiline="true"/>
+    <dlg:progressmeter dlg:id="ProgressBar12" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.ProgressBar12.HelpText" dlg:value="0" dlg:page="12"/>
+    <dlg:text dlg:id="Label12" dlg:tab-index="2" dlg:left="20" dlg:top="60" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.Label12.HelpText" dlg:align="center" dlg:page="12"/>
+    <dlg:text dlg:id="Label13" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label13.HelpText" dlg:align="center" dlg:page="13" dlg:multiline="true"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label14" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label14.HelpText" dlg:align="center" dlg:page="14" dlg:multiline="true"/>
+    <dlg:progressmeter dlg:id="ProgressBar15" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.ProgressBar15.HelpText" dlg:value="0" dlg:page="15"/>
+    <dlg:text dlg:id="Label15" dlg:tab-index="2" dlg:left="20" dlg:top="60" dlg:width="230" dlg:height="15" dlg:help-text="&amp;SetupWindow.Label15.HelpText" dlg:align="center" dlg:page="15"/>
+    <dlg:text dlg:id="Label16" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label16.HelpText" dlg:align="center" dlg:page="16" dlg:multiline="true"/>
+    <dlg:text dlg:id="Label17" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label17.HelpText" dlg:align="center" dlg:page="17" dlg:multiline="true"/>
+    <dlg:text dlg:id="Label18" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label18.HelpText" dlg:align="center" dlg:page="18" dlg:multiline="true"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label19" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label19.HelpText" dlg:align="center" dlg:page="19" dlg:multiline="true"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label20" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label20.HelpText" dlg:align="center" dlg:page="20" dlg:multiline="true"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label21" dlg:tab-index="1" dlg:left="20" dlg:top="40" dlg:width="230" dlg:height="60" dlg:help-text="&amp;SetupWindow.Label21.HelpText" dlg:align="center" dlg:page="21" dlg:multiline="true"/>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:left="170" dlg:top="115" dlg:width="45" dlg:height="15" dlg:help-text="&amp;SetupWindow.CommandButton1.HelpText" dlg:value="&amp;SetupWindow.CommandButton1.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Cancel" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="4" dlg:left="220" dlg:top="115" dlg:width="45" dlg:height="15" dlg:help-text="&amp;SetupWindow.CommandButton2.HelpText" dlg:value="&amp;SetupWindow.CommandButton2.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Next" script:language="UNO"/>
+    </dlg:button>
+  </dlg:bulletinboard>
+</dlg:window>
+
