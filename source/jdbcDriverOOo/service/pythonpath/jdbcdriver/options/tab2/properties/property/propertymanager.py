@@ -31,14 +31,15 @@ from .propertyhandler import WindowHandler
 
 from .propertyview import PropertyView
 
-import traceback
-
 
 class PropertyManager():
     def __init__(self, ctx, window, manager):
         self._view = PropertyView(ctx, window, WindowHandler(manager))
 
 # PropertyManager getter methods
+    def getLayout(self):
+        return self._view.getLayout()
+
     def getPropertyValue(self):
         return self._view.getValue()
 

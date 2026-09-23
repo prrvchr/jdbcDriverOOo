@@ -27,24 +27,27 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ..unotool import getContainerWindow
+from com.sun.star.awt import Size
 
-from ..configuration import g_identifier
-
-import traceback
+from ..unotool import Layout
+from ..unotool import LinkListener
+from ..unotool import SubLayout
 
 
 class OptionsView():
-    def __init__(self, ctx, window, listener, restart, url, instrumented, title1, title2):
-        self._tab = 'Tab1'
+    def __init__(self, ctx, window, listener, title1, title2):
         self._window = window
-        self._tab1, self._tab2 = self._getTabPages(window, self._tab, title1, title2, 25)
+        self._tab1, self._tab2 = self._getTabPages(window, 'Tab1', title1, title2)
         self._getTab().addTabPageContainerListener(listener)
-        control = self._getWarning()
-        control.URL = url
-        self._setWarning(control, restart, instrumented)
+        self._listener = listener
+        self._link = LinkListener(ctx, self._getLabel())
+        self._layout = SubLayout(Layout(window, size=Size(279, 255), **self._getLayouts()))
+        window.addWindowListener(self._layout)
 
 # OptionsView getter methods
+    def getLayout(self):
+        return self._layout
+
     def getWindow(self):
         return self._window
 
@@ -55,57 +58,72 @@ class OptionsView():
         return self._tab2
 
 # OptionsView setter methods
-    def setWarning(self, restart, instrumented):
-        self._setWarning(self._getWarning(), restart, instrumented)
-
     def dispose(self):
-        self._tab1.dispose()
-        self._tab2.dispose()
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+        if self._link:
+            self._link.dispose()
+            self._link = None
+        self.removeTabListener()
+        if self._tab1:
+            self._tab1.dispose()
+            self._tab1 = None
+        if self._tab2:
+            self._tab2.dispose()
+            self._tab2 = None
 
-    def removeTabListener(self, listener):
-        self._getTab().removeTabPageContainerListener(listener)
+    def removeTabListener(self):
+        if self._listener:
+            self._getTab().removeTabPageContainerListener(self._listener)
+            self._listener = None
+
+    def refreshView(self, label, url):
+        self._setLabel(label, url)
 
 # OptionsView private methods
-    def _getTabPages(self, window, name, title1, title2, offset, i=1):
-        model = self._getTabModel(window, offset)
+    def _getLayouts(self):
+        return {'horizontals': self._getHorizontals()}
+
+    def _getHorizontals(self):
+        yield self._getTab()
+        yield self._getFrame()
+        yield self._getLabel()
+
+    def _setLabel(self, label, url):
+        self._getLabel().Model.Label = label
+        self._link.setUrl(url)
+
+    def _getTabPages(self, window, name, title1, title2):
+        model = self._getTabModel(window)
         window.Model.insertByName(name, model)
         tab = self._getTab()
         tab1 = self._getTabPage(model, tab, title1)
         tab2 = self._getTabPage(model, tab, title2)
-        tab.ActiveTabPageID = i
+        tab.ActiveTabPageID = 1
         return tab1, tab2
 
-    def _getTabModel(self, window, offset):
+    def _getTabModel(self, window):
         service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
         model = window.Model.createInstance(service)
-        #model.PositionX = window.Model.PositionX
-        #model.PositionY = window.Model.PositionY
-        model.Width = window.Model.Width
-        model.Height = window.Model.Height - offset
+        frame = self._getFrame().Model
+        model.Width = frame.Width
+        model.Height = frame.Height
         return model
 
     def _getTabPage(self, model, tab, title):
         index = model.getCount()
-        page = model.createTabPage(index +1)
+        page = model.createTabPage(index + 1)
         page.Title = title
         model.insertByIndex(index, page)
         return tab.getControls()[index]
 
-    def _setWarning(self, control, restart, instrumented):
-        if restart:
-            control.setVisible(False)
-            self._getRestart().setVisible(True)
-        else:
-            self._getRestart().setVisible(False)
-            control.setVisible(not instrumented)
-
 # OptionsView private control methods
+    def _getFrame(self):
+        return self._window.getControl('FrameControl1')
+
     def _getTab(self):
-        return self._window.getControl(self._tab)
+        return self._window.getControl('Tab1')
 
-    def _getRestart(self):
+    def _getLabel(self):
         return self._window.getControl('Label1')
-
-    def _getWarning(self):
-        return self._window.getControl('Hyperlink1')
-

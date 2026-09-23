@@ -27,10 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
-from com.sun.star.view.SelectionType import SINGLE
+from com.sun.star.awt import Size
 
 from ..unotool import getDialog
 
@@ -59,6 +58,10 @@ class AdminView(unohelper.Base):
 
     def getGridWindow(self):
         return self._getGridWindow()
+
+    def getGridSize(self):
+        model = self._getGridWindow().Model
+        return Size(model.Width, model.Height)
 
     def enableButton(self, enabled, user, role, removable):
         self._getSetGrantee().Model.Enabled = enabled
@@ -92,4 +95,3 @@ class AdminView(unohelper.Base):
 
     def _getSetPrivileges(self):
         return self._dialog.getControl('CommandButton4')
-

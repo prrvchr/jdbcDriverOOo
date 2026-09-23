@@ -27,4 +27,3 @@
 """
 
 from .usermanager import UserManager
-

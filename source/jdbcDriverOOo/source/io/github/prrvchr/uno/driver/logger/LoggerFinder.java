@@ -32,7 +32,7 @@ import com.sun.star.uno.XComponentContext;
 
 public class LoggerFinder extends System.LoggerFinder {
 
-    private static Map<String, Logger> sLOGGERS = new HashMap<String, Logger>();
+    private static Map<String, Logger> LOGGERS = new HashMap<String, Logger>();
     private XComponentContext mContext = null;
 
     public LoggerFinder(XComponentContext context) {
@@ -42,16 +42,16 @@ public class LoggerFinder extends System.LoggerFinder {
     @Override
     public System.Logger getLogger(String name, Module module) {
         Logger logger = null;
-        if (!sLOGGERS.containsKey(name)) {
+        if (!LOGGERS.containsKey(name)) {
             try {
                 logger = new Logger(mContext, name, module);
-                sLOGGERS.put(name, logger);
+                LOGGERS.put(name, logger);
             } catch (Throwable e) {
                 e.printStackTrace();
                 throw new SecurityException(e);
             }
         } else {
-            logger = sLOGGERS.get(name);
+            logger = LOGGERS.get(name);
         }
         if (logger == null) {
             throw new SecurityException();

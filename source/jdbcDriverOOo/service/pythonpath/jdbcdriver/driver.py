@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf_8 -*-
+# -*- coding: utf-8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,47 +27,65 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.lang import XServiceInfo
 
 from com.sun.star.sdbc import XDriver
 
+from .helper import checkSetup
+from .helper import isSetupValid
+
 from .unotool import createService
 
-
-import traceback
+from .configuration import g_url
+from .configuration import g_version
 
 
 class Driver(unohelper.Base,
              XServiceInfo,
              XDriver):
-
-    def __init__(self, ctx, service, implementation, services):
-        self._driver = createService(ctx, service)
-        self._implementation = implementation
+    def __init__(self, ctx, lock, logger, service, implementation, services):
+        self._ctx = ctx
+        self._lock = lock
+        self._driver = None
+        self._logger = logger
+        self._service = service
         self._services = services
+        self._implementation = implementation
+        self._version = [int(x) for x in g_version.split('.')] + [0, 0]
 
     # XDriver
     def connect(self, url, infos):
-        return self._driver.connect(url, infos)
+        return self._getDriver().connect(url, infos)
 
     def acceptsURL(self, url):
-        return self._driver.acceptsURL(url)
+        return url.startswith(g_url)
 
     def getPropertyInfo(self, url, infos):
-        return self._driver.getPropertyInfo(url, infos)
+        if self._driver is None and not isSetupValid(self._ctx):
+            return ()
+        return self._getDriver().getPropertyInfo(url, infos)
 
     def getMajorVersion(self):
-        return self._driver.getMajorVersion()
+        return self._version[0]
+
     def getMinorVersion(self):
-        return getMajorVersion.getMinorVersion()
+        return self._version[1]
 
     # XServiceInfo
     def supportsService(self, service):
         return service in self._services
+
     def getImplementationName(self):
         return self._implementation
+
     def getSupportedServiceNames(self):
         return self._services
+
+    def _getDriver(self):
+        with self._lock:
+            if self._driver is None:
+                checkSetup(self._ctx, self)
+                self._driver = createService(self._ctx, self._service)
+            return self._driver

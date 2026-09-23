@@ -44,13 +44,11 @@ from .user import UserManager
 from .group import GroupManager
 
 from .unotool import createMessageBox
-from .unotool import createService
 from .unotool import getInteractionHandler
 from .unotool import getPropertyValueSet
 from .unotool import getStringResource
 from .unotool import hasInterface
 
-from .configuration import g_extension
 from .configuration import g_identifier
 
 import traceback
@@ -78,14 +76,14 @@ class Dispatch(unohelper.Base,
             self._showDialog('MessageBox.Connection')
         elif url.Path == 'ShowUsers':
             if self._supportAdministration(connection):
-                state, result = self._showUsers(connection, parent, connection.getGroups())
+                state, result = self._showUsers(connection, connection.getGroups())
             elif self._supportXUsers(connection) and self._supportXGroups(connection):
                 self._showDialog('MessageBox.AdminError')
             else:
                 self._showDialog('MessageBox.AdminSupport')
         elif url.Path == 'ShowGroups':
             if self._supportAdministration(connection):
-                state, result = self._showGroups(connection, parent, connection.getGroups())
+                state, result = self._showGroups(connection, connection.getGroups())
             elif self._supportXGroups(connection) and self._supportXUsers(connection):
                 self._showDialog('MessageBox.AdminError')
             else:
@@ -98,7 +96,7 @@ class Dispatch(unohelper.Base,
         state = FeatureStateEvent()
         state.FeatureURL = url
         state.IsEnabled = True
-        #state.State = True
+        # state.State = True
         listener.statusChanged(state)
         self._listeners.append(listener)
 
@@ -124,26 +122,26 @@ class Dispatch(unohelper.Base,
         xgroups = 'com.sun.star.sdbcx.XGroupsSupplier'
         return hasInterface(connection, xgroups) and connection.getGroups() is not None
 
-    def _showUsers(self, connection, parent, groups):
+    def _showUsers(self, connection, groups, parent=None):
         state = FAILURE
         try:
-            manager = UserManager(self._ctx, connection, parent, groups)
+            manager = UserManager(self._ctx, connection, groups, parent)
             manager.execute()
             state = SUCCESS
             manager.dispose()
-        except Exception as e:
+        except Exception:
             msg = "Error: %s" % traceback.format_exc()
             print(msg)
         return state, None
 
-    def _showGroups(self, connection, parent, groups):
+    def _showGroups(self, connection, groups, parent=None):
         state = FAILURE
         try:
-            manager = GroupManager(self._ctx, connection, parent, groups)
+            manager = GroupManager(self._ctx, connection, groups, parent)
             manager.execute()
             state = SUCCESS
             manager.dispose()
-        except Exception as e:
+        except Exception:
             msg = "Error: %s" % traceback.format_exc()
             print(msg)
         return state, None
@@ -176,4 +174,3 @@ class Dispatch(unohelper.Base,
         title = resolver.resolveString(template + '.Title')
         message = resolver.resolveString(template + '.Message')
         return title, message, ERRORBOX
-

@@ -27,36 +27,65 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from ...unotool import Layout
+from ...unotool import SubLayout
+
 from ...unotool import getContainerWindow
 
 from ...configuration import g_identifier
-
-import traceback
 
 
 class TabWindow():
     def __init__(self, ctx, window, handler):
         self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'Option1Dialog')
+        self._layout = SubLayout(Layout(self._window, **self._getLayouts()))
         self._window.setVisible(True)
 
 # TabWindow getter methods
-    def getWindow(self):
-        return self._window
+    def getLayout(self):
+        return self._layout
+
+    def getFrame(self):
+        return self._getFrame()
+
+    def getSetup(self):
+        return self._getSetup()
 
 # TabWindow setter methods
     def dispose(self):
-        self._window.dispose()
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+        if self._window:
+            self._window.dispose()
+            self._window = None
 
-    def setJavaLogger(self, state, instrumented):
-        self._setControl(self._getJavaLogger(), state, instrumented)
+    def initView(self, log, cls, state):
+        self._setControl(self._getJavaLogger(), log, state.java)
+        self._setControl(self._getClassPath(), cls, state.java)
 
-    def setClassPath(self, state, instrumented):
-        self._setControl(self._getClassPath(), state, instrumented)
+# TabWindow private getter methods
+    def _getLayouts(self):
+        return {'horizontals': self._getHorizontals(),
+                'tops': self._getTops()}
+
+    def _getHorizontals(self):
+        yield self._getFrame()
+        yield self._getSetup()
+
+    def _getTops(self):
+        yield self._getClassPath()
+
+    def _setControl(self, control, state, java):
+        control.State = int(state and java)
+        control.Model.Enabled = java
 
 # TabWindow private control methods
-    def _setControl(self, control, state, instrumented):
-        control.State = int(state and instrumented)
-        control.Model.Enabled = instrumented
+    def _getFrame(self):
+        return self._window.getControl('FrameControl1')
+
+    def _getSetup(self):
+        return self._window.getControl('FrameControl2')
 
     def _getJavaLogger(self):
         return self._window.getControl('CheckBox1')

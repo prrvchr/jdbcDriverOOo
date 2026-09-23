@@ -28,7 +28,6 @@
 """
 
 import uno
-import unohelper
 
 from ...unotool import getDialog
 
@@ -99,4 +98,3 @@ class PrivilegeView():
 
     def _getButton(self, index):
         return self._dialog.getControl('CommandButton%s' % index)
-

@@ -27,19 +27,23 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .....unotool import Layout
+
 from .....unotool import getContainerWindow
 
 from .....configuration import g_identifier
-
-import traceback
 
 
 class PropertyView():
     def __init__(self, ctx, window, handler):
         self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'PropertyWindow')
+        self._layout = Layout(self._window, **self._getLayouts())
         self._window.setVisible(True)
 
 # PropertyView getter methods
+    def getLayout(self):
+        return self._layout
+
     def getValuesIndex(self):
         return self._getListBox().getSelectedItemPos()
 
@@ -66,7 +70,12 @@ class PropertyView():
 
 # PropertyView setter methods
     def dispose(self):
-        self._window.dispose()
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+        if self._window:
+            self._window.dispose()
+            self._window = None
 
     def setCheckBoxValue(self, value, updatable):
         control = self._getCheckBox()
@@ -129,6 +138,22 @@ class PropertyView():
         self._getValue().Text = value
 
 # PropertyView private methods
+    def _getLayouts(self):
+        return {'horizontals': self._getHorizontals(),
+                'tops': self._getTops()}
+
+    def _getHorizontals(self):
+        yield self._getTypes()
+        yield self._getNumField()
+        yield self._getTextField()
+        yield self._getListBox()
+        yield self._getValue()
+
+    def _getTops(self):
+        yield self._getCheckBox()
+        for index in range(1, 6):
+            yield self._getButton(index)
+
     def _enableButton(self, updatable, enabled):
         self._getEditValue().Model.Enabled = updatable and enabled
         self._getAddValue().Model.Enabled = updatable
@@ -162,3 +187,5 @@ class PropertyView():
     def _getRemoveValue(self):
         return self._window.getControl('CommandButton3')
 
+    def _getButton(self, index):
+        return self._window.getControl(f'CommandButton{index}')

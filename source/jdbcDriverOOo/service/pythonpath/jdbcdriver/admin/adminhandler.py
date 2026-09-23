@@ -53,7 +53,7 @@ class NewUserHandler(unohelper.Base,
                 self._manager.setUserPasswordConfirmation(event.Source.Text)
                 handled = True
             return handled
-        except:
+        except Exception:
             print("NewUserHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
@@ -78,7 +78,7 @@ class PasswordHandler(unohelper.Base,
                 self._manager.setPasswordConfirmation(event.Source.Text)
                 handled = True
             return handled
-        except:
+        except Exception:
             print("PasswordHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
@@ -110,7 +110,7 @@ class UsersHandler(unohelper.Base,
                 self._manager.addUser()
                 handled = True
             return handled
-        except:
+        except Exception:
             print("UsersHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
@@ -133,7 +133,7 @@ class NewGroupHandler(unohelper.Base,
                 self._manager.setGroupName(event.Source.Text)
                 handled = True
             return handled
-        except:
+        except Exception:
             print("NewGroupHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
@@ -164,7 +164,7 @@ class GroupsHandler(unohelper.Base,
                 self._manager.addGroup()
                 handled = True
             return handled
-        except:
+        except Exception:
             print("GroupsHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
@@ -172,4 +172,3 @@ class GroupsHandler(unohelper.Base,
                 'RemoveMember',
                 'ToogleAdd',
                 'AddMember')
-

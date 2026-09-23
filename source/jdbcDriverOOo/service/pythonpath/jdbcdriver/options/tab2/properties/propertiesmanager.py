@@ -33,15 +33,17 @@ from .propertieshandler import WindowHandler
 
 from .property import PropertyManager
 
-import traceback
-
 
 class PropertiesManager():
     def __init__(self, ctx, window, manager):
         self._view = PropertiesView(ctx, window, WindowHandler(manager))
-        self._property = PropertyManager(ctx, self._view.getWindow(), manager)
+        self._property = PropertyManager(ctx, self._view.getFrame(), manager)
+        self._view.getLayout().addLayout(self._property.getLayout())
 
 # PropertiesManager getter methods
+    def getLayout(self):
+        return self._view.getLayout()
+
     def getPropertiesItem(self):
         return self._view.getPropertiesItem()
 
@@ -138,4 +140,3 @@ class PropertiesManager():
 
     def cancelValue(self):
         self._property.cancelValue()
-

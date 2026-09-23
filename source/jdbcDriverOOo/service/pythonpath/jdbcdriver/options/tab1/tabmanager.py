@@ -33,29 +33,44 @@ from .tabview import TabWindow
 
 from .tabhandler import TabHandler
 
-from ..options import OptionsManager
+from ..setup import SetupManager
 
-import traceback
+from ..option import OptionManager
 
 
 class TabManager():
-    def __init__(self, ctx, window, instrumented, logger, *loggers):
-        self._model = TabModel(ctx, instrumented)
+    def __init__(self, ctx, window, handler, logger, *loggers):
+        self._ctx = ctx
+        self._model = TabModel(ctx)
         self._view = TabWindow(ctx, window, TabHandler(self))
-        self._manager = OptionsManager(ctx, self._view.getWindow(), instrumented, logger, *loggers)
+        self._manager = OptionManager(ctx, self._view.getFrame(), self._model.getConfig(), logger, *loggers)
+        self._setup = SetupManager(ctx, self._view.getSetup(), handler, self._model.getConfig())
+        self._view.getLayout().addLayout(self._manager.getLayout()).addLayout(self._setup.getLayout())
 
 # TabManager setter methods
-    def initView(self):
-        self._manager.initView()
-        self._initView()
+    def init(self, state):
+        self._manager.init(state)
+        self._setup.init()
+        self._view.initView(*self._model.getInitData(state))
+
+    def refresh(self, state):
+        self._manager.refresh(state)
+        self._view.initView(*self._model.getRefreshData(state))
 
     def dispose(self):
+        self._setup.dispose()
         self._manager.dispose()
         self._view.dispose()
 
 # TabManager getter methods
+    def getLayout(self):
+        return self._view.getLayout()
+
     def getConfigApiLevel(self):
         return self._manager.getConfigApiLevel()
+
+    def getSetupMode(self):
+        return self._setup.getSetupMode()
 
     # Option1Dialog.xdl handler entry
     def setJavaLogger(self, enabled):
@@ -65,17 +80,7 @@ class TabManager():
         self._model.setClassPath(enabled)
 
     def saveSetting(self):
+        self._setup.saveSetting()
         reboot = self._model.saveSetting()
         reboot |= self._manager.saveSetting()
         return reboot
-
-    def loadSetting(self):
-        self._manager.loadSetting()
-        self._initView()
-
-# TabManager private methods
-    def _initView(self):
-        instrumented = self._model.isInstrumented()
-        self._view.setJavaLogger(self._model.getJavaLogger(), instrumented)
-        self._view.setClassPath(self._model.getClassPath(), instrumented)
-

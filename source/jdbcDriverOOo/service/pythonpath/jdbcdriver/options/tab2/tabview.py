@@ -27,19 +27,27 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from ...unotool import Layout
+from ...unotool import SubLayout
+
 from ...unotool import getContainerWindow
 
 from ...configuration import g_identifier
-
-import traceback
 
 
 class TabView():
     def __init__(self, ctx, window, handler, xdl):
         self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, xdl)
+        self._layout = SubLayout(Layout(self._window, **self._getLayouts()))
         self._window.setVisible(True)
 
 # TabView getter methods
+    def getLayout(self):
+        return self._layout
+
+    def getFrame(self):
+        return self._getFrame()
+
     def getWindow(self):
         return self._window
 
@@ -60,7 +68,12 @@ class TabView():
 
 # TabView setter methods
     def dispose(self):
-        self._window.dispose()
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+        if self._window:
+            self._window.dispose()
+            self._window = None
 
     def setVersion(self, version):
         self._getVersion().Text = version
@@ -115,7 +128,38 @@ class TabView():
         self._getRemoveDriver().Model.Enabled = enabled
         self._getUpdateDriver().Model.Enabled = enabled
 
+    def _getLayouts(self):
+        return {'horizontals': self._getHorizontals(),
+                'columns': self._getColumns(),
+                'links': self._getLinks(),
+                'tops': self._getTops()}
+
+    def _getHorizontals(self):
+        yield self._getFrame()
+        for index in range(1, 3):
+            yield self._getFixedLine(index)
+        yield self._getDrivers()
+        yield self._getGroups()
+
+    def _getTops(self):
+        for index in range(1, 6):
+            yield self._getButton(index)
+        yield self._getVersion()
+
+    def _getColumns(self):
+        yield self._getSubProtocol(), self._getDriverName(), False
+
+    def _getLinks(self):
+        yield self._getDriverNameLabel(), self._getSubProtocol()
+        yield self._getVersionLabel(), self._getSubProtocol()
+
 # TabView private control methods
+    def _getFrame(self):
+        return self._window.getControl('FrameControl1')
+
+    def _getFixedLine(self, index):
+        return self._window.getControl(f'FixedLine{index}')
+
     def _getDrivers(self):
         return self._window.getControl('ListBox1')
 
@@ -137,12 +181,20 @@ class TabView():
     def _getSubProtocol(self):
         return self._window.getControl('TextField1')
 
+    def _getDriverNameLabel(self):
+        return self._window.getControl('Label3')
+
     def _getDriverName(self):
         return self._window.getControl('TextField2')
 
     def _getGroups(self):
         return self._window.getControl('ListBox2')
 
+    def _getVersionLabel(self):
+        return self._window.getControl('Label5')
+
     def _getVersion(self):
         return self._window.getControl('Label6')
 
+    def _getButton(self, index):
+        return self._window.getControl(f'CommandButton{index}')

@@ -155,10 +155,7 @@ public abstract class DriverBase
     public DriverPropertyInfo[] getPropertyInfo(String url, PropertyValue[] infos)
         throws SQLException {
         if (!isValidURL(url)) {
-            final int resource = Resources.STR_URI_SYNTAX_ERROR;
-            final String message = SharedResources.getInstance().getResourceWithSubstitution(resource, url);
-            java.sql.SQLException e = new java.sql.SQLException(message, StandardSQLState.SQL_GENERAL_ERROR.text());
-            throw UnoHelper.getSQLException(e, this);
+            return new DriverPropertyInfo[0];
         }
         List<DriverPropertyInfo> properties = new ArrayList<DriverPropertyInfo>();
         try {
@@ -175,7 +172,7 @@ public abstract class DriverBase
                 }
             }
         } catch (NoSuchElementException e) {
-            throw UnoHelper.getSQLException(e, this);
+            return new DriverPropertyInfo[0];
         }
         return properties.toArray(new DriverPropertyInfo[0]);
     }
@@ -214,22 +211,18 @@ public abstract class DriverBase
 
     private boolean setStaticPropertyInfo(List<DriverPropertyInfo> properties,
                                           PropertyValue info) {
-        boolean retrieved = false;
-        String description;
-        Boolean state;
-        String[] choices;
-        switch (info.Name) {
-            case "SupportsInstrumentationAgent":
-                state = (Boolean) DriverManager.isJavaInstrumantationInstalled();
-                choices = new String[]{"false", "true"};
-                description = "Is Java Instrumentation Agent installed.";
-                // XXX: Name, Description, IsRequired, Value, Choices
+        return switch (info.Name) {
+            case "SupportsInstrumentationAgent" -> {
+                String value = Boolean.toString(DriverManager.isJavaInstrumantationInstalled());
+                String[]choices = new String[]{"false", "true"};
+                String description = "Is Java Instrumentation Agent installed.";
+                boolean required = false;
                 properties.add(new DriverPropertyInfo("SupportsInstrumentationAgent",
-                               description, false, state.toString(), choices));
-                retrieved = true;
-                break;
-        }
-        return retrieved;
+                               description, required, value, choices));
+                yield true;
+            }
+            default -> false;
+        };
     }
 
     private void setConfigPropertyInfo(List<DriverPropertyInfo> properties,

@@ -28,4 +28,3 @@
 """
 
 from .groupmanager import GroupManager
-
