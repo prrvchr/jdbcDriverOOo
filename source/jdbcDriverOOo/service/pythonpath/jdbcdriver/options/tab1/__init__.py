@@ -28,4 +28,3 @@
 """
 
 from .tabmanager import TabManager
-

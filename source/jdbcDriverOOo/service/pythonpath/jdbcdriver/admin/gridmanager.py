@@ -36,7 +36,6 @@ from .grid import GridManager as GridManagerBase
 from ..unotool import getNamedValue
 
 from collections import OrderedDict
-import traceback
 
 
 class GridManager(GridManagerBase):
@@ -97,14 +96,13 @@ class GridManager(GridManagerBase):
     def _getGridInfos(self, columns):
         properties = {}
         headers = OrderedDict()
-        property = getNamedValue('HorizontalAlign', CENTER)
+        prop = getNamedValue('HorizontalAlign', CENTER)
         # FIXME: The key must be a String to be able to save in json format.
         headers['0'] = self._getColumnTitle(0)
         index = 1
         for column in columns:
             identifier = '%s' % index
-            properties[identifier] = (property, )
+            properties[identifier] = (prop, )
             headers[identifier] = column
             index += 1
         return properties, headers
-

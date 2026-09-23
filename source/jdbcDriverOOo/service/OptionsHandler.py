@@ -27,17 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.lang import XServiceInfo
 
 from jdbcdriver import OptionsManager
-
-from jdbcdriver import getLogger
-
-from jdbcdriver import g_identifier
 
 import traceback
 
@@ -69,7 +64,7 @@ class OptionsHandler(unohelper.Base,
                     self._manager.loadSetting()
                     handled = True
             return handled
-        except:
+        except Exception:
             print("OptionsHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
@@ -78,8 +73,10 @@ class OptionsHandler(unohelper.Base,
     # XServiceInfo
     def supportsService(self, service):
         return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+
     def getImplementationName(self):
         return g_ImplementationName
+
     def getSupportedServiceNames(self):
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
@@ -87,4 +84,3 @@ class OptionsHandler(unohelper.Base,
 g_ImplementationHelper.addImplementation(OptionsHandler,                  # UNO object class
                                          g_ImplementationName,            # Implementation name
                                          g_ServiceNames)                  # List of implemented services
-

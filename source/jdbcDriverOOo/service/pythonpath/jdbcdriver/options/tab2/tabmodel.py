@@ -30,14 +30,8 @@
 import uno
 
 from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.uno import Exception as UnoException
-
-from ...unotool import createService
-from ...unotool import getCallBack
 from ...unotool import getConfiguration
-from ...unotool import getNamedValueSet
 from ...unotool import getPathSettings
 from ...unotool import getSimpleFile
 from ...unotool import getStringResource
@@ -48,20 +42,14 @@ from ...dbconfig import g_folder
 
 from ...logger import getLogger
 
-from ...jdbcdriver import g_service
-
 from ...configuration import g_basename
 from ...configuration import g_defaultlog
 from ...configuration import g_identifier
 
-from threading import Thread
-import traceback
-
 
 class TabModel():
-    def __init__(self, ctx, lock, xdl):
+    def __init__(self, ctx, xdl):
         self._ctx = ctx
-        self._lock = lock
         self._pmode = 0
         self._vmode = 0
         self._value = None
@@ -76,7 +64,6 @@ class TabModel():
         self._name = 'DriverTypeDisplayName'
         self._class = 'JavaDriverClass'
         self._classpath = 'JavaDriverClassPath'
-        self._callback = getCallBack(ctx)
         self._package = 'vnd.sun.star.expand:$UNO_USER_PACKAGES_CACHE/uno_packages'
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._config = getConfiguration(ctx, path, True)
@@ -102,6 +89,9 @@ class TabModel():
     def getArchivePath(self):
         return '%s/%s' % (self._getUrl().Main, g_folder)
 
+    def getRunnerData(self):
+        return self._config, self._protocol
+
     def getDrivers(self):
         return tuple((k for k, v in self._drivers.items() if v is not None))
 
@@ -121,8 +111,8 @@ class TabModel():
         updatable = self._isDriverUpdatable(driver)
         return properties, updatable
 
-    def getProperty(self, driver, group, property):
-        value = self._getGroup(driver, group).get(property)
+    def getProperty(self, driver, group, prop):
+        value = self._getGroup(driver, group).get(prop)
         updatable = self._isDriverUpdatable(driver)
         return value, updatable, *self._getTypeIndex(value)
 
@@ -145,10 +135,8 @@ class TabModel():
         return self._vmode == 2
 
     def isDriverValid(self, subprotocol, name, javaclass):
-        return self._path is not None and \
-               self._isProtocolValid(subprotocol) and \
-               self.isDriverNameValid(name) and \
-               self._isJavaClassValid(javaclass)
+        return (self._path is not None and self._isProtocolValid(subprotocol) and
+                self.isDriverNameValid(name) and self._isJavaClassValid(javaclass))
 
     def isDriverNameValid(self, name):
         names = (v.get(self._name) for v in self._drivers.values() if v is not None)
@@ -162,10 +150,10 @@ class TabModel():
         self._path = None
         return driver
 
-    def isPropertyNameValid(self, driver, group, property):
+    def isPropertyNameValid(self, driver, group, prop):
         group = self._getGroup(driver, group)
         properties = (k for k, v in group.items() if v is not None)
-        return len(property) > 0 and property not in properties
+        return len(prop) > 0 and prop not in properties
 
     def editProperty(self, driver, group, new, old, value):
         properties = self._getGroup(driver, group)
@@ -173,41 +161,41 @@ class TabModel():
         properties[old] = None
         return tuple((k for k, v in properties.items() if v is not None))
 
-    def addProperty(self, driver, group, property, value):
+    def addProperty(self, driver, group, prop, value):
         properties = self._getGroup(driver, group)
-        properties[property] = value
+        properties[prop] = value
         return tuple((k for k, v in properties.items() if v is not None))
 
-    def removeProperty(self, driver, group, property):
+    def removeProperty(self, driver, group, prop):
         properties = self._getGroup(driver, group)
-        properties[property] = None
+        properties[prop] = None
         return tuple((k for k, v in properties.items() if v is not None))
 
     def getDefaultPropertyValue(self, index):
         return self._defaults[index]
 
-    def addPropertyValue(self, driver, group, property, value):
+    def addPropertyValue(self, driver, group, prop, value):
         properties = self._getGroup(driver, group)
-        values = list(properties.get(property))
+        values = list(properties.get(prop))
         values.append(value)
         newvalues = tuple(values)
-        properties[property] = newvalues
+        properties[prop] = newvalues
         return newvalues
 
-    def removePropertyValue(self, driver, group, property, index):
+    def removePropertyValue(self, driver, group, prop, index):
         properties = self._getGroup(driver, group)
-        values = list(properties.get(property))
+        values = list(properties.get(prop))
         values.pop(index)
         newvalues = tuple(values)
-        properties[property] = newvalues
+        properties[prop] = newvalues
         return newvalues
 
-    def editPropertyValue(self, driver, group, property, value, index):
+    def editPropertyValue(self, driver, group, prop, value, index):
         properties = self._getGroup(driver, group)
-        values = list(properties.get(property))
+        values = list(properties.get(prop))
         values[index] = value
         newvalues = tuple(values)
-        properties[property] = newvalues
+        properties[prop] = newvalues
         return newvalues
 
     def getAddPropertyValue(self):
@@ -236,10 +224,10 @@ class TabModel():
     def setValueMode(self, mode):
         self._vmode = mode
 
-    def setPropertyValue(self, driver, group, property, value):
+    def setPropertyValue(self, driver, group, prop, value):
         # FIXME: We don't save anything if we are adding a new property
         if not self.isNewProperty():
-            self._getGroup(driver, group)[property] = value
+            self._getGroup(driver, group)[prop] = value
 
     def clearJarPath(self):
         self._path = None
@@ -266,8 +254,8 @@ class TabModel():
             self._drivers.get(driver).get(self._groups)[group] = properties
         properties[self._classpath] = path
 
-    def setDriverVersions(self, *args):
-        Thread(target=self._setDriverVersions, args=args).start()
+    def setDriverVersions(self, versions):
+        self._versions = versions
 
 # TabModel private getter methods
     def _getGroup(self, driver, group):
@@ -283,12 +271,11 @@ class TabModel():
         return groups
 
     def _getDriverVersion(self, protocol):
-        with self._lock:
-            if protocol in self._versions:
-                version = self._versions[protocol]
-            else:
-                version = self._getDefaultVersion()
-            return version
+        if protocol in self._versions:
+            version = self._versions[protocol]
+        else:
+            version = self._getDefaultVersion()
+        return version
 
     def _isProtocolValid(self, subprotocol):
         protocol = self._getProtocol(subprotocol)
@@ -296,10 +283,8 @@ class TabModel():
         return len(subprotocol) > 0 and protocol not in protocols
 
     def _isJavaClassValid(self, javaclass):
-        return len(javaclass) > 0 and \
-               '.' in javaclass and \
-               not javaclass.endswith('.') and \
-               not javaclass.startswith('.')
+        return (len(javaclass) > 0 and '.' in javaclass and
+                not javaclass.endswith('.') and not javaclass.startswith('.'))
 
     def _getTypeIndex(self, value):
         cls = type(value)
@@ -363,16 +348,16 @@ class TabModel():
         return name == self._root or self._isChildDriver(driver)
 
     def _isChildDriver(self, driver):
-        property = 'ParentURLPattern'
-        return driver.hasByName(property) and driver.getByName(property) == self._root
+        prop = 'ParentURLPattern'
+        return driver.hasByName(prop) and driver.getByName(prop) == self._root
 
     def _getProperties(self, driver, group):
         properties = {}
         config = self._config.getByName('Installed')
         group = config.getByName(driver).getByName(group)
         for name in group.getElementNames():
-            property = group.getByName(name)
-            properties[property.Name] = property.getByName('Value')
+            prop = group.getByName(name)
+            properties[prop.Name] = prop.getByName('Value')
         return properties
 
     def _updateArchive(self, driver, archives):
@@ -445,12 +430,12 @@ class TabModel():
     def _saveDriver(self, config, driver):
         self._saveProperty(config, self._name, driver.get(self._name))
         groups = driver.get(self._groups)
-        for property in groups:
-            if not config.hasByName(property):
-                config.insertByName(property, config.createInstance())
-            properties = groups.get(property)
+        for prop in groups:
+            if not config.hasByName(prop):
+                config.insertByName(prop, config.createInstance())
+            properties = groups.get(prop)
             if properties is not None:
-                self._saveProperties(config.getByName(property), properties)
+                self._saveProperties(config.getByName(prop), properties)
 
     def _saveProperties(self, config, properties):
         for name, value in properties.items():
@@ -460,12 +445,12 @@ class TabModel():
             else:
                 if not config.hasByName(name):
                     config.insertByName(name, config.createInstance())
-                property = config.getByName(name)
-                if not property.hasByName('Value'):
-                    property.insertByName('Value', property.createInstance())
-                if property.getByName('Value') != value:
+                prop = config.getByName(name)
+                if not prop.hasByName('Value'):
+                    prop.insertByName('Value', prop.createInstance())
+                if prop.getByName('Value') != value:
                     arguments = ('Value', uno.Any(self._getUnoType(value), value))
-                    uno.invoke(property, 'replaceByName', arguments)
+                    uno.invoke(prop, 'replaceByName', arguments)
 
     def _saveProperty(self, config, name, value):
         if not config.hasByName(name):
@@ -477,35 +462,3 @@ class TabModel():
         if sf.exists(folder) and sf.isFolder(folder):
             sf.kill(folder)
         sf.createFolder(folder)
-
-    def _setDriverVersions(self, apilevel, caller):
-        driver = None
-        try:
-            versions = {}
-            default = self._getDefaultVersion()
-            config = self._config.getByName('Installed')
-            name = 'Properties/InMemoryDataBase/Value'
-            pool = createService(self._ctx, 'com.sun.star.sdbc.ConnectionPool')
-            driver = createService(self._ctx, g_service)
-            for protocol in config.getElementNames():
-                setting = config.getByName(protocol)
-                if setting.hasByHierarchicalName(name):
-                    url = setting.getByHierarchicalName(name)
-                    if url:
-                        try:
-                            connection = driver.connect(self._protocol + url, ())
-                            version = connection.getMetaData().getDriverVersion()
-                            versions[protocol] = self._getVersion(version)
-                            connection.close()
-                            continue
-                        except UnoException as e:
-                            # If the connection fails, the error is already logged
-                            pass
-                versions[protocol] = default
-            with self._lock:
-                self._versions = versions
-            self._callback.addCallback(caller, getNamedValueSet(versions))
-        except UnoException as e:
-            # If the driver fails, the error is already logged
-            pass
-

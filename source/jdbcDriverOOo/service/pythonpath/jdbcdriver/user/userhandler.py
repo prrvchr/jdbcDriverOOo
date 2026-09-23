@@ -63,7 +63,7 @@ class DialogHandler(unohelper.Base,
                 self._manager.setPrivileges()
                 handled = True
             return handled
-        except:
+        except Exception:
             print("DialogHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
@@ -73,4 +73,3 @@ class DialogHandler(unohelper.Base,
                 'SetGroups',
                 'DropUser',
                 'SetPrivileges')
-

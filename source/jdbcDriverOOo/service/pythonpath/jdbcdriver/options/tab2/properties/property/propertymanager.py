@@ -31,8 +31,6 @@ from .propertyhandler import WindowHandler
 
 from .propertyview import PropertyView
 
-import traceback
-
 
 class PropertyManager():
     def __init__(self, ctx, window, manager):

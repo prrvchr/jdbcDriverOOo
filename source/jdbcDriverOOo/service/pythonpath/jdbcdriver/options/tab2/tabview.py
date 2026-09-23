@@ -31,8 +31,6 @@ from ...unotool import getContainerWindow
 
 from ...configuration import g_identifier
 
-import traceback
-
 
 class TabView():
     def __init__(self, ctx, window, handler, xdl):
@@ -145,4 +143,3 @@ class TabView():
 
     def _getVersion(self):
         return self._window.getControl('Label6')
-

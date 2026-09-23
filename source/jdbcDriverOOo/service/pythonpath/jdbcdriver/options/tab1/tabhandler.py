@@ -40,7 +40,7 @@ class TabHandler(unohelper.Base,
         self._manager = manager
 
     # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
+    def callHandlerMethod(self, _window, event, method):
         try:
             handled = False
             if method == 'JavaLogger':
@@ -50,9 +50,8 @@ class TabHandler(unohelper.Base,
                 self._manager.setClassPath(bool(event.Source.State))
                 handled = True
             return handled
-        except:
+        except Exception:
             print("TabHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
         return ('JavaLogger', 'ClassPath')
-

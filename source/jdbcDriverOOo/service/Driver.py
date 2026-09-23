@@ -44,7 +44,6 @@ from jdbcdriver import g_identifier
 from jdbcdriver import g_services
 
 from threading import Lock
-import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -54,6 +53,7 @@ g_ServiceNames = ('io.github.prrvchr.jdbcDriverOOo.Driver', 'com.sun.star.sdbc.D
 # XXX: This class is simply a bootstrap to enable the following:
 # XXX: - Provide a single entry for different services meeting the required API levels
 # XXX: - Log any errors that occur while loading the Java driver
+
 
 class Driver():
     def __new__(cls, ctx, *args, **kwargs):
@@ -79,7 +79,7 @@ class Driver():
     _instance = None
     _lock = Lock()
 
+
 g_ImplementationHelper.addImplementation(Driver,                          # UNO object class
                                          g_ImplementationName,            # Implementation name
                                          g_ServiceNames)                  # List of implemented services
-

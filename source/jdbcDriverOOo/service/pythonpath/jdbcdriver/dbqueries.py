@@ -27,20 +27,20 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from .logger import getLogger
 
 from .configuration import g_errorlog
+
 g_basename = 'dbqueries'
 
 
-def getSqlQuery(ctx, name, format=None):
+def getSqlQuery(ctx, name, options=None):
 
-# Get prepareCommand Query
+    # Get prepareCommand Query
     if name == 'prepareCommand':
-        query = 'SELECT * FROM "%s"' % format
+        query = 'SELECT * FROM "%s"' % options
 
 # Get Users and Privileges Query
     elif name == 'getUsers':
@@ -48,7 +48,7 @@ def getSqlQuery(ctx, name, format=None):
     elif name == 'getPrivileges':
         query = 'SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES'
     elif name == 'changePassword':
-        query = "SET PASSWORD '%s'" % format
+        query = "SET PASSWORD '%s'" % options
 
 # Queries don't exist!!!
     else:
@@ -56,4 +56,3 @@ def getSqlQuery(ctx, name, format=None):
         logger.logprb(SEVERE, g_basename, 'getSqlQuery()', 101, name)
         query = None
     return query
-

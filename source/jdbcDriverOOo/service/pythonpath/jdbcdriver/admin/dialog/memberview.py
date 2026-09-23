@@ -97,4 +97,3 @@ class MemberView(unohelper.Base):
 
     def _getOkButton(self):
         return self._dialog.getControl('CommandButton4')
-

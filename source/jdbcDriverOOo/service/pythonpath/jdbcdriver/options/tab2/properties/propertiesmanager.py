@@ -33,8 +33,6 @@ from .propertieshandler import WindowHandler
 
 from .property import PropertyManager
 
-import traceback
-
 
 class PropertiesManager():
     def __init__(self, ctx, window, manager):
@@ -138,4 +136,3 @@ class PropertiesManager():
 
     def cancelValue(self):
         self._property.cancelValue()
-

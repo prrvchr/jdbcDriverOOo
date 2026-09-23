@@ -28,5 +28,5 @@
 """
 
 from .propertiesmanager import PropertiesManager
-from .propertieshandler import WindowHandler
 
+from .propertieshandler import WindowHandler

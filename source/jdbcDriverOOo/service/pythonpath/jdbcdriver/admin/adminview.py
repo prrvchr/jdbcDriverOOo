@@ -27,10 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
-
-from com.sun.star.view.SelectionType import SINGLE
 
 from ..unotool import getDialog
 
@@ -92,4 +89,3 @@ class AdminView(unohelper.Base):
 
     def _getSetPrivileges(self):
         return self._dialog.getControl('CommandButton4')
-

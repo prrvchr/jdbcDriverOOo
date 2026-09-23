@@ -28,4 +28,3 @@
 """
 
 from .propertymanager import PropertyManager
-
