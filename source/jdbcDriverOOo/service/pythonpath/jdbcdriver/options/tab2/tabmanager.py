@@ -46,6 +46,8 @@ from .properties import WindowHandler
 from .dialog import DriverView
 from .dialog import DialogHandler
 
+from .runner import DriverVersion
+
 from ...unotool import getArgumentSet
 from ...unotool import getFilePicker
 from ...unotool import getSimpleFile
@@ -53,7 +55,6 @@ from ...unotool import getUrl
 
 from ...dbconfig import g_jar
 
-from threading import Lock
 import traceback
 
 
@@ -61,36 +62,37 @@ class TabManager(unohelper.Base,
                  XCallback):
     def __init__(self, ctx, window):
         self._ctx = ctx
-        self._lock = Lock()
+        self._disabled = False
         self._disposed = False
         self._dialog = None
         xdl = 'Option2Dialog'
-        self._model = TabModel(ctx, self._lock, xdl)
+        self._model = TabModel(ctx, xdl)
         self._view = TabView(ctx, window, TabHandler(self), xdl)
         self._properties = PropertiesManager(ctx, self._view.getWindow(), self)
+
+# TabManager setter methods
+    def dispose(self):
+        if self._properties:
+            self._properties.dispose()
+        self._view.dispose()
+        self._disposed = True
+
+    def setDriverVersions(self):
+        self._model.loadSetting()
         self._view.setDrivers(self._model.getDrivers())
         # FIXME: If we changed the driver selection then the
         # FIXME: handler will fire twice, we disable the first one
         self._disabled = True
         self._view.selectDriver(0)
+        runner = DriverVersion(self._ctx, self.notify, *self._model.getRunnerData())
+        runner.start()
 
-# XCallback
-    def notify(self, data):
-        self._notify(getArgumentSet(data, False))
-
-# TabManager setter methods
-    def dispose(self):
-        with self._lock:
-            self._properties.dispose()
-            self._view.dispose()
-            self._disposed = True
-
-    def setDriverVersions(self, apilevel):
-        self._model.setDriverVersions(apilevel, self)
-
-    def loadSetting(self):
-        self._model.loadSetting()
-        self._view.setDrivers(self._model.getDrivers())
+    def notify(self, versions):
+        if not self._disposed and versions:
+            self._model.setDriverVersions(versions)
+            driver = self._view.getDriver()
+            if driver in versions:
+                self._view.setVersion(versions[driver])
 
 # TabManager getter methods
     def saveSetting(self):
@@ -395,10 +397,4 @@ class TabManager(unohelper.Base,
                 self._properties.selectPropertyValue(index)
         else:
             self._properties.setTextFieldValue(value, updatable)
-
-    def _notify(self, versions):
-        if not self._disposed:
-            driver = self._view.getDriver()
-            if driver in versions:
-                self._view.setVersion(versions[driver])
 

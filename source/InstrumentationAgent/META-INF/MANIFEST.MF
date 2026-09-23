@@ -3,3 +3,4 @@ Agent-Class: io.github.prrvchr.java.instrumentation.InstrumentationAgent
 Can-Redefine-Classes: true
 Can-Retransform-Classes: true
 Premain-Class: io.github.prrvchr.java.instrumentation.InstrumentationAgent
+Automatic-Module-Name: io.github.prrvchr.javainstrumentation

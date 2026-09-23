@@ -31,11 +31,24 @@ from .optionsmodel import OptionsModel
 
 from .optionsview import OptionsView
 
-from .optionshandler import EventListener
+from .optionshandler import OptionsListener
+
 from .optionshandler import TabListener
 
 from .tab1 import TabManager as Tab1Manager
 from .tab2 import TabManager as Tab2Manager
+
+from ..runner import DispatchListener
+
+from ..setup import SetupCheck
+
+from ..configuration import State
+from ..configuration import g_agent
+from ..configuration import g_extension
+from ..configuration import g_java
+from ..configuration import g_protocol
+from ..configuration import g_script
+from ..configuration import g_service
 
 import traceback
 
@@ -44,38 +57,56 @@ class OptionsManager():
     def __init__(self, ctx, window):
         self._ctx = ctx
         self._disposed = False
+        self._java = g_extension, g_java, g_script
+        self._agent = g_service, g_protocol, g_agent
         self._listener = TabListener(self)
-        window.addEventListener(EventListener(self))
         self._model = OptionsModel(ctx)
-        url, instrumented, title1, title2 = self._model.getViewData()
-        self._view = OptionsView(ctx, window, self._listener, OptionsManager._restart, url, instrumented, title1, title2)
-        self._tab1 = Tab1Manager(ctx, self._view.getTab1(), instrumented, 'Driver')
+        self._view = OptionsView(ctx, window, self._listener, *self._model.getViewData())
+        self._tab1 = Tab1Manager(ctx, self._view.getTab1(), DispatchListener(self), 'Driver')
         self._tab2 = Tab2Manager(ctx, self._view.getTab2())
-        self._tab1.initView()
-        self._model.loadDriver()
+        window.addEventListener(OptionsListener(self))
+        self._loadView(self.init)
 
-    _restart = False
+    def init(self, state):
+        if not self._disposed:
+            self._tab1.init(state)
+            self._view.refreshView(state)
+            if state.java:
+                self._model.loadDriver()
+
+    def refresh(self, state):
+        if not self._disposed:
+            self._tab1.refresh(state)
+            self._view.refreshView(state)
 
 # OptionsManager setter methods
     def dispose(self):
-        if not self._disposed:
+       if not self._disposed:
+            self._disposed = True
             self._tab1.dispose()
             self._tab2.dispose()
             self._view.dispose()
-            self._disposed = True
 
     def activateTab2(self):
         self._view.removeTabListener(self._listener)
-        self._tab2.setDriverVersions(self._tab1.getConfigApiLevel())
+        self._tab2.setDriverVersions()
 
     def saveSetting(self):
         reboot = self._tab1.saveSetting()
         reboot |= self._tab2.saveSetting()
         if reboot:
-            OptionsManager._restart = True
-            self._view.setWarning(True, self._model.isInstrumented())
+            State.restart = True
+            self._loadView(self.refresh)
 
     def loadSetting(self):
-        self._tab1.loadSetting()
-        self._tab2.loadSetting()
+        self._loadView(self.init)
+
+    def dispatchFinished(self, notification):
+        if not self._disposed:
+            self._loadView(self.refresh)
+
+    def _loadView(self, callback):
+        mode = self._tab1.getSetupMode()
+        setup = SetupCheck(self._ctx, callback, java=self._java, agent=self._agent, python=True, mode=mode)
+        setup.start()
 

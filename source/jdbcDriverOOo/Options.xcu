@@ -50,6 +50,12 @@
   <prop oor:name="AddDriverToClassPath" oor:op="fuse">
     <value>true</value>
   </prop>
+  <prop oor:name="SetupPosition" oor:op="fuse">
+    <value>-1 -1</value>
+  </prop>
+  <prop oor:name="SetupUpdate" oor:op="fuse">
+    <value>0</value>
+  </prop>
   <prop oor:name="AdminGridColumns" oor:op="fuse">
     <value>{}</value>
   </prop>
