@@ -27,21 +27,37 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .unotool import createService
-from .unotool import hasFrameInterface
-from .unotool import getConfiguration
-
-from .logger import LoggerPool
-
-from .logger import getLogger
-
-from .options import OptionsManager
-
-from .dispatch import Dispatch
-
-from .configuration import g_basename
-from .configuration import g_defaultlog
-from .configuration import g_identifier
-from .configuration import g_services
+import traceback
+try:
+    from .logger import LoggerPool
+    
+    from .logger import getLogger
+    
+    from .options import OptionsManager
+    
+    from .dispatch import Dispatch
+    
+    from .setup import SetupManager
+    
+    from .unotool import createService
+    from .unotool import findFrame
+    from .unotool import getConfiguration
+    from .unotool import getJobArguments
+    from .unotool import hasFrameInterface
+    from .unotool import notifyDispatch
+    
+    from .configuration import g_agent
+    from .configuration import g_basename
+    from .configuration import g_defaultlog
+    from .configuration import g_extension
+    from .configuration import g_identifier
+    from .configuration import g_java
+    from .configuration import g_protocol
+    from .configuration import g_script
+    from .configuration import g_service
+    from .configuration import g_services
+    from .configuration import g_setup
+except Exception as e:
+    print("jdbcdriver.__init__() ERROR: %s" % traceback.format_exc())
 
 

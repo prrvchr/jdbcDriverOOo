@@ -28,7 +28,6 @@
 """
 
 from ...unotool import getConfiguration
-from ...unotool import getLibreOfficeVersion
 
 from ...configuration import g_identifier
 
@@ -36,32 +35,22 @@ import traceback
 
 
 class TabModel():
-    def __init__(self, ctx, instrumented):
+    def __init__(self, ctx):
         self._key1 = 'EnableJavaSystemLogger'
         self._key2 = 'AddDriverToClassPath'
         self._config = getConfiguration(ctx, g_identifier, True)
-        self._version = getLibreOfficeVersion(ctx)
         self._javalogger = self._getJavaLogger()
         self._classpath = self._getClassPath()
-        self._instrumented = instrumented
 
 # TabModel getter methods
-    def isInstrumented(self):
-        return self._instrumented
-
-    def getJavaLogger(self):
-        return self._javalogger
-
-    def getClassPath(self):
-        return self._classpath
+    def getInitData(self, state):
+        return self._javalogger, self._classpath, state
 
     def saveSetting(self):
         changed = False
-        javalogger = self._getJavaLogger()
-        if javalogger != self._javalogger:
+        if self._javalogger != self._getJavaLogger():
             self._config.replaceByName(self._key1, self._javalogger)
-        classpath = self._getClassPath()
-        if classpath != self._classpath:
+        if self._classpath != self._getClassPath():
             self._config.replaceByName(self._key2, self._classpath)
         if self._config.hasPendingChanges():
             self._config.commitChanges()
@@ -81,3 +70,4 @@ class TabModel():
 
     def _getClassPath(self):
         return self._config.getByName(self._key2)
+

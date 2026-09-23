@@ -56,7 +56,7 @@ public final class DocumentContainer
     private static final String mImplementationName = "io.github.prrvchr.jdbcDriverOOo.DocumentContainer";
     private static final String[] mServiceNames = {"com.sun.star.sdb.DocumentContainer"};
 
-    private static XDataSource sDataSource;
+    private static XDataSource DataSource;
 
     @SuppressWarnings("unused")
     private XComponentContext mContext;
@@ -80,7 +80,7 @@ public final class DocumentContainer
                             System.out.println("sdb.DocumentContainer.initialize() 3");
                             XOfficeDatabaseDocument doc = UnoRuntime.queryInterface(XOfficeDatabaseDocument.class,
                                                                                     property.Value);
-                            sDataSource = doc.getDataSource();
+                            DataSource = doc.getDataSource();
                             System.out.println("sdb.DocumentContainer.initialize() 4");
                         }
                     }
@@ -92,7 +92,7 @@ public final class DocumentContainer
     }
 
     protected static XDataSource getDataSource() {
-        return sDataSource;
+        return DataSource;
     }
 
     // com.sun.star.lang.XServiceInfo:

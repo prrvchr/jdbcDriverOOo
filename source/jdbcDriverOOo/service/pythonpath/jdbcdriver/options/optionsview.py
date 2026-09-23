@@ -35,14 +35,13 @@ import traceback
 
 
 class OptionsView():
-    def __init__(self, ctx, window, listener, restart, url, instrumented, title1, title2):
+    def __init__(self, ctx, window, listener, title1, title2, links):
         self._tab = 'Tab1'
         self._window = window
         self._tab1, self._tab2 = self._getTabPages(window, self._tab, title1, title2, 25)
         self._getTab().addTabPageContainerListener(listener)
-        control = self._getWarning()
-        control.URL = url
-        self._setWarning(control, restart, instrumented)
+        for i, link in enumerate(links, start=1):
+            self._getLink(i).URL = link
 
 # OptionsView getter methods
     def getWindow(self):
@@ -55,8 +54,8 @@ class OptionsView():
         return self._tab2
 
 # OptionsView setter methods
-    def setWarning(self, restart, instrumented):
-        self._setWarning(self._getWarning(), restart, instrumented)
+    def refreshView(self, state):
+        self._window.Model.Step = state.step
 
     def dispose(self):
         self._tab1.dispose()
@@ -86,26 +85,15 @@ class OptionsView():
 
     def _getTabPage(self, model, tab, title):
         index = model.getCount()
-        page = model.createTabPage(index +1)
+        page = model.createTabPage(index + 1)
         page.Title = title
         model.insertByIndex(index, page)
         return tab.getControls()[index]
-
-    def _setWarning(self, control, restart, instrumented):
-        if restart:
-            control.setVisible(False)
-            self._getRestart().setVisible(True)
-        else:
-            self._getRestart().setVisible(False)
-            control.setVisible(not instrumented)
 
 # OptionsView private control methods
     def _getTab(self):
         return self._window.getControl(self._tab)
 
-    def _getRestart(self):
-        return self._window.getControl('Label1')
-
-    def _getWarning(self):
-        return self._window.getControl('Hyperlink1')
+    def _getLink(self, index):
+        return self._window.getControl(f'Hyperlink{index}')
 

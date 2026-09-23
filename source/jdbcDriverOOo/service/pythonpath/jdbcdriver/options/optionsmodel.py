@@ -27,14 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ..jdbcdriver import isInstrumented
-
 from ..unotool import createService
 from ..unotool import getStringResource
 
+from ..configuration import State
 from ..configuration import g_identifier
 from ..configuration import g_service
-
 
 import traceback
 
@@ -42,11 +40,9 @@ import traceback
 class OptionsModel():
     def __init__(self, ctx):
         self._ctx = ctx
-        self._instrumented = isInstrumented(ctx, 'juda:jdbc')
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._resources = {'TabTitle1': 'OptionsDialog.Tab1.Title',
-                           'TabTitle2': 'OptionsDialog.Tab2.Title',
-                           'Link': 'OptionsDialog.Hyperlink1.Url'}
+        self._resources = {'TabTitles': 'OptionsDialog.Tab%s.Title',
+                           'Links': 'OptionsDialog.Hyperlink%s.Url'}
 
 # OptionsModel setter methods
     def loadDriver(self):
@@ -57,16 +53,18 @@ class OptionsModel():
             pass
 
 # OptionsModel getter methods
-    def isInstrumented(self):
-        return self._instrumented
-
     def getViewData(self):
-        resource = self._resources.get('Link')
-        url = self._resolver.resolveString(resource)
-        return url, self._instrumented, self._getTabTitle(1), self._getTabTitle(2)
+        return self._getTabTitle(1), self._getTabTitle(2), self._getLinks()
 
 # OptionsModel private getter methods
     def _getTabTitle(self, tab):
-        resource = self._resources.get('TabTitle%s' % tab)
+        resource = self._resources.get('TabTitles') % tab
         return self._resolver.resolveString(resource)
+
+    def _getLinks(self):
+        links = []
+        for i in range(1, 2):
+            resource = self._resources.get('Links') % i
+            links.append(self._resolver.resolveString(resource))
+        return tuple(links)
 

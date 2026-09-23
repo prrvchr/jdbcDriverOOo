@@ -32,12 +32,7 @@ import uno
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.uno import Exception as UnoException
-
-from ...unotool import createService
-from ...unotool import getCallBack
 from ...unotool import getConfiguration
-from ...unotool import getNamedValueSet
 from ...unotool import getPathSettings
 from ...unotool import getSimpleFile
 from ...unotool import getStringResource
@@ -48,20 +43,16 @@ from ...dbconfig import g_folder
 
 from ...logger import getLogger
 
-from ...jdbcdriver import g_service
-
 from ...configuration import g_basename
 from ...configuration import g_defaultlog
 from ...configuration import g_identifier
 
-from threading import Thread
 import traceback
 
 
 class TabModel():
-    def __init__(self, ctx, lock, xdl):
+    def __init__(self, ctx, xdl):
         self._ctx = ctx
-        self._lock = lock
         self._pmode = 0
         self._vmode = 0
         self._value = None
@@ -76,7 +67,6 @@ class TabModel():
         self._name = 'DriverTypeDisplayName'
         self._class = 'JavaDriverClass'
         self._classpath = 'JavaDriverClassPath'
-        self._callback = getCallBack(ctx)
         self._package = 'vnd.sun.star.expand:$UNO_USER_PACKAGES_CACHE/uno_packages'
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._config = getConfiguration(ctx, path, True)
@@ -101,6 +91,9 @@ class TabModel():
 
     def getArchivePath(self):
         return '%s/%s' % (self._getUrl().Main, g_folder)
+
+    def getRunnerData(self):
+        return self._config, self._protocol
 
     def getDrivers(self):
         return tuple((k for k, v in self._drivers.items() if v is not None))
@@ -266,8 +259,8 @@ class TabModel():
             self._drivers.get(driver).get(self._groups)[group] = properties
         properties[self._classpath] = path
 
-    def setDriverVersions(self, *args):
-        Thread(target=self._setDriverVersions, args=args).start()
+    def setDriverVersions(self, versions):
+        self._versions = versions
 
 # TabModel private getter methods
     def _getGroup(self, driver, group):
@@ -283,12 +276,11 @@ class TabModel():
         return groups
 
     def _getDriverVersion(self, protocol):
-        with self._lock:
-            if protocol in self._versions:
-                version = self._versions[protocol]
-            else:
-                version = self._getDefaultVersion()
-            return version
+        if protocol in self._versions:
+            version = self._versions[protocol]
+        else:
+            version = self._getDefaultVersion()
+        return version
 
     def _isProtocolValid(self, subprotocol):
         protocol = self._getProtocol(subprotocol)
@@ -477,35 +469,4 @@ class TabModel():
         if sf.exists(folder) and sf.isFolder(folder):
             sf.kill(folder)
         sf.createFolder(folder)
-
-    def _setDriverVersions(self, apilevel, caller):
-        driver = None
-        try:
-            versions = {}
-            default = self._getDefaultVersion()
-            config = self._config.getByName('Installed')
-            name = 'Properties/InMemoryDataBase/Value'
-            pool = createService(self._ctx, 'com.sun.star.sdbc.ConnectionPool')
-            driver = createService(self._ctx, g_service)
-            for protocol in config.getElementNames():
-                setting = config.getByName(protocol)
-                if setting.hasByHierarchicalName(name):
-                    url = setting.getByHierarchicalName(name)
-                    if url:
-                        try:
-                            connection = driver.connect(self._protocol + url, ())
-                            version = connection.getMetaData().getDriverVersion()
-                            versions[protocol] = self._getVersion(version)
-                            connection.close()
-                            continue
-                        except UnoException as e:
-                            # If the connection fails, the error is already logged
-                            pass
-                versions[protocol] = default
-            with self._lock:
-                self._versions = versions
-            self._callback.addCallback(caller, getNamedValueSet(versions))
-        except UnoException as e:
-            # If the driver fails, the error is already logged
-            pass
 

@@ -47,16 +47,14 @@ class TabWindow():
     def dispose(self):
         self._window.dispose()
 
-    def setJavaLogger(self, state, instrumented):
-        self._setControl(self._getJavaLogger(), state, instrumented)
-
-    def setClassPath(self, state, instrumented):
-        self._setControl(self._getClassPath(), state, instrumented)
+    def initView(self, log, cls, state):
+        self._setControl(self._getJavaLogger(), log, state.java)
+        self._setControl(self._getClassPath(), cls, state.java)
 
 # TabWindow private control methods
-    def _setControl(self, control, state, instrumented):
-        control.State = int(state and instrumented)
-        control.Model.Enabled = instrumented
+    def _setControl(self, control, state, java):
+        control.State = int(state and java)
+        control.Model.Enabled = java
 
     def _getJavaLogger(self):
         return self._window.getControl('CheckBox1')

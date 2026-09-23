@@ -33,21 +33,25 @@ from .tabview import TabWindow
 
 from .tabhandler import TabHandler
 
-from ..options import OptionsManager
+from ..option import OptionManager
 
 import traceback
 
 
 class TabManager():
-    def __init__(self, ctx, window, instrumented, logger, *loggers):
-        self._model = TabModel(ctx, instrumented)
+    def __init__(self, ctx, window, dispatch, logger, *loggers):
+        self._model = TabModel(ctx)
         self._view = TabWindow(ctx, window, TabHandler(self))
-        self._manager = OptionsManager(ctx, self._view.getWindow(), instrumented, logger, *loggers)
+        self._manager = OptionManager(ctx, self._view.getWindow(), dispatch, logger, *loggers)
 
 # TabManager setter methods
-    def initView(self):
-        self._manager.initView()
-        self._initView()
+    def init(self, state):
+        self._manager.init(state)
+        self._view.initView(*self._model.getInitData(state))
+
+    def refresh(self, state):
+        self._manager.refresh(state)
+        self._view.initView(*self._model.getInitData(state))
 
     def dispose(self):
         self._manager.dispose()
@@ -56,6 +60,9 @@ class TabManager():
 # TabManager getter methods
     def getConfigApiLevel(self):
         return self._manager.getConfigApiLevel()
+
+    def getSetupMode(self):
+        return self._manager.getSetupMode()
 
     # Option1Dialog.xdl handler entry
     def setJavaLogger(self, enabled):
@@ -68,14 +75,4 @@ class TabManager():
         reboot = self._model.saveSetting()
         reboot |= self._manager.saveSetting()
         return reboot
-
-    def loadSetting(self):
-        self._manager.loadSetting()
-        self._initView()
-
-# TabManager private methods
-    def _initView(self):
-        instrumented = self._model.isInstrumented()
-        self._view.setJavaLogger(self._model.getJavaLogger(), instrumented)
-        self._view.setClassPath(self._model.getClassPath(), instrumented)
 
