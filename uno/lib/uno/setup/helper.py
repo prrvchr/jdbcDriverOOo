@@ -29,27 +29,25 @@
 
 import uno
 
-from com.sun.star.beans import PropertyValue
-from emailer import jdbcdriver
-
-from ..jdbcdriver import checkDriverService
-
 from ..unotool import checkVersion
 from ..unotool import createService
-from ..unotool import getDriverManager
+from ..unotool import executeDesktopDispatch
 from ..unotool import getExtensionVersion
+from ..unotool import getPropertyValueSet
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 
 import importlib
-import os
 from packaging.requirements import Requirement
 import pkg_resources as pkgr
-import re
-import subprocess
 from time import sleep
 import traceback
+from xml.dom import minicompat
 
+
+def showSetup(ctx, identifier, listener=None, /, **kwargs):
+    url = f'vnd.sun.star.job:service={identifier}.Setup'
+    executeDesktopDispatch(ctx, url, listener, **kwargs)
 
 def checkExtensions(ctx, extensions, cancel=None, maxProgress=None, progress=None, resolver=None):
     i = 0
@@ -69,71 +67,33 @@ def checkExtensions(ctx, extensions, cancel=None, maxProgress=None, progress=Non
     return dependencies
 
 def checkJava(ctx, java, maxProgress=None, progress=None, resolver=None):
-    success = False
     if maxProgress:
-        maxProgress(2)
+        maxProgress(3)
     if progress and resolver:
         progress(resolver(), 1)
-    success, version = _getJavaVersion(ctx, *java)
+    code = _getJavaStatus(ctx)
     if progress and resolver:
-        progress(resolver(version), 2)
+        progress(resolver(), 2)
+    if code > 0:
+        minimum, version = _getDefaultVersion(*java)
+    else:
+        code, minimum, version = _getJavaVersion(ctx, *java)
+    if progress and resolver:
+        progress(resolver(version), 3)
         sleep(1)
-    print("checkJava() version: %s" % version)
-    return success, version
+    print("checkJava() java: %s - version: %s" % (minimum, version))
+    return code, minimum, version
 
-def _getJavaVersion(ctx, identifier, jar, java, module):
-    jvm = createService(ctx, 'com.sun.star.comp.stoc.JavaVirtualMachine')
-    if jvm is None:
-        print("_getJavaVersion() no java 1")
-        return False, java
-
-    if not jvm.isVMEnabled():
-        print("_getJavaVersion() no java enabled 2")
-        return False, java
-
-    print("_getJavaVersion() 3 java enable: %s" % jvm.isVMEnabled())
-
-    try:
-        url = getResourceLocation(ctx, identifier, jar)
-        loader = createService(ctx, 'com.sun.star.loader.URLClassLoader')
-        loader.initialize((url, ))
-        info = loader.loadClass(module)
-        version = info.getVersion()
-        print("_getJavaVersion() 4 version: %s" % version)
-        return True, version
-    except Exception:
-        print("_getJavaVersion() 5 ERROR: %s" % traceback.format_exc())
-    print("_getJavaVersion() 6 java incorrect version")
-    return False, java
-
-def checkJava1(java, maxProgress=None, progress=None, resolver=None):
-    success = False
-    if maxProgress:
-        maxProgress(2)
-    if progress and resolver:
-        progress(resolver(), 1)
-    version = _getJavaVersion()
-    if progress and resolver:
-        progress(resolver(version), 2)
-        sleep(1)
-    success = version is not None and checkVersion(version, java)
-    return success, version if success else java
-
-def _getJavaVersion1():
-    version = None
-    try:
-        result = subprocess.run(['java', '-version'],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 text=True,
-                                 check=True)
-        line = result.stderr.splitlines()[0]
-        match = re.search(r'"([^"]+)"', line)
-        if match:
-            version = match.group(1)
-    except Exception:
-        pass
-    return version
+def checkAgent(ctx, service, url, agent):
+    support = False
+    driver = createService(ctx, service)
+    if driver:
+        properties = getPropertyValueSet({agent: True})
+        for info in driver.getPropertyInfo(url, properties):
+            if info.Name == agent:
+                support = info.Value != 'false'
+                break
+    return support
 
 def checkPython(ctx, identifier, cancel=None, maxProgress=None, progress=None, resolver=None):
     modules = []
@@ -143,6 +103,38 @@ def checkPython(ctx, identifier, cancel=None, maxProgress=None, progress=None, r
         _checkPackages(modules, packages, url, cancel, maxProgress, progress, resolver)
     success = len(modules) == 0
     return success, packages if success else modules
+
+def _getJavaStatus(ctx):
+    service = 'com.sun.star.comp.stoc.JavaVirtualMachine'
+    jvm = createService(ctx, service)
+    if jvm is None:
+        return 4
+    if jvm.isVMEnabled():
+        return 0
+    return 3
+
+def _getDefaultVersion(extension, java, script):
+    return java, java
+
+def _getJavaVersion(ctx, extension, java, script):
+    results = 2, java, java
+    try:
+        service = 'com.sun.star.script.provider.MasterScriptProviderFactory'
+        factory = createService(ctx, service)
+        provider = factory.createScriptProvider('')
+        url = f'vnd.sun.star.script:{script}?language=Java&location=user:uno_packages/{extension}.oxt'
+        macro = provider.getScript(url)
+        if macro:
+            result = macro.invoke((), (), ())
+            version = result[0]
+            if version:
+                if checkVersion(version, java):
+                    results = 0, java, version
+                else:
+                    results = 1, java, version
+    except Exception:
+        pass
+    return results
 
 def _checkExtension(ctx, identifier, data):
     version = getExtensionVersion(ctx, identifier)

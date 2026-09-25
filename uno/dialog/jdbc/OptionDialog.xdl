@@ -25,7 +25,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="OptionDialog" dlg:left="0" dlg:top="0" dlg:width="260" dlg:height="200" dlg:help-text="&amp;OptionDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;OptionDialog.Title" dlg:withtitlebar="false">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="OptionDialog" dlg:left="0" dlg:top="0" dlg:width="260" dlg:height="230" dlg:help-text="&amp;OptionDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;OptionDialog.Title" dlg:withtitlebar="false">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
@@ -62,6 +62,11 @@
     <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="11" dlg:left="10" dlg:top="140" dlg:width="80" dlg:height="15" dlg:help-text="&amp;OptionDialog.CheckBox2.HelpText" dlg:value="&amp;OptionDialog.CheckBox2.Label" dlg:valign="center" dlg:checked="false">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SystemTable" script:language="UNO"/>
     </dlg:checkbox>
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine2" dlg:tab-index="12" dlg:left="6" dlg:top="163" dlg:width="244" dlg:height="15" dlg:help-text="&amp;OptionDialog.FixedLine2.HelpText" dlg:value="&amp;OptionDialog.FixedLine2.Label"/>
+    <dlg:text dlg:id="Label4" dlg:tab-index="13" dlg:left="10" dlg:top="180" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionDialog.Label4.HelpText" dlg:value="&amp;OptionDialog.Label4.Label" dlg:valign="center"/>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="14" dlg:left="155" dlg:top="180" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionDialog.CommandButton1.HelpText" dlg:value="&amp;OptionDialog.CommandButton1.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowSetup" script:language="UNO"/>
+    </dlg:button>
   </dlg:bulletinboard>
 </dlg:window>
 

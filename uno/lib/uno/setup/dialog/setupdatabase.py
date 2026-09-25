@@ -27,58 +27,61 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import getContainerWindow
+import unohelper
 
-from ...configuration import g_identifier
+from com.sun.star.awt import XCallback
 
+from ...unotool import getCallBack
+from ...unotool import getSimpleFile
+
+from threading import Timer
 import traceback
 
 
-class OptionsWindow():
-    def __init__(self, ctx, window, handler, level, crs, system):
-        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
-        self._window.setVisible(True)
-        self.enableResultSetType(False)
-        self.enableCachedRowSet(False)
-        self.initView(level, crs, system)
+class SetupDataBase(unohelper.Base,
+                    XCallback):
+    def __init__(self, ctx, callback, progress, database, user='', pwd=''):
+        self._ctx = ctx
+        self._callback = callback
+        self._progress = progress
+        self._database = database
+        self._step = 0
+        self._asyncCall = getCallBack(ctx)
 
-# OptionWindow setter methods
-    def dispose(self):
-        self._window.dispose()
-
-    def initView(self, level, crs, system):
-        self._getApiLevel(level).State = 1
-        self._getCachedRowSet().State = int(crs)
-        self._getSytemTable().State = int(system)
-
-    def refreshView(self, instrumented, level, rst, crs, system, enabled):
-        self._getApiLevel(level).State = 1
-        if instrumented:
-            self._getResultSetType(rst).State = 1
+    def start(self):
+        if getSimpleFile(self._ctx).exists(self._database.path):
+            Timer(0.1, self._callback, args=(True, False)).start()
         else:
-            self._getResultSetType(0).State = 1
-        self._getCachedRowSet().State = int(crs)
-        self.enableResultSetType(instrumented and enabled)
-        self.enableCachedRowSet(instrumented and enabled and rst != 0)
-        self._getSytemTable().State = int(system)
+            if self._progress:
+                self._progress.start(self._database.label, self._database.total)
+            Timer(0.1, self._call).start()
 
-    def enableResultSetType(self, enabled, options=(0, 1, 2)):
-        for index in options:
-            self._getResultSetType(index).Model.Enabled = enabled
+    def notify(self, data):
+        try:
+            resource, call = next(self._database.steps)
+            self._step += 1
+            if self._progress:
+                self._progress.setText(self._database.resolver.resolveString(resource))
+                self._progress.setValue(self._step)
+            call()
 
-    def enableCachedRowSet(self, enabled):
-        self._getCachedRowSet().Model.Enabled = enabled
+            Timer(0.1, self._call).start()
 
-# OptionWindow private control methods
-    def _getApiLevel(self, index):
-        return self._window.getControl('OptionButton%s' % (index + 1))
+        except StopIteration:
+            if self._progress:
+                self._progress.end()
+            self._callback(True, True)
+        except Exception as e:
+            if self._database.statement:
+                try: self._database.statement.close()
+                except: pass
+            if self._database.connection:
+                try: self._database.connection.close()
+                except: pass
+            if self._progress:
+                self._progress.end()
+            self._callback(False, True)
 
-    def _getResultSetType(self, index):
-        return self._window.getControl('OptionButton%s' % (index + 4))
-
-    def _getCachedRowSet(self):
-        return self._window.getControl('CheckBox1')
-
-    def _getSytemTable(self):
-        return self._window.getControl('CheckBox2')
+    def _call(self):
+       self._asyncCall.addCallback(self, None)
 

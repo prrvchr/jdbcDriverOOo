@@ -29,12 +29,12 @@
 
 from .progress import Progress
 
-from ..unotool import getContainerWindow
-from ..unotool import getTopWindow
-from ..unotool import getWindowPosition
-from ..unotool import setWindowPosition
+from ...unotool import getContainerWindow
+from ...unotool import getTopWindow
+from ...unotool import getWindowPosition
+from ...unotool import setWindowPosition
 
-from ..configuration import g_identifier
+from ...configuration import g_identifier
 
 import traceback
 

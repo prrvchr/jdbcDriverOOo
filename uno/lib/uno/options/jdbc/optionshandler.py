@@ -67,6 +67,9 @@ class WindowHandler(unohelper.Base,
             elif method == 'SystemTable':
                 self._manager.setSystemTable(event.Source.State)
                 handled = True
+            elif method == 'ShowSetup':
+                self._manager.showSetup()
+                handled = True
             return handled
         except:
             print("WindowHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
@@ -79,5 +82,6 @@ class WindowHandler(unohelper.Base,
                 'RowSet1',
                 'RowSet2',
                 "UseCache",
-                'SystemTable')
+                'SystemTable',
+                'ShowSetup')
 

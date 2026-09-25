@@ -35,25 +35,31 @@ import traceback
 
 
 class OptionsModel():
-    def __init__(self, ctx, instrumented):
+    def __init__(self, ctx):
         self._rebootkeys = ('ApiLevel', 'ResultSetType')
         configkeys = ('UseCachedRowSet', 'ShowSystemTable', )
         self._keys = self._rebootkeys + configkeys
         self._config = getConfiguration(ctx, g_identifier, True)
         self._settings = self._getSettings()
-        self._instrumented = instrumented
+        self._instrumented = False
 
 # OptionModel getter methods
+    def getViewData(self):
+        level = self._settings.get('ApiLevel')
+        crs = self._settings.get('UseCachedRowSet')
+        system = self._settings.get('ShowSystemTable')
+        return level, crs, system
+
     def getConfigApiLevel(self):
         return self._config.getByName('ApiLevel')
 
-    def getViewData(self):
+    def refreshData(self):
         self._settings = self._getSettings()
         level = self._settings.get('ApiLevel')
         rst = self._settings.get('ResultSetType')
         crs = self._settings.get('UseCachedRowSet')
         system = self._settings.get('ShowSystemTable')
-        return self._instrumented, level, rst, crs, system, self._isRowSetEnabled(level)
+        return level, rst, crs, system, self._isRowSetEnabled(level)
 
 # OptionModel setter methods
     def setApiLevel(self, level):

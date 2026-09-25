@@ -32,24 +32,25 @@ import uno
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .cancel import Cancel
+from ..cancel import Cancel
 
-from ..unotool import deregisterStartupJob
-from ..unotool import getConfiguration
-from ..unotool import getPathSubstitution
-from ..unotool import getResourceLocation
-from ..unotool import getStringResource
-from ..unotool import saveWindowPosition
+from ..helper import checkAgent
+from ..helper import checkExtensions
+from ..helper import checkJava
+from ..helper import checkPython
 
-from ..logger import getLogger
+from ...unotool import deregisterStartupJob
+from ...unotool import getConfiguration
+from ...unotool import getPathSubstitution
+from ...unotool import getResourceLocation
+from ...unotool import getStringResource
+from ...unotool import saveWindowPosition
 
-from .helper import checkExtensions
-from .helper import checkJava
-from .helper import checkPython
+from ...logger import getLogger
 
-from ..configuration import g_basename
-from ..configuration import g_defaultlog
-from ..configuration import g_identifier
+from ...configuration import g_basename
+from ...configuration import g_defaultlog
+from ...configuration import g_identifier
 
 import importlib
 from time import sleep
@@ -59,14 +60,17 @@ import traceback
 
 
 class SetupModel():
-    def __init__(self, ctx, name, code, database, java, python, extensions):
+    def __init__(self, ctx, name, code, database, java, agent, python, extensions):
         self._ctx = ctx
+        self._status = 0
         self._name = name
         self._code = code
         self._java = java
+        self._agent = agent
         self._database = database
         self._python = python
         self._extensions = extensions
+        self._dependencies = ()
         self._modules = []
         self._cancel = Cancel()
         self._position = 'SetupPosition'
@@ -80,13 +84,13 @@ class SetupModel():
                            'Header': 'SetupWindow.Label1.Label.%s',
                            'Dependency': 'SetupWindow.Label2.Label',
                            'Java': 'SetupWindow.Label5.Label',
-                           'Text': 'SetupWindow.Label12.Label',
-                           'Install': 'SetupWindow.Label15.Label'}
+                           'Text': 'SetupWindow.Label15.Label',
+                           'Install': 'SetupWindow.Label18.Label'}
     def close(self):
         self._cancel.set()
 
-    def getPage(self, step):
-        return step, self._getHeader(step)
+    def getPage(self, step, **kwargs):
+        return step, self._getHeader(step, **kwargs)
 
     def getViewData(self):
         return self._getDialogPosition(), self._getTitle()
@@ -110,13 +114,16 @@ class SetupModel():
         return len(self._extensions) != 0 
 
     def checkExtensions(self, maxProgress, progress):
-        deps = checkExtensions(self._ctx, self._extensions, self._cancel, maxProgress, progress, self._getDependencyText)
-        success = len(deps) == 0
-        return success, self._getExtensionsResult(self._extensions.values() if success else deps)
+        self._dependencies = checkExtensions(self._ctx, self._extensions, self._cancel, maxProgress, progress, self._getDependencyText)
+        success = len(self._dependencies) == 0
+        return success, self._getExtensionsResult(self._extensions.values() if success else self._dependencies)
 
     def checkJava(self, maxProgress, progress):
-        success, version = checkJava(self._ctx, self._java, maxProgress, progress, self._getJavaText)
-        return success, self._getJavaResult(version if success else self._java)
+        code, minimum, version = checkJava(self._ctx, self._java, maxProgress, progress, self._getJavaText)
+        success = self._isSuccess(code)
+        if success and self._agent:
+            success = checkAgent(self._ctx, *self._agent)
+        return success, code, minimum, version
 
     def checkPython(self, maxProgress, progress):
         success, self._modules = checkPython(self._ctx, g_identifier, self._cancel, maxProgress, progress, self._getProgressText)
@@ -152,6 +159,13 @@ class SetupModel():
     def deregisterJob(self):
         deregisterStartupJob(self._ctx, self._name)
 
+    def getRequiredExtension(self):
+        return self._getExtensionsResult(self._dependencies)
+
+    def getRequiredJava(self):
+        extension, java, script = self._java
+        return self._getJavaMessage(java)
+
     def _getPipCommand(self, isWindows):
         if isWindows:
             url = self._program + '/python.exe'
@@ -184,13 +198,22 @@ class SetupModel():
             pass
         return msg
 
+    def _isSuccess(self, code):
+        return code == 0
+
+    def _hasJavaVersion(self, code):
+        return code < 2
+
     def _getRequirementsResult(self, modules):
         return ', '.join(modules)
 
     def _getExtensionsResult(self, extensions):
         return '\n'.join(['%s - version %s' % (name, version) for (name, version) in extensions])
 
-    def _getJavaResult(self, version):
+    def _getJavaResult(self, code, minimum, version):
+        return self._getJavaMessage(version if self._hasJavaVersion(code) else '...')
+
+    def _getJavaMessage(self, version):
         return 'Java JDK version: ' + version
 
     def _log(self, level, code, *args):
@@ -203,8 +226,9 @@ class SetupModel():
     def _getTitle(self):
         return self._resolver.resolveString(self._resources.get('Title'))
 
-    def _getHeader(self, step):
-        return self._resolver.resolveString(self._resources.get('Header') % step)
+    def _getHeader(self, step, **kwargs):
+        resource = self._resources.get('Header') % step
+        return self._resolver.resolveString(resource).format(**kwargs)
 
     def _getDependencyText(self, data):
         return self._resolver.resolveString(self._resources.get('Dependency')) % data

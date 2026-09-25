@@ -33,16 +33,33 @@ from .optionsview import OptionsWindow
 
 from .optionshandler import WindowHandler
 
+from ...setup import CheckSetup
+from ...setup import DispatchListener
+
 from ...logger import LogManager
+
+from ...setup import showSetup
+
+from ...configuration import g_identifier
 
 import traceback
 
 
 class OptionsManager():
-    def __init__(self, ctx, window, instrumented, logger, *loggers):
+    def __init__(self, ctx, window, java, agent, logger, *loggers):
+        self._ctx = ctx
+        self._java = java
+        self._agent = agent
         self._logmanager = LogManager(ctx, window, 'requirements.txt', logger, *loggers)
-        self._model = OptionsModel(ctx, instrumented)
-        self._view = OptionsWindow(ctx, window, WindowHandler(self))
+        self._model = OptionsModel(ctx)
+        self._view = OptionsWindow(ctx, window, WindowHandler(self), *self._model.getViewData())
+        if java and agent:
+            setup = CheckSetup(ctx, self.notify, java=java, agent=agent)
+            setup.start()
+
+    def notify(self, extension, java, agent, database, python):
+        if java and agent:
+            pass
 
 # OptionManager setter methods
     def initView(self):
@@ -81,6 +98,13 @@ class OptionsManager():
 
     def setSystemTable(self, state):
         self._model.setSystemTable(state)
+
+    def showSetup(self):
+        showSetup(self._ctx, g_identifier, DispatchListener=DispatchListener(self))
+
+    def dispatchFinished(self, notification):
+        setup = CheckSetup(self._ctx, self.notify, java=self._java, agent=self._agent)
+        setup.start()
 
 # OptionManager private methods
     def _initView(self):

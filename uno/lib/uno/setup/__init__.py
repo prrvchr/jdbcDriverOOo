@@ -31,7 +31,9 @@ from .cancel import Cancel
 
 from .checksetup import CheckSetup
 
-from .setupmanager import SetupManager
+from .listener import DispatchListener
 
-from .setupdatabase import SetupDataBase
+from .dialog import SetupManager
+
+from .helper import showSetup
 
