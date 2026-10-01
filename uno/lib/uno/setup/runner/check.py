@@ -50,3 +50,4 @@ class Check():
 
     def _getSuccess(self, success):
         return success
+

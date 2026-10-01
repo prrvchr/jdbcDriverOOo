@@ -60,20 +60,19 @@ class SetupManager():
 
 # XCloseListener
     def queryClosing(self, source, ownership):
+        self._close()
+        if self._running:
+            raise CloseVetoException()
         if not ownership:
-            self._cancel()
-            if self._running:
-                raise CloseVetoException()
-            self._close()
+            self._dispose()
 
     def notifyClosing(self, source):
         source.removeCloseListener(self._listener)
-        self._close()
 
     def cancel(self):
-        self._cancel()
+        self._close()
         if not self._running:
-            self._close()
+            self._dispose()
 
     def next(self):
         if self._step == 1:
@@ -120,6 +119,7 @@ class SetupManager():
             self._model.deregisterJob()
             self._running = False
             self._close()
+            self._dispose()
         else:
             print("SetupManager.next() step: %s " + self._step)
 
@@ -129,18 +129,18 @@ class SetupManager():
     def setProgress(self, text, progress):
         self._view.setProgress(text, progress)
 
-    def _cancel(self):
-        self._view.enableButtons(False)
-        self._closing = True
-        self._model.close()
-
     def _close(self):
         print("SetupManager._close() 1")
+        self._closing = True
+        self._view.enableButtons(False)
+        self._model.close()
         self._model.savePosition(self._view.getWindowPosition())
+        print("SetupManager._close() 2")
+
+    def _dispose(self):
         if self._dispatch:
             notifyDispatch(self._source, self._dispatch)
-        self._view.close()
-        print("SetupManager._close() 2")
+        self._view.dispose()
 
     def _hasDataBase(self):
         return self._extension and self._model.hasDataBase()
@@ -159,11 +159,10 @@ class SetupManager():
     def notifyExtension(self, success):
         self._running = False
         if self._closing:
-            self._close()
+            self._dispose()
         else:
             self._setResults(*self._model.getResults(success))
             self._extension = success
-            #self._enableNext(True)
 
     def _checkJava(self):
         self._step = 3
@@ -176,11 +175,10 @@ class SetupManager():
     def notifyJava(self, success):
         self._running = False
         if self._closing:
-            self._close()
+            self._dispose()
         else:
             self._setResults(*self._model.getResults(success))
             self._java = success
-            #self._enableNext(True)
 
     def _checkDataBase(self):
         self._step = 4
@@ -193,11 +191,10 @@ class SetupManager():
     def notifyDataBase(self, success):
         self._running = False
         if self._closing:
-            self._close()
+            self._dispose()
         else:
             self._setResults(*self._model.getResults(success))
             self._database = success
-            #self._enableNext(True)
 
     def _checkPython(self):
         self._step = 5
@@ -210,14 +207,13 @@ class SetupManager():
     def notifyPython(self, success):
         self._running = False
         if self._closing:
-            self._close()
+            self._dispose()
         else:
             if success:
                 self._python = True
             else:
                 self._setup = True
             self._setResults(*self._model.getResults(success, False))
-            #self._enableNext(True)
 
     def _installPackages(self):
         self._step = 6
@@ -230,11 +226,10 @@ class SetupManager():
     def notifyPypi(self, success):
         self._running = False
         if self._closing:
-            self._close()
+            self._dispose()
         else:
             self._setResults(*self._model.getResults(success))
             self._python = success
-            #self._enableNext(True)
 
     def _setHeader(self, header):
         if not self._closing:
@@ -251,7 +246,6 @@ class SetupManager():
     def _setLastPage(self):
         success = all((self._extension, self._java, self._python, self._database))
         self._setResults(*self._model.getLastPage(success, self._setup))
-        if not success:
-            pass
-            #self._setErrorMessage(page)
+        if success:
+            self._step = 7
 

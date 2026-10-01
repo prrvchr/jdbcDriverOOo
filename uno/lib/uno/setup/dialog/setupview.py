@@ -30,6 +30,7 @@
 from .progress import Progress
 
 from ...unotool import getContainerWindow
+from ...unotool import getDesktop
 from ...unotool import getTopWindow
 from ...unotool import getWindowPosition
 from ...unotool import setWindowPosition
@@ -41,6 +42,7 @@ import traceback
 
 class SetupView():
     def __init__(self, ctx, handler, listener, name, point, title, header):
+        self._ctx = ctx
         self._frame = getTopWindow(ctx, name)
         peer = self._frame.getContainerWindow()
         self._window = getContainerWindow(ctx, peer, handler, g_identifier, 'SetupWindow')
@@ -67,9 +69,24 @@ class SetupView():
         return Progress(self._getProgressBar().Model, self._getProgressText())
 
 # SetupView setter methods
-    def close(self):
+    def dispose(self):
         self._frame.close(True)
-        self._frame.dispose()
+ 
+    def dispose1(self):
+        print("SetupView.dispose() 1")
+        try:
+            # Récupère le Desktop (utilisez votre méthode getDesktop(ctx) si disponible)
+            desktop = getDesktop(self._ctx)
+            frames = desktop.getFrames()
+            
+            # On vérifie si la frame est bien présente avant de la supprimer
+            frames.remove(self._frame)
+            print("Frame retirée avec succès de la collection du Desktop.")
+            #self._frame.dispose()
+            #self._window.dispose()
+        except Exception as e:
+            print(f"Erreur lors du retrait de la frame du Desktop : {e}")
+        print("SetupView.dispose() 2")
 
     def setHeader(self, header):
         self._window.Model.Step = 2

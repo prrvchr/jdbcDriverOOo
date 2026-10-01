@@ -59,41 +59,36 @@ class Java(Check):
     def callback(self, success):
         self._callback(self._getSuccess(success))
 
-    def stepCheckJavaStatus(self, agent, extension, version, script):
+    def stepCheckJavaStatus(self, extension, version, script):
         self._minimum = version
         self._code = getJavaStatus(self._ctx)
 
-    def stepCheckJavaVersion(self, agent, extension, version, script):
+    def stepCheckJavaVersion(self, extension, version, script):
         self._code, _, self._version = getJavaVersion(self._ctx, extension, version, script)
 
     def stepCheckJavaAgent(self, service, url, agent):
-        self._agent = checkAgent(self._ctx, extension, version, script)
+        self._agent = checkAgent(self._ctx, service, url, agent)
 
     def _getCheckStep(self, java, agent):
-        yield self._getStepCheckJavaStatus(agent, *java)
-        if not self._hasJava():
-            return
-        self.total += 1
-        yield self._getStepCheckJavaVersion(agent, *java)
-        if not self._hasJava() or agent is None:
-            return
-        self.total += 1
-        yield self._getStepCheckJavaAgent(*agent)
+        yield self._getStepCheckJavaStatus(*java)
+        if self._hasJava():
+            self.total += 1
+            yield self._getStepCheckJavaVersion(*java)
+            if self._hasJava() and agent:
+                self.total += 1
+                yield self._getStepCheckJavaAgent(*agent)
 
-    def _getStepCheckJavaStatus(self, agent, extension, version, script):
-        return 231, (), self.stepCheckJavaStatus, agent, extension, version, script
+    def _getStepCheckJavaStatus(self, extension, version, script):
+        return 231, (), self.stepCheckJavaStatus, extension, version, script
 
-    def _getStepCheckJavaVersion(self, agent, extension, version, script):
-        return 241, (version, ), self.stepCheckJavaVersion, agent, extension, version, script
+    def _getStepCheckJavaVersion(self, extension, version, script):
+        return 241, (version, ), self.stepCheckJavaVersion, extension, version, script
 
     def _getStepCheckJavaAgent(self, service, url, agent):
         return 251, (), self.stepCheckJavaAgent, service, url, agent
 
     def _getSuccess(self, success):
         return success and self._hasJava()
-
-    def _hasJavaVersion(self):
-        return self._code < 2
 
     def _hasJava(self):
         return self._code == 0
@@ -107,5 +102,4 @@ class Java(Check):
         if self._code:
             return 'Java JDK version %s minimum' % self._minimum
         return 'Java JDK version %s' % self._version
-
 

@@ -70,7 +70,7 @@ class CloseListener(unohelper.Base,
         self._manager.queryClosing(event.Source, ownership)
 
     def notifyClosing(self, event):
-        pass
+        self._manager.notifyClosing(event.Source)
 
     def disposing(self, event):
         pass

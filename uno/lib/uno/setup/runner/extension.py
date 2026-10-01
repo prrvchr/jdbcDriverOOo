@@ -79,3 +79,4 @@ class Extension(Check):
     def _getResult(self):
         extensions = self._absent if len(self._absent) else self._present
         return '\n'.join(['%s version %s' % (name, version) for (name, version) in extensions])
+

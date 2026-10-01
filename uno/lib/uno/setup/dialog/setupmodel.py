@@ -88,7 +88,7 @@ class SetupModel():
 
     def getLastPage(self, success, setup):
         if success:
-            return self._getHeader(2 if setup else 3)
+            return self._getHeader(2 if setup else 3), ''
         return self._lastPage
 
     def getViewData(self):

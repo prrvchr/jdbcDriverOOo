@@ -36,7 +36,7 @@ from .optionshandler import WindowHandler
 from ...setup import CheckSetup
 from ...setup import DispatchListener
 
-from ...logger import LogManager
+from ..logger import LogManager
 
 from ...setup import showSetup
 
