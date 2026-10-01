@@ -67,7 +67,6 @@ from com.sun.star.util.MeasureUnit import APPFONT
 
 import binascii
 import datetime
-from packaging import version
 import traceback
 import socket
 
@@ -243,9 +242,6 @@ def getStreamSequence(stream, chunk=64*1024):
         sequence += buffer
     stream.closeInput()
     return sequence
-
-def checkVersion(ver, minimum):
-    return version.parse(ver) >= version.parse(minimum)
 
 def hasInterface(component, interface):
     for t in getComponentTypes(component):

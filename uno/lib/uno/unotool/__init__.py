@@ -28,7 +28,6 @@
 """
 
 from .unotool import checkInternet
-from .unotool import checkVersion
 from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import deregisterStartupJob

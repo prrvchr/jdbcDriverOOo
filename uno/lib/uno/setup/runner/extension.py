@@ -27,7 +27,55 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .setupdatabase import SetupDataBase
+from .check import Check
 
-from .setupmanager import SetupManager
+from ..helper import checkExtension
 
+import traceback
+
+
+class Extension(Check):
+    def __init__(self, ctx, callback, extensions):
+        super().__init__(ctx, callback)
+        self._absent = []
+        self._present = []
+        self.total = len(extensions)
+        self.label1 = self.resolver.resolveString(111)
+        self.label2 = self.resolver.resolveString(112)
+        self.steps = self._getCheckStep(extensions)
+
+    def getHeader(self, **kwargs):
+        return self.resolver.resolveString(121).format(**kwargs)
+
+    def getResults(self, success):
+        return self._getHeader(), self._getResult()
+
+    def getLastPage(self):
+        return self.resolver.resolveString(151), self._getResult(), False
+
+    def callback(self, success):
+        self._callback(self._getSuccess(success))
+
+    def stepCheckExtension(self, identifier, infos):
+        if checkExtension(self._ctx, identifier, infos):
+            self._present.append(infos)
+        else:
+            self._absent.append(infos)
+
+    def _getCheckStep(self, extensions):
+        for identifier, infos in extensions.items():
+            yield self._getStepCheckExtension(identifier, infos)
+
+    def _getStepCheckExtension(self, identifier, infos):
+        return 131, infos, self.stepCheckExtension, identifier, infos
+
+    def _getSuccess(self, success):
+        return success and len(self._absent) == 0
+
+    def _getHeader(self):
+        code = 141 if len(self._absent) else 142
+        return self.resolver.resolveString(code)
+
+    def _getResult(self):
+        extensions = self._absent if len(self._absent) else self._present
+        return '\n'.join(['%s version %s' % (name, version) for (name, version) in extensions])

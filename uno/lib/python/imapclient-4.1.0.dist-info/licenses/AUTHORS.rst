@@ -48,4 +48,4 @@ project:
 - Sean Whalen
 - Peter Wienemann 
 - Arnout Engelen
-
+- Lars Artmann

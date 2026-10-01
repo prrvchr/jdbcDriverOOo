@@ -1,4 +1,4 @@
-# Copyright (c) 2023, Menno Smits
+# Copyright (c) 2026, Menno Smits
 # Released subject to the New BSD License
 # Please see http://en.wikipedia.org/wiki/BSD_licenses
 
@@ -13,11 +13,15 @@ import ssl
 from typing import Optional
 
 
+def create_default_context() -> ssl.SSLContext:
+    return ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+
+
 def wrap_socket(
     sock: socket.socket, ssl_context: Optional[ssl.SSLContext], host: str
 ) -> socket.socket:
     if ssl_context is None:
-        ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+        ssl_context = create_default_context()
 
     return ssl_context.wrap_socket(sock, server_hostname=host)
 
@@ -39,7 +43,9 @@ class IMAP4_TLS(imaplib.IMAP4):
         self._timeout = timeout
         super().__init__(host, port)
 
-    def _create_socket(self, timeout: Optional[float]) -> socket.socket:
+    def _create_socket(self, timeout: Optional[float] = None) -> socket.socket:
+        if timeout is None:
+            timeout = self._timeout
         sock = socket.create_connection((self.host, self.port), timeout=timeout)
 
         return wrap_socket(sock, self.ssl_context, self.host)

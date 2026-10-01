@@ -32,12 +32,14 @@ import unohelper
 from com.sun.star.awt import XCallback
 
 from ..unotool import getCallBack
+from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 
 from .helper import checkAgent
-from .helper import checkExtensions
-from .helper import checkJava
+from .helper import checkExtension
 from .helper import checkPython
+from .helper import getJavaStatus
+from .helper import getJavaVersion
 
 from ..configuration import g_identifier
 
@@ -52,23 +54,8 @@ class CheckSetup(unohelper.Base,
         self._callback = callback
         self._requirements = '/requirements.txt'
         self._asyncCall = getCallBack(ctx)
-        steps = []
         self._results = self._getDefaultResults(True)
-        if extensions:
-            steps.append((self._checkExtensions, extensions))
-            self._results['extension'] = False
-        if java:
-            steps.append((self._checkJava, java, agent))
-            self._results['java'] = False
-        if agent:
-            self._results['agent'] = False
-        if database:
-            steps.append((self._checkDataBase, database))
-            self._results['database'] = False
-        if python:
-            steps.append((self._checkPython))
-            self._results['python'] = False
-        self._steps = iter(steps)
+        self._steps = self._getCheckStep(database, java, agent, python, extensions)
 
     def start(self):
         Timer(0.1, self._call).start()
@@ -83,44 +70,101 @@ class CheckSetup(unohelper.Base,
         except Exception as e:
             self._callback(**self._getDefaultResults(False))
 
+    def checkExtension(self, identifier, infos):
+        self._results['extension'] &= checkExtension(self._ctx, identifier, infos)
+
+    def checkJavaStatus(self, agent, extension, version, script):
+        self._code = getJavaStatus(self._ctx)
+        self._results['java'] = self._hasJava()
+
+    def checkJavaVersion(self, agent, extension, version, script):
+        self._code, _, _ = getJavaVersion(self._ctx, extension, version, script)
+        self._results['java'] = self._hasJava()
+
+    def checkJavaAgent(self, service, url, agent):
+        self._results['agent'] = checkAgent(self._ctx, extension, version, script)
+
+    def checkDataBase(self, database):
+        self._results['database'] = getSimpleFile(self._ctx).exists(database)
+
+    def getRequirementUrl(self):
+        self._url = getResourceLocation(self._ctx, g_identifier, self._requirements)
+
+    def addInstalled(self, module):
+        pass
+
+    def addMissing(self, module):
+        self._results['python'] = False
+
+    def _getCheckStep(self, database, java, agent, python, extensions):
+        for identifier, infos in extensions:
+            yield self._stepCheckExtension(identifier, infos)
+        if java:
+            yield self._stepCheckJavaStatus(*java)
+            if self._hasJava():
+                yield self._stepCheckJavaStatus(*java)
+            if self._hasJava() and agent:
+                yield self._stepCheckJavaAgent(*agent)
+        if database:
+            yield self._stepCheckDataBase(database)
+        if python:
+            yield self._stepGetRequirementUrl()
+            if getSimpleFile(self._ctx).exists(self._url):
+                yield from checkPython(self._url, self._stepAddInstalled, self._stepAddMissing)
+
     def _call(self):
        self._asyncCall.addCallback(self, None)
 
-    def _checkExtensions(self, extensions):
-        result = checkExtensions(self._ctx, extensions)
-        self._results['extension'] = len(result) == 0
+    def _stepCheckExtension(self, identifier, data):
+        return self.checkExtension, identifier, infos
+    def _stepCheckJavaStatus(self, agent, extension, version, script):
+        return self._checkJavaStatus, agent, extension, version, script
 
-    def _checkJava(self, java, agent):
-        code, _, _ = checkJava(self._ctx, java)
-        success = code == 0
-        if success and agent:
-            self._results['agent'] = checkAgent(self._ctx, *agent)
-        self._results['java'] = success
+    def _stepCheckJavaVersion(self, agent, extension, version, script):
+        return self.checkJavaVersion, agent, extension, version, script
 
-    def _checkDataBase(self, database):
-        self._results['database'] = getSimpleFile(self._ctx).exists(database)
+    def _stepCheckJavaAgent(self, service, url, agent):
+        return self.checkJavaAgent, service, url, agent
 
-    def _checkPython(self):
-        modules, _ = checkPython(self._ctx, g_identifier)
-        self._results['python'] = len(modules) == 0
+    def _stepCheckDataBase(self, database):
+        return self.checkDataBase, database
+
+    def _stepGetRequirementUrl(self):
+        return self.getRequirementUrl
+
+    def _stepAddInstalled(self, module):
+        return self.addInstalled, module
+
+    def _stepAddMissing(self, module):
+        return self.addMissing, module
 
     def _getDefaultResults(self, value):
         return {'extension': value, 'java': value, 'agent':value, 'database': value, 'python': value}
 
+    def _hasJava(self):
+        return self._code == 0
+
     @classmethod
     def isValid(cls, ctx, database=None, java=None, python=False, **extensions):
         code = None
-        if extensions and len(checkExtensions(ctx, extensions)) > 0:
-            return False
+        for identifier, infos in extensions:
+            if not checkExtension(ctx, identifier, infos):
+                return False
         if java:
-            code, _, _ = checkJava(ctx, java)
+            code = getJavaStatus(ctx)
+            if code > 0:
+                return False
+            code, _, _ = getJavaVersion(ctx, *java)
             if code > 0:
                 return False
         if database and not getSimpleFile(ctx).exists(database):
             return False
         if python:
-            modules, _ = checkPython(ctx, g_identifier)
-            if len(modules) > 0:
+            url = getResourceLocation(ctx, g_identifier, self._requirements)
+            if not getSimpleFile(self._ctx).exists(url):
                 return False
+            for status in checkPython(url, lambda x : False, lambda x : True):
+                if status:
+                    return False
         return True
 

@@ -27,7 +27,26 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .setupdatabase import SetupDataBase
+from ...unotool import getStringResource
 
-from .setupmanager import SetupManager
+from ...configuration import g_identifier
+from ...configuration import g_resource
 
+import traceback
+
+
+class Check():
+    def __init__(self, ctx, callback):
+        self._ctx = ctx
+        self._callback = callback
+        self.resolver = getStringResource(ctx, g_identifier, g_resource, 'SetupRunner')
+        self.total = 0
+
+    def isExtended(self, total):
+        return self.total > total
+
+    def callback(self, success):
+        self._callback(success)
+
+    def _getSuccess(self, success):
+        return success

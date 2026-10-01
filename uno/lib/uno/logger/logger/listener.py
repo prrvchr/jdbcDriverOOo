@@ -27,7 +27,25 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .setupdatabase import SetupDataBase
+import unohelper
 
-from .setupmanager import SetupManager
+from com.sun.star.util import XModifyListener
+
+import traceback
+
+
+class LoggerListener(unohelper.Base,
+                     XModifyListener):
+    def __init__(self, callback):
+        self._callback = callback
+
+    # XModifyListener
+    def modified(self, event):
+        try:
+            self._callback()
+        except:
+            print("LoggerListener.modified() ERROR: %s" % traceback.format_exc())
+
+    def disposing(self, event):
+        pass
 

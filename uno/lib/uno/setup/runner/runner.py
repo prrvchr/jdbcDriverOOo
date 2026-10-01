@@ -27,7 +27,71 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .setupdatabase import SetupDataBase
+import unohelper
 
-from .setupmanager import SetupManager
+from com.sun.star.awt import XCallback
+
+from .cancel import CancelException
+
+from ...unotool import getCallBack
+
+from threading import Timer
+import traceback
+
+
+class Runner(unohelper.Base,
+             XCallback):
+    def __init__(self, ctx, check, progress, cancel):
+        self._check = check
+        self._total = check.total
+        self._progress = progress
+        self._cancel = cancel
+        self._step = 0
+        self._asyncCall = getCallBack(ctx)
+
+    def start(self):
+        if self._progress:
+            self._progress.start(self._check.label1, self._check.total)
+        Timer(0.1, self._call).start()
+
+    def notify(self, data):
+        try:
+            if self._cancel.isSet():
+                raise CancelException()
+
+            if self._check.isExtended(self._total):
+                self._progress.start(self._check.label2, self._check.total)
+                self._progress.setValue(self._step)
+                self._total = self._check.total
+
+            resource, args, call, *kwargs = next(self._check.steps)
+            self._step += 1
+            if self._progress:
+                self._progress.setText(self._check.resolver.resolveString(resource) % args)
+                self._progress.setValue(self._step)
+            call(*kwargs)
+            Timer(0.1, self._call).start()
+
+        except StopIteration:
+            try:
+                if self._progress:
+                    self._progress.end()
+                self._check.callback(True)
+            except Exception:
+                print("Runner.notify() StopIteration ERROR: %s" % traceback.format_exc())
+
+        except CancelException:
+            try:
+                if self._progress:
+                    self._progress.end()
+                self._check.callback(False)
+            except Exception:
+                print("Runner.notify() CancelException ERROR: %s" % traceback.format_exc())
+
+        except Exception as e:
+            print("Runner.notify() ERROR: %s" % traceback.format_exc())
+            self._check.callback(False)
+
+    def _call(self):
+       self._asyncCall.addCallback(self, None)
 

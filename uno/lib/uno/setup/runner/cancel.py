@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .setupdatabase import SetupDataBase
 
-from .setupmanager import SetupManager
+class CancelException(Exception):
+    pass
 

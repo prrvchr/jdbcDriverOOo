@@ -27,8 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .dialog import LogManager
-from .dialog import LoggerListener
+from .listener import LoggerListener
+
+from .logconfig import LogConfig
 
 from .logger import Logger
 
@@ -37,5 +38,6 @@ from .loggerpool import LoggerPool
 from .loghandler import RollerHandler
 
 from .loghelper import getLogger
+from .loghelper import getLoggerName
 
 from .logcontroller import LogController

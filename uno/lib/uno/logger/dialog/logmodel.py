@@ -39,11 +39,12 @@ from com.sun.star.logging.LogLevel import FINEST
 from com.sun.star.logging.LogLevel import ALL
 from com.sun.star.logging.LogLevel import OFF
 
-from ..loggerpool import LoggerPool
+from ...logger import LogConfig
+from ...logger import LoggerPool
 
-from ..logconfig import LogConfig
+from ...logger import getLoggerName
 
-from ..loghelper import getLoggerName
+from ...setup import parseRequirements
 
 from ...unotool import getPathSubstitution
 from ...unotool import getResourceLocation
@@ -54,12 +55,11 @@ from ...configuration import g_identifier
 from ...configuration import g_resource
 from ...configuration import g_basename
 
-from packaging.requirements import Requirement
 from importlib import metadata
-import sysconfig
-import pkg_resources as pkgr
+from packaging.requirements import Requirement
 import os
 import sys
+import sysconfig
 import traceback
 
 
@@ -192,67 +192,61 @@ class LogModel():
                 FINEST,
                 ALL)
 
-# Private setter method
+    # Private setter method
     def _logRequirements(self, default, clazz, method, url):
         info = sys.version_info
         ver = '%s.%s.%s' % (info.major, info.minor, info.micro)
-        path = uno.fileUrlToSystemPath(url)
-        with open(path) as requirements:
-            for requirement in pkgr.parse_requirements(requirements):
-                level = default
-                name = requirement.project_name
-                try:
-                    data = self._getMetadata(name)
-                    if data is None:
-                        level = SEVERE
-                        msg = self._getMissingMessage(name)
-                    else:
-                        msg = self._getPackageMessage(requirement, name, data, ver)
-                except Exception as e:
-                    msg = self._resolver.resolveString(137).format(name, e, traceback.format_exc())
-                self._logger.logp(level, clazz, method, msg)
-
+        for requirement in parseRequirements(url):
+            name = requirement.name
+            level = default
+            try:
+                data = self._getMetadata(name)
+                if data is None:
+                    level = SEVERE
+                    msg = self._getMissingMessage(name)
+                else:
+                    msg = self._getPackageMessage(requirement, name, data, ver)
+            except Exception as e:
+                msg = self._resolver.resolveString(137).format(name, e, traceback.format_exc())
+                level = SEVERE
+            self._logger.logp(level, clazz, method, msg)
+    
     def _getMetadata(self, name):
         try:
-            data = metadata.metadata(name)
+            return metadata.metadata(name)
         except metadata.PackageNotFoundError:
-            data = None
-        return data
-
+            return None
+    
     def _getPackageMessage(self, requirement, name, data, ver):
         dver = data.get('Version')
-        # FIXME: In the absence of 'Requires-Python' information, we assume
-        # FIXME: that the package works with the current version of Python.
         pver = data.get('Requires-Python')
         if pver is None:
             pver = '>=' + ver
+    
+        location = None
         distfiles = metadata.files(name)
         if distfiles:
-            location = distfiles[0].locate()
-        else:
-            # FIXME: If package is already installed on Python system in dist-packages
-            # FIXME: we need to use: pkgr.get_distribution(name).location
-            location = pkgr.get_distribution(name).location
+            location = str(distfiles[0].locate().parent.parent)
+    
         if location:
-            # FIXME: Since we are not installing packages but just integrating them into the LibreOffice extension with pythonpath,
-            # FIXME: we also need to check if the Python version required by the package matches the system Python version.
             req = Requirement('python' + pver)
-            if dver in requirement:
-                if ver in req.specifier:
+            is_version_match = requirement.specifier.contains(dver)
+            is_python_match = req.specifier.contains(ver)
+    
+            rver = str(requirement.specifier) if requirement.specifier else ""
+            if is_version_match:
+                if is_python_match:
                     msg = self._resolver.resolveString(131).format(name, dver, location)
                 else:
                     msg = self._resolver.resolveString(132).format(name, dver, pver, ver, location)
-            elif ver in req.specifier:
-                _op, rver = requirement.specs[0]
+            elif is_python_match:
                 msg = self._resolver.resolveString(133).format(name, dver, rver, location)
             else:
-                _op, rver = requirement.specs[0]
                 msg = self._resolver.resolveString(134).format(name, dver, pver, rver, ver, location)
         else:
-            _op, rver = requirement.specs[0]
+            rver = str(requirement.specifier) if requirement.specifier else ""
             msg = self._resolver.resolveString(135).format(name, dver, rver)
         return msg
-
+    
     def _getMissingMessage(self, name):
         return self._resolver.resolveString(136).format(name)
-

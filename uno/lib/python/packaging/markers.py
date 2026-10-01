@@ -4,22 +4,17 @@
 
 from __future__ import annotations
 
-import functools
 import operator
 import os
 import platform
 import sys
-from collections.abc import Set as AbstractSet
-from typing import TYPE_CHECKING, Callable, Literal, TypedDict, Union, cast
+from typing import AbstractSet, Callable, Literal, Mapping, TypedDict, Union, cast
 
 from ._parser import MarkerAtom, MarkerList, Op, Value, Variable
 from ._parser import parse_marker as _parse_marker
 from ._tokenizer import ParserSyntaxError
 from .specifiers import InvalidSpecifier, Specifier
 from .utils import canonicalize_name
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
 __all__ = [
     "Environment",
@@ -45,8 +40,6 @@ Valid values for the ``context`` passed to :meth:`Marker.evaluate` are:
 * ``"metadata"`` (for core metadata; default)
 * ``"lock_file"`` (for lock files)
 * ``"requirement"`` (i.e. all other situations)
-
-.. versionadded:: 25.0
 """
 
 MARKERS_ALLOWING_SET = {"extras", "dependency_groups"}
@@ -75,17 +68,8 @@ class UndefinedComparison(ValueError):
     """
 
 
-class UndefinedEnvironmentName(KeyError):
-    """Raised when evaluating a marker that references a missing environment key.
-
-    Subclasses :class:`KeyError` so that code catching the bare ``KeyError`` that
-    a missing environment lookup historically produced keeps working.
-
-    .. versionchanged:: 26.3
-        Now subclasses :class:`KeyError` (was :class:`ValueError`) and is raised by
-        :meth:`Marker.evaluate` for missing environment keys, where a bare
-        ``KeyError`` was raised before.
-    """
+class UndefinedEnvironmentName(ValueError):
+    """Raised when evaluating a marker that references a missing environment key."""
 
 
 class Environment(TypedDict):
@@ -168,30 +152,16 @@ class Environment(TypedDict):
 def _normalize_extras(
     result: MarkerList | MarkerAtom | str,
 ) -> MarkerList | MarkerAtom | str:
-    if isinstance(result, list):
-        return [_normalize_extras(r) for r in result]
     if not isinstance(result, tuple):
         return result
 
     lhs, op, rhs = result
-    if isinstance(lhs, Variable) and lhs.value == "extra" and isinstance(rhs, Value):
+    if isinstance(lhs, Variable) and lhs.value == "extra":
         normalized_extra = canonicalize_name(rhs.value)
         rhs = Value(normalized_extra)
-    elif isinstance(rhs, Variable) and rhs.value == "extra" and isinstance(lhs, Value):
+    elif isinstance(rhs, Variable) and rhs.value == "extra":
         normalized_extra = canonicalize_name(lhs.value)
         lhs = Value(normalized_extra)
-    elif (
-        isinstance(rhs, Variable)
-        and rhs.value in MARKERS_ALLOWING_SET
-        and isinstance(lhs, Value)
-    ):
-        # PEP 685 (extras) / PEP 735 (dependency_groups): the set-valued membership
-        # literal must also be normalized. evaluate() already canonicalizes both
-        # operands for these keys (see _normalize), so normalizing the literal at
-        # parse time keeps __str__/__eq__/__hash__ consistent with evaluate() -- e.g.
-        # Marker('"Foo" in extras') and Marker('"foo" in extras') must compare and
-        # hash equal (the membership variable is always the right-hand operand).
-        lhs = Value(canonicalize_name(lhs.value))
     return lhs, op, rhs
 
 
@@ -208,14 +178,16 @@ def _format_marker(
 ) -> str:
     assert isinstance(marker, (list, tuple, str))
 
-    # Unwrap a redundant [[...]] wrapper, but keep the nesting context so a
-    # nested group keeps the parentheses its and/or precedence needs.
+    # Sometimes we have a structure like [[...]] which is a single item list
+    # where the single item is itself it's own list. In that case we want skip
+    # the rest of this function so that we don't get extraneous () on the
+    # outside.
     if (
         isinstance(marker, list)
         and len(marker) == 1
         and isinstance(marker[0], (list, tuple))
     ):
-        return _format_marker(marker[0], first=first)
+        return _format_marker(marker[0])
 
     if isinstance(marker, list):
         inner = (_format_marker(m, first=False) for m in marker)
@@ -279,15 +251,6 @@ def _normalize(
     return lhs, rhs
 
 
-def _lookup_environment(
-    environment: dict[str, str | AbstractSet[str]], key: str
-) -> str | AbstractSet[str]:
-    try:
-        return environment[key]
-    except KeyError:
-        raise UndefinedEnvironmentName(key) from None
-
-
 def _evaluate_markers(
     markers: MarkerList, environment: dict[str, str | AbstractSet[str]]
 ) -> bool:
@@ -301,20 +264,14 @@ def _evaluate_markers(
 
             if isinstance(lhs, Variable):
                 environment_key = lhs.value
-                lhs_value = _lookup_environment(environment, environment_key)
+                lhs_value = environment[environment_key]
                 rhs_value = rhs.value
             else:
                 lhs_value = lhs.value
                 environment_key = rhs.value
-                rhs_value = _lookup_environment(environment, environment_key)
+                rhs_value = environment[environment_key]
 
-            if not isinstance(lhs_value, str):
-                raise UndefinedComparison(
-                    f"Set-valued marker {environment_key!r} can only be used "
-                    f'with the membership form (e.g. "<name>" in '
-                    f"{environment_key}); it cannot appear on the left-hand "
-                    f"side of {op.serialize()!r}."
-                )
+            assert isinstance(lhs_value, str), "lhs must be a string"
             lhs_value, rhs_value = _normalize(lhs_value, rhs_value, key=environment_key)
             groups[-1].append(_eval_op(lhs_value, op, rhs_value, key=environment_key))
         elif marker == "or":
@@ -335,14 +292,10 @@ def _format_full_version(info: sys._version_info) -> str:
     return version
 
 
-@functools.cache
-def _cached_default_environment() -> Environment:
-    """Build the default marker environment for the current Python process.
+def default_environment() -> Environment:
+    """Return the default marker environment for the current Python process.
 
-    The values are derived from process-constant data (the running interpreter
-    and the host platform), so this is cached and built only once. The result is
-    shared between callers and must never be mutated; :func:`default_environment`
-    returns a fresh copy.
+    This is the base environment used by :meth:`Marker.evaluate`.
     """
     iver = _format_full_version(sys.implementation.version)
     implementation_name = sys.implementation.name
@@ -359,22 +312,6 @@ def _cached_default_environment() -> Environment:
         "python_version": ".".join(platform.python_version_tuple()[:2]),
         "sys_platform": sys.platform,
     }
-
-
-def default_environment() -> Environment:
-    """Return the default marker environment for the current Python process.
-
-    This is the base environment used by :meth:`Marker.evaluate`. A fresh copy
-    is returned on every call so callers may freely mutate the result; a shallow
-    copy suffices because all values are immutable strings.
-
-    .. versionchanged:: 26.3
-        The environment is computed once per process and cached, since it is
-        derived from process-constant data. Patching ``platform``/``sys``/``os``
-        after the first call has no effect; pass an explicit ``environment`` to
-        :meth:`Marker.evaluate` to evaluate against different values.
-    """
-    return cast("Environment", dict(_cached_default_environment()))
 
 
 class Marker:
@@ -484,19 +421,11 @@ class Marker:
         raise TypeError(f"Cannot restore Marker from {state!r}")
 
     def __and__(self, other: Marker) -> Marker:
-        """Combine this marker with another using ``and``.
-
-        .. versionadded:: 26.1
-        """
         if not isinstance(other, Marker):
             return NotImplemented
         return self._from_markers([self._markers, "and", other._markers])
 
     def __or__(self, other: Marker) -> Marker:
-        """Combine this marker with another using ``or``.
-
-        .. versionadded:: 26.1
-        """
         if not isinstance(other, Marker):
             return NotImplemented
         return self._from_markers([self._markers, "or", other._markers])
@@ -525,23 +454,19 @@ class Marker:
             is missing from the evaluation environment.
         :returns: ``True`` if the marker matches, otherwise ``False``.
 
-        .. versionchanged:: 25.0
-            Added the ``context`` parameter, which influences which marker names
-            are considered valid.
         """
         current_environment = cast(
             "dict[str, str | AbstractSet[str]]", default_environment()
         )
         if context == "lock_file":
-            current_environment |= {
-                "extras": frozenset(),
-                "dependency_groups": frozenset(),
-            }
+            current_environment.update(
+                extras=frozenset(), dependency_groups=frozenset()
+            )
         elif context == "metadata":
             current_environment["extra"] = ""
 
         if environment is not None:
-            current_environment |= environment
+            current_environment.update(environment)
             if "extra" in current_environment:
                 # The API used to allow setting extra to None. We need to handle
                 # this case for backwards compatibility. Also skip running
@@ -554,16 +479,6 @@ class Marker:
         )
 
 
-def _pep440_python_full_version(python_full_version: str) -> str:
-    """
-    Work around platform.python_version() returning something that is not PEP 440
-    compliant for non-tagged Python builds.
-    """
-    if python_full_version.endswith("+"):
-        return f"{python_full_version}local"
-    return python_full_version
-
-
 def _repair_python_full_version(
     env: dict[str, str | AbstractSet[str]],
 ) -> dict[str, str | AbstractSet[str]]:
@@ -572,5 +487,6 @@ def _repair_python_full_version(
     compliant for non-tagged Python builds.
     """
     python_full_version = cast("str", env["python_full_version"])
-    env["python_full_version"] = _pep440_python_full_version(python_full_version)
+    if python_full_version.endswith("+"):
+        env["python_full_version"] = f"{python_full_version}local"
     return env
