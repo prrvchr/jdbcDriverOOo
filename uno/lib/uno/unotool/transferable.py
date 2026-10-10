@@ -167,8 +167,8 @@ class Factory():
                 msg = resolver.resolveString(101) % (flavor.MimeType, flavor.DataType.typeName)
                 raise UnsupportedFlavorException(msg, self)
 
-            map_key = (self._datatype, flavor.DataType.typeName)
-            return self._typemap[map_key](self._data)
+            key = (self._datatype, flavor.DataType.typeName)
+            return self._typemap[key](self._data)
 
         def getTransferDataFlavors(self):
             return self._flavors
