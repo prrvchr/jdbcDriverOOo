@@ -32,17 +32,14 @@ import uno
 from ..unotool import createService
 from ..unotool import getExtensionVersion
 
-from ..configuration import g_check
-
 from .configuration import g_chunk
 from .configuration import g_identifier
 from .configuration import g_service
 
 try:
     import ijson
-except Exception as e:
-    g_check = True
-    # do nothing Setup will do
+except ImportError as e:
+    pass
 
 from string import Formatter
 from string import Template

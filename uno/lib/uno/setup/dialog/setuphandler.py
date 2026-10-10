@@ -45,19 +45,23 @@ class WindowHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'Next':
-                self._manager.next()
-                handled = True
-            elif method == 'Cancel':
+            if method == 'Cancel':
                 self._manager.cancel()
+                handled = True
+            elif method == 'Copy':
+                self._manager.copy()
+                handled = True
+            elif method == 'Next':
+                self._manager.next()
                 handled = True
             return handled
         except:
             print("WindowHandler.callHandlerMethod() ERROR: %s" % traceback.format_exc())
 
     def getSupportedMethodNames(self):
-        return ('Next',
-                'Cancel')
+        return ('Cancel',
+                'Copy',
+                'Next')
 
 
 class CloseListener(unohelper.Base,

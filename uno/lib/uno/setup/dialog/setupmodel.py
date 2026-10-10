@@ -29,15 +29,14 @@
 
 import uno
 
-from .setupdatabase import SetupDataBase
-
-from ..cancel import Cancel
-
 from ..runner import Extension
 from ..runner import Java
 from ..runner import Pypi
 from ..runner import Python
-from ..runner import Runner
+
+from ...configuration import State
+
+from ...runner import Runner
 
 from ...unotool import deregisterStartupJob
 from ...unotool import getConfiguration
@@ -60,17 +59,12 @@ class SetupModel():
         self._database = database
         self._python = python
         self._check = None
-        self._cancel = Cancel()
-        self._lastPage = None
-        self._extension = {'extension': g_extension}
+        self._reports = []
         self._position = 'SetupPosition'
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'SetupWindow')
         self._resources = {'Title': 'SetupWindow.Title',
                            'Header': 'SetupWindow.Label1.Label.%s'}
-
-    def close(self):
-        self._cancel.set()
 
     def savePosition(self, position):
         saveWindowPosition(self._config, position, self._position)
@@ -81,38 +75,37 @@ class SetupModel():
     def getHeader(self, **kwargs):
         return self._check.getHeader(**kwargs)
 
-    def getResults(self, success, last=True):
-        if last and not success and not self._lastPage:
-            self._lastPage = self._check.getLastPage()
-        return self._check.getResults(success)
+    def getError(self, error):
+        return self._getHeader(4, error=error)
 
-    def getLastPage(self, success, setup):
-        if success:
-            return self._getHeader(2 if setup else 3), ''
-        return self._lastPage
+    def getResult(self, success):
+        return self._check.setReport(self._reports, success)
+
+    def getReport(self):
+        if self._reports:
+            return False, *self._reports[0]
+        return True, self._getHeader(2 if State.restart else 3)
 
     def getViewData(self):
-        return self._getDialogPosition(), self._getTitle(), self._getHeader(1, **self._extension)
+        return self._getDialogPosition(), self._getTitle(), self._getHeader(1, extension=g_extension)
 
-    def setCheckExtension(self, callback):
-        self._check = Extension(self._ctx, callback, self._extensions)
- 
-    def setCheckJava(self, callback):
-        self._check = Java(self._ctx, callback, self._java, self._agent)
+    def setCheckExtension(self):
+        self._check = Extension(self._ctx, self._extensions)
 
-    def getCheckDataBase(self, callback, progress):
-        self._check = SetupDataBase(self._ctx, callback, progress, self._database)
-        return self._check
+    def setCheckJava(self):
+        self._check = Java(self._ctx, self._java, self._agent)
 
-    def setCheckPython(self, callback):
-        self._check = Python(self._ctx, callback)
+    def setCheckDataBase(self):
+        self._check = self._database
 
-    def setCheckPypi(self, callback):
-        modules = self._check.getModules()
-        self._check = Pypi(self._ctx, callback, modules)
+    def setCheckPython(self):
+        self._check = Python(self._ctx)
 
-    def startCheck(self, progress):
-        runner = Runner(self._ctx, self._check, progress, self._cancel)
+    def setCheckPypi(self):
+        self._check = Pypi(self._ctx, self._check.packages)
+
+    def startCheck(self, callback, progress, cancel):
+        runner = Runner(self._ctx, self._check, callback, progress, cancel)
         runner.start()
 
     def hasDataBase(self):
@@ -135,7 +128,7 @@ class SetupModel():
 
 # SetupModel StringRessoure methods
     def _getTitle(self):
-        return self._resolver.resolveString(self._resources.get('Title')).format(**self._extension)
+        return self._resolver.resolveString(self._resources.get('Title')).format(extension=g_extension)
 
     def _getHeader(self, code, **kwargs):
         resource = self._resources.get('Header') % code

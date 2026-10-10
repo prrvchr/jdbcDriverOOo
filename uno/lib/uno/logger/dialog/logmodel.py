@@ -44,6 +44,7 @@ from ...logger import LoggerPool
 
 from ...logger import getLoggerName
 
+from ...setup import isLinuxDistribution
 from ...setup import parseRequirements
 
 from ...unotool import getPathSubstitution
@@ -134,12 +135,12 @@ class LogModel():
     def logInfos(self, level, clazz, method, requirements):
         msg = self._resolver.resolveString(121).format(sys.version)
         self._logger.logp(level, clazz, method, msg)
-        url = getPathSubstitution(self._ctx, '$(inst)')
-        path = uno.fileUrlToSystemPath(url).strip('.')
-        if os.__file__.startswith(path):
-            msg = self._resolver.resolveString(122).format(path)
+        if isLinuxDistribution(self._ctx):
+            msg = self._resolver.resolveString(122).format(sys.executable)
         else:
-            msg = self._resolver.resolveString(123).format(sys.executable)
+            url = getPathSubstitution(self._ctx, '$(prog)')
+            path = os.path.realpath(uno.fileUrlToSystemPath(url))
+            msg = self._resolver.resolveString(123).format(path)
         self._logger.logp(level, clazz, method, msg)
         msg = self._resolver.resolveString(124).format(sysconfig.get_config_var('EXT_SUFFIX'))
         self._logger.logp(level, clazz, method, msg)

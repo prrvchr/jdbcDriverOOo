@@ -30,7 +30,6 @@
 from .progress import Progress
 
 from ...unotool import getContainerWindow
-from ...unotool import getDesktop
 from ...unotool import getTopWindow
 from ...unotool import getWindowPosition
 from ...unotool import setWindowPosition
@@ -41,7 +40,7 @@ import traceback
 
 
 class SetupView():
-    def __init__(self, ctx, handler, listener, name, point, title, header):
+    def __init__(self, ctx, handler, listener, name, point, title, header, step=1):
         self._ctx = ctx
         self._frame = getTopWindow(ctx, name)
         peer = self._frame.getContainerWindow()
@@ -50,20 +49,14 @@ class SetupView():
         self._frame.setComponent(self._window, None)
         self._frame.addCloseListener(listener)
         setWindowPosition(ctx, self._frame, self._window, point, title)
-        self._getPageHeader().Text = header
+        self._getPageHeader(step).Text = header
 
 # SetupView getter methods
     def getWindowPosition(self):
         return getWindowPosition(self._frame.getContainerWindow())
 
-    def getWindow(self):
-        return self._window
-
-    def getDialogWindow(self):
-        return self._frame.getContainerWindow()
-
-    def getStep(self):
-        return self._window.Model.Step
+    def getTraceBack(self):
+        return self._getErrorText().Text
 
     def getIndicator(self):
         return Progress(self._getProgressBar().Model, self._getProgressText())
@@ -72,77 +65,58 @@ class SetupView():
     def dispose(self):
         self._frame.close(True)
  
-    def dispose1(self):
-        print("SetupView.dispose() 1")
-        try:
-            # Récupère le Desktop (utilisez votre méthode getDesktop(ctx) si disponible)
-            desktop = getDesktop(self._ctx)
-            frames = desktop.getFrames()
-            
-            # On vérifie si la frame est bien présente avant de la supprimer
-            frames.remove(self._frame)
-            print("Frame retirée avec succès de la collection du Desktop.")
-            #self._frame.dispose()
-            #self._window.dispose()
-        except Exception as e:
-            print(f"Erreur lors du retrait de la frame du Desktop : {e}")
-        print("SetupView.dispose() 2")
+    def setHeader(self, header, enabled=False, step=2):
+        self._setStep(header, step)
+        self._getNextButton().Model.Enabled = enabled
 
-    def setHeader(self, header):
-        self._window.Model.Step = 2
-        self._getPageHeader().Text = header
+    def setResult(self, header, text='', enabled=True, step=3):
+        self._setStep(header, step)
+        self._getResultText().Text = text
+        self._getNextButton().Model.Enabled = enabled
 
-    def setResults(self, header, text='', enabled=True):
-        self._window.Model.Step = 3
-        self._getPageHeader().Text = header
-        self._getResult().Text = text
+    def setError(self, header, trace, enabled=False, step=4):
+        self._setStep(header, step)
+        self._getErrorText().Text = trace
         self._getNextButton().Model.Enabled = enabled
 
     def setMaxProgress(self, value):
         model = self._getProgressBar().Model
         model.ProgressValue = 0
         model.ProgressValueMax = value
-        try:
-            peer = self._window.getPeer()
-            if peer:
-                peer.paintImmediately()
-        except Exception:
-            pass
 
     def setProgress(self, text, progress):
         # FIXME: To ensure the label is correctly updated, the progress bar must be updated last.
         self._getProgressText().Text = text
         self._getProgressBar().Model.ProgressValue = progress
-        try:
-            peer = self._window.getPeer()
-            if peer:
-                peer.paintImmediately()
-        except Exception:
-            pass
 
     def enableButtons(self, enabled):
         self._getCancelButton().Model.Enabled = enabled
-        self.enableNext(enabled)
-
-    def enableNext(self, enabled):
         self._getNextButton().Model.Enabled = enabled
 
+# SetupView private methods
+    def _setStep(self, header, step):
+        self._window.Model.Step = step
+        self._getPageHeader(step).Text = header
+
 # SetupView private control methods
-    def _getPageHeader(self):
-        return self._window.getControl('Label1')
+    def _getPageHeader(self, step):
+        return self._window.getControl('Label%s' % step)
 
     def _getProgressBar(self):
         return self._window.getControl('ProgressBar1')
 
     def _getProgressText(self):
-        return self._window.getControl('Label2')
+        return self._window.getControl('Label5')
 
-    def _getResult(self):
-        return self._window.getControl('Label3')
+    def _getResultText(self):
+        return self._window.getControl('Label6')
+
+    def _getErrorText(self):
+        return self._window.getControl('TextField1')
 
     def _getCancelButton(self):
-        return self._window.getControl('CommandButton1')
+        return self._window.getControl('CommandButton2')
 
     def _getNextButton(self):
-        return self._window.getControl('CommandButton2')
+        return self._window.getControl('CommandButton3')
 

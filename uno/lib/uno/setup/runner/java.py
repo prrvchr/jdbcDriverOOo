@@ -37,8 +37,8 @@ import traceback
 
 
 class Java(Check):
-    def __init__(self, ctx, callback, java, agent=None):
-        super().__init__(ctx, callback)
+    def __init__(self, ctx, java, agent=None):
+        super().__init__(ctx)
         self._code = 4
         self._minimum = ''
         self._version = ''
@@ -50,14 +50,13 @@ class Java(Check):
     def getHeader(self, **kwargs):
         return self.resolver.resolveString(221).format(**kwargs)
 
-    def getResults(self, success):
+    def setReport(self, reports, success):
+        if not success:
+            reports.append(self._getReport())
         return self._getHeader(), self._getResult()
 
-    def getLastPage(self):
-        return self.resolver.resolveString(271), self._getResult(), False
-
-    def callback(self, success):
-        self._callback(self._getSuccess(success))
+    def callback(self, callback, success=True, error=None):
+        callback(self._getSuccess(success), error)
 
     def stepCheckJavaStatus(self, extension, version, script):
         self._minimum = version
@@ -87,19 +86,21 @@ class Java(Check):
     def _getStepCheckJavaAgent(self, service, url, agent):
         return 251, (), self.stepCheckJavaAgent, service, url, agent
 
-    def _getSuccess(self, success):
-        return success and self._hasJava()
-
     def _hasJava(self):
         return self._code == 0
 
     def _getHeader(self):
         code = 261 + self._code
-        kwargs = {'version': self._version, 'minimum': self._minimum}
-        return self.resolver.resolveString(code).format(**kwargs)
+        return self.resolver.resolveString(code).format(version=self._version, minimum=self._minimum)
+
+    def _getReport(self):
+        return self.resolver.resolveString(271), self._getResult(), False
 
     def _getResult(self):
         if self._code:
             return 'Java JDK version %s minimum' % self._minimum
         return 'Java JDK version %s' % self._version
+
+    def _getSuccess(self, success):
+        return success and self._hasJava()
 

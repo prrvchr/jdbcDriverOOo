@@ -27,17 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .cancel import Cancel
-
 from .checksetup import CheckSetup
 
-from .dialog import SetupDataBase
 from .dialog import SetupManager
 
-from .listener import DispatchListener
-
-from .runner import CancelException
-
+from .helper import canUpdatePackages
+from .helper import isLinuxDistribution
 from .helper import parseRequirements
 from .helper import showSetup
 

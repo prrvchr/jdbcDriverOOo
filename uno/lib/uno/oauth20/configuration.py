@@ -35,7 +35,6 @@ g_resource = 'resource'
 
 g_version = '1.7.0'
 g_chunk = g_chunk = 320 * 1024
-g_check = False
 
 g_token = 'Bearer ${AccessToken}'
 

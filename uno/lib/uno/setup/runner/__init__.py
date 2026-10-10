@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .cancel import CancelException
-
 from .extension import Extension
 
 from .java import Java
@@ -36,6 +34,4 @@ from .java import Java
 from .pypi import Pypi
 
 from .python import Python
-
-from .runner import Runner
 

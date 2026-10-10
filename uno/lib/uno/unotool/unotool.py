@@ -67,8 +67,10 @@ from com.sun.star.util.MeasureUnit import APPFONT
 
 import binascii
 import datetime
-import traceback
+import operator
+from packaging.version import Version
 import socket
+import traceback
 
 
 def checkInternet(host="8.8.8.8", port=53, timeout=3):
@@ -78,6 +80,14 @@ def checkInternet(host="8.8.8.8", port=53, timeout=3):
             s.connect((host, port))
         return True
     except (OSError, socket.timeout):
+        return False
+
+def checkVersion(version, minimum, op=operator.ge):
+    if not version or not minimum:
+        return False
+    try:
+        return op(Version(version), Version(minimum))
+    except InvalidVersion:
         return False
 
 def getConnectionMode(ctx, host, port=80):
@@ -129,6 +139,9 @@ def getPathSettings(ctx):
 
 def getUrlTransformer(ctx):
     return createService(ctx, 'com.sun.star.util.URLTransformer')
+
+def getSystemClipboard(ctx):
+    return createService(ctx, 'com.sun.star.datatransfer.clipboard.SystemClipboard')
 
 def getInteractionHandler(ctx):
     return createService(ctx, 'com.sun.star.task.InteractionHandler')

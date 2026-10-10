@@ -36,9 +36,17 @@ from .setupview import SetupView
 from .setuphandler import CloseListener
 from .setuphandler import WindowHandler
 
+from ...configuration import State
+
+from ...runner import Cancel
+
+from ...helper import getTransferable
+
+from ...unotool import getSystemClipboard
 from ...unotool import notifyDispatch
 
 import traceback
+import unohelper
 
 
 class SetupManager():
@@ -46,12 +54,7 @@ class SetupManager():
         self._ctx = ctx
         self._source = source
         self._dispatch = dispatch
-        self._database = database is None
-        self._java = java is None
-        self._python = not python
-        self._setup = False
-        self._extension = len(extensions) == 0
-        self._closing = False
+        self._cancel = Cancel()
         self._running = False
         self._step = 1
         self._model = SetupModel(ctx, name, database, java, agent, python, extensions)
@@ -69,6 +72,10 @@ class SetupManager():
     def notifyClosing(self, source):
         source.removeCloseListener(self._listener)
 
+    def copy(self):
+        transferable = getTransferable(self._ctx).getByString(self._view.getTraceBack())
+        getSystemClipboard(self._ctx).setContents(transferable, None)
+
     def cancel(self):
         self._close()
         if not self._running:
@@ -78,42 +85,39 @@ class SetupManager():
         if self._step == 1:
             if self._model.hasExtensions():
                 self._checkExtension()
-            elif self._hasJava():
+            elif self._model.hasJava():
                 self._checkJava()
-            elif self._hasDataBase():
+            elif self._model.hasDataBase():
                 self._checkDataBase()
             elif self._model.hasPython():
                 self._checkPython()
             else:
-                self._setLastPage()
+                self._setReport()
         elif self._step == 2:
-            if self._hasJava():
+            if self._model.hasJava():
                 self._checkJava()
-            elif self._hasDataBase():
+            elif self._model.hasDataBase():
                 self._checkDataBase()
             elif self._model.hasPython():
                 self._checkPython()
             else:
-                self._setLastPage()
+                self._setReport()
         elif self._step == 3:
-            if self._hasDataBase():
+            if self._model.hasDataBase():
                 self._checkDataBase()
             elif self._model.hasPython():
                 self._checkPython()
             else:
-                self._setLastPage()
+                self._setReport()
         elif self._step == 4:
             if self._model.hasPython():
                 self._checkPython()
             else:
-                self._setLastPage()
+                self._setReport()
         elif self._step == 5:
-            if self._setup:
-                self._installPackages()
-            else:
-                self._setLastPage()
+            self._installPackages()
         elif self._step == 6:
-            self._setLastPage()
+            self._setReport()
         elif self._step == 7:
             self._running = True
             self._model.deregisterJob()
@@ -130,122 +134,113 @@ class SetupManager():
         self._view.setProgress(text, progress)
 
     def _close(self):
-        print("SetupManager._close() 1")
-        self._closing = True
+        self._cancel.set()
         self._view.enableButtons(False)
-        self._model.close()
         self._model.savePosition(self._view.getWindowPosition())
-        print("SetupManager._close() 2")
 
     def _dispose(self):
         if self._dispatch:
             notifyDispatch(self._source, self._dispatch)
         self._view.dispose()
 
-    def _hasDataBase(self):
-        return self._extension and self._model.hasDataBase()
-
-    def _hasJava(self):
-        return self._extension and self._model.hasJava()
-
     def _checkExtension(self):
-        self._step = 2
         self._running = True
-        self._enableNext(False)
-        self._model.setCheckExtension(self.notifyExtension)
-        self._setHeader(self._model.getHeader())
-        self._model.startCheck(self._view.getIndicator())
+        self._model.setCheckExtension()
+        self._setHeader()
+        self._model.startCheck(self.notifyExtension, self._view.getIndicator(), self._cancel)
 
-    def notifyExtension(self, success):
+    def notifyExtension(self, success, error):
         self._running = False
-        if self._closing:
+        if self._cancel.isSet():
             self._dispose()
+        elif error:
+            self._setError(error)
         else:
-            self._setResults(*self._model.getResults(success))
-            self._extension = success
+            self._step = 2 if success else 4
+            self._setResult(success)
 
     def _checkJava(self):
-        self._step = 3
         self._running = True
-        self._enableNext(False)
-        self._model.setCheckJava(self.notifyJava)
-        self._setHeader(self._model.getHeader())
-        self._model.startCheck(self._view.getIndicator())
+        self._model.setCheckJava()
+        self._setHeader()
+        self._model.startCheck(self.notifyJava, self._view.getIndicator(), self._cancel)
 
-    def notifyJava(self, success):
+    def notifyJava(self, success, error):
         self._running = False
-        if self._closing:
+        if self._cancel.isSet():
             self._dispose()
+        elif error:
+            self._setError(error)
         else:
-            self._setResults(*self._model.getResults(success))
-            self._java = success
+            self._step = 3 if success else 4
+            self._setResult(success)
 
     def _checkDataBase(self):
-        self._step = 4
         self._running = True
-        self._enableNext(False)
-        setup = self._model.getCheckDataBase(self.notifyDataBase, self._view.getIndicator())
-        self._setHeader(self._model.getHeader())
-        setup.start()
+        self._model.setCheckDataBase()
+        self._setHeader()
+        self._model.startCheck(self.notifyDataBase, self._view.getIndicator(), Cancel())
 
-    def notifyDataBase(self, success):
+    def notifyDataBase(self, success, error=None):
         self._running = False
-        if self._closing:
+        if self._cancel.isSet():
             self._dispose()
+        elif error:
+            self._setError(error)
         else:
-            self._setResults(*self._model.getResults(success))
-            self._database = success
+            self._step = 4
+            self._setResult(success)
 
     def _checkPython(self):
-        self._step = 5
         self._running = True
-        self._enableNext(False)
-        self._model.setCheckPython(self.notifyPython)
-        self._setHeader(self._model.getHeader())
-        self._model.startCheck(self._view.getIndicator())
+        self._model.setCheckPython()
+        self._setHeader()
+        self._model.startCheck(self.notifyPython, self._view.getIndicator(), self._cancel)
 
-    def notifyPython(self, success):
+    def notifyPython(self, success, checked, error):
         self._running = False
-        if self._closing:
+        if self._cancel.isSet():
             self._dispose()
-        else:
-            if success:
-                self._python = True
-            else:
-                self._setup = True
-            self._setResults(*self._model.getResults(success, False))
+        elif error:
+            self._setError(error)
+        elif success:
+            self._step = 6 if checked else 5
+            self._setResult(checked)
 
     def _installPackages(self):
         self._step = 6
         self._running = True
-        self._enableNext(False)
-        self._model.setCheckPypi(self.notifyPypi)
-        self._setHeader(self._model.getHeader())
-        self._model.startCheck(self._view.getIndicator())
+        self._model.setCheckPypi()
+        self._setHeader()
+        self._model.startCheck(self.notifyPypi, self._view.getIndicator(), self._cancel)
 
-    def notifyPypi(self, success):
+    def notifyPypi(self, success, error):
         self._running = False
-        if self._closing:
-            self._dispose()
-        else:
-            self._setResults(*self._model.getResults(success))
-            self._python = success
-
-    def _setHeader(self, header):
-        if not self._closing:
-            self._view.setHeader(header)
-
-    def _enableNext(self, enabled):
-        if not self._closing:
-            self._view.enableNext(enabled)
-
-    def _setResults(self, *results):
-        if not self._closing:
-            self._view.setResults(*results)
-
-    def _setLastPage(self):
-        success = all((self._extension, self._java, self._python, self._database))
-        self._setResults(*self._model.getLastPage(success, self._setup))
         if success:
-            self._step = 7
+            State.restart = True
+        if self._cancel.isSet():
+            self._dispose()
+        elif error:
+            self._setError(error)
+        else:
+            self._setResult(success)
+
+    def _setHeader(self):
+        if not self._cancel.isSet():
+            self._view.setHeader(self._model.getHeader())
+
+    def _setResult(self, success):
+        if not self._cancel.isSet():
+            self._view.setResult(*self._model.getResult(success))
+
+    def _setError(self, error):
+        if not self._cancel.isSet():
+            self._view.setError(self._model.getError(error.cause), error.trace)
+
+    def _setReport(self):
+        if not self._cancel.isSet():
+            success, *result = self._model.getReport()
+            self._view.setResult(*result)
+            if success:
+                self._step = 7
 

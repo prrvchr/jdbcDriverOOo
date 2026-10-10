@@ -15,8 +15,6 @@ def flatten(x: Iterable[Any]) -> list[Any]:
     from the sequence and all recursively contained sub-sequences
     (iterables).
     Examples:
-    >>> [1, 2, [3,4], (5,6)]
-    [1, 2, [3, 4], (5, 6)]
     >>> flatten([[[1,2,3], (42,None)], [4,5], [6], 7, (8,9,10)])
     [1, 2, 3, 42, None, 4, 5, 6, 7, 8, 9, 10]
     >>> flatten(["foo", "bar"])
@@ -29,14 +27,14 @@ def flatten(x: Iterable[Any]) -> list[Any]:
 
 def iflatten(x: Iterable[Any]) -> Iterator[Any]:
     """iflatten(sequence) -> Iterator
-    Similar to ``.flatten()``, but returns iterator instead
+    Similar to ``flatten()``, but returns iterator instead
     Examples:
     >>> list(iflatten([[1, 2], (3, 4)]))
     [1, 2, 3, 4]
     """
     for el in x:
         if _is_listlike(el):
-            yield from flatten(el)
+            yield from iflatten(el)
         else:
             yield el
 
@@ -68,7 +66,7 @@ def _is_listlike(x: Any) -> bool:
 def extract_regex(
     regex: str | re.Pattern[str], text: str, replace_entities: bool = True
 ) -> list[str]:
-    """Extract a list of strings from the given text/encoding using the following policies:
+    """Extract a list of strings from the given text using the following policies:
     * if the regex contains a named group called "extract" that will be returned
     * if the regex contains multiple numbered groups, all those will be returned (flattened)
     * if the regex doesn't contain any group the entire regex matching is returned

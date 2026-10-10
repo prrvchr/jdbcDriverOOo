@@ -29,34 +29,55 @@
 
 import uno
 
+from ..runner import RunnerException
+
+from ..unotool import checkVersion
 from ..unotool import createService
 from ..unotool import executeDesktopDispatch
 from ..unotool import getExtensionVersion
+from ..unotool import getPathSubstitution
 from ..unotool import getPropertyValueSet
+from ..unotool import hasInterface
 
+from ..configuration import g_extension
+
+import gzip
 import importlib
 import io
 import json
+import operator
+import os
 from packaging import tags as pkg_tags
-from packaging.version import parse as pkg_parse
 from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
 from packaging.utils import parse_wheel_filename
+from packaging.version import parse as pkg_parse
 import re
+import shutil
+import sys
 import urllib.request
+from urllib.parse import urlparse
 import zipfile
 import traceback
 
 
-def checkVersion(version, minimum):
-    return pkg_parse(version) >= pkg_parse(minimum)
+OPERATORS = {'==': operator.eq,
+             '!=': operator.ne,
+             '>=': operator.ge,
+             '<=': operator.le,
+             '>':  operator.gt,
+             '<':  operator.lt}
+
+def canUpdatePackages():
+    return sys.version_info >= (3, 10)
 
 def showSetup(ctx, identifier, listener=None, /, **kwargs):
     url = f'vnd.sun.star.job:service={identifier}.Setup'
     executeDesktopDispatch(ctx, url, listener, **kwargs)
 
-def checkExtension(ctx, identifier, data):
+def checkExtension(ctx, identifier, _, minimum):
     version = getExtensionVersion(ctx, identifier)
-    return version is not None and checkVersion(version, data[1])
+    return version is not None and checkVersion(version, minimum)
 
 def getJavaStatus(ctx):
     service = 'com.sun.star.comp.stoc.JavaVirtualMachine'
@@ -78,14 +99,13 @@ def getJavaVersion(ctx, extension, java, script):
         if macro:
             result = macro.invoke((), (), ())[0]
             version = _parseJavaVersion(result)
-            version = result
             if checkVersion(version, java):
                 results = 0, java, version
             else:
                 results = 1, java, version
-    except Exception:
-        print("helper.getJavaVersion() ERROR: %s" % traceback.format_exc())
-        pass
+    except Exception as e:
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
     return results
 
 def checkAgent(ctx, service, url, agent):
@@ -99,70 +119,198 @@ def checkAgent(ctx, service, url, agent):
                 break
     return support
 
-def parseRequirements(url):
-    for requirement in _iterRequirements(url):
-        yield Requirement(requirement)
-
-def getPackageCount(url):
-    return sum(1 for _ in _iterRequirements(url))
-
-def checkPython(url, addInstalled, addMissing, onError=None):
-    if hasattr(importlib.metadata, 'packages_distributions'):
-        modules = importlib.metadata.packages_distributions()
-    else:
-        modules = _getModules()
-    for requirement in parseRequirements(url):
-        try:
-            package = _parseModuleName(requirement.name)
-            for module, packages in modules.items():
-                if package in [_parseModuleName(p) for p in packages]:
-                    yield addInstalled(module)
-                    break
-            else:
-                yield addMissing(package)
-        except Exception as e:
-            if onError is not None:
-                onError(e)
-            else:
-                continue
-
-def getPackageData(package, onError=None):
-    data = None
-    url = f'https://pypi.org/pypi/{package}/json'
+def isLinuxDistribution(ctx):
+    if sys.platform != 'linux':
+        return False
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'LibreOffice Extension'})
-        with urllib.request.urlopen(req) as response:
-            data = json.loads(response.read().decode('utf-8'))
+        url = getPathSubstitution(ctx, '$(prog)')
+        path = os.path.realpath(uno.fileUrlToSystemPath(url)).lower()
+        for entry in sys.path:
+            if os.path.realpath(entry).lower().startswith(path):
+                return False
     except Exception as e:
-        if onError:
-            onError(e)
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
+    return True
+
+def getInstalledPackages():
+    packages = {}
+    for dist in importlib.metadata.distributions():
+        try:
+            package = dist.metadata.get('Name')
+            version = dist.version
+            if not package or not version:
+                continue
+            packages[parsePackageName(package)] = version
+        except Exception:
+            continue
+    return packages
+
+def getPackageVersionData(requirement, version):
+    data = None
+    url = f'https://pypi.org/pypi/{requirement.name}/{version}/json'
+    try:
+        headers = {'User-Agent': f'LibreOffice {g_extension} Extension',
+                   'Accept-Encoding': 'gzip'}
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req) as response:
+            if response.info().get('Content-Encoding') == 'gzip':
+                with gzip.GzipFile(fileobj=io.BytesIO(response.read())) as f:
+                    binary = f.read()
+            else:
+                binary = response.read()
+            data = json.loads(binary.decode('utf-8'))
+    except Exception as e:
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
     return data
 
-def getPackageUrl(data):
-    tags = list(pkg_tags.sys_tags())
-    releases = data.get('releases', {})
-    stables = [v for v in releases.keys() if not pkg_parse(v).is_prerelease]
-    versions = sorted(stables, key=pkg_parse, reverse=True)
+def parsePackageVersionData(requirement, data):
+    tags = set(pkg_tags.sys_tags())
+    for f in data.get('urls', []):
+        if f.get('filename', '').endswith('.whl'):
+            try:
+                _, version, _, filetags = parse_wheel_filename(f['filename'])
+            except Exception:
+                continue
 
-    results = None, None
-    for version in versions:
-        files = releases[version]
-        for release in files:
-            if release['packagetype'] == 'bdist_wheel':
-                try:
-                    _, _, _, filetags = parse_wheel_filename(release['filename'])
-                except Exception:
-                    continue
-                if filetags.intersection(tags):
-                    results = release['url'], version
-                    break
-        if all(results):
-            break
-    return results
+            if filetags.intersection(tags):
+                return str(version), f['url']
+    return None, None
 
-def installPackage(url, path, onError=None):
+def getPackageSimpleData(requirement):
+    data = None
+    url = f'https://pypi.org/simple/{requirement.name}/'
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'LibreOffice Extension'})
+        headers = {'User-Agent': f'LibreOffice {g_extension} Extension',
+                   'Accept': 'application/vnd.pypi.simple.v1+json',
+                   'Accept-Encoding': 'gzip'}
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req) as response:
+            if response.info().get('Content-Encoding') == 'gzip':
+                with gzip.GzipFile(fileobj=io.BytesIO(response.read())) as f:
+                    binary = f.read()
+            else:
+                binary = response.read()
+            data = json.loads(binary.decode('utf-8'))
+    except Exception as e:
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
+    return data
+
+def parsePackageSimpleData(requirement, update, data):
+    releases = []
+    tags = set(pkg_tags.sys_tags())
+
+    for f in data['files']:
+        if f.get('yanked', False):
+            continue
+
+        if f.get('filename', '').endswith('.whl'):
+            try:
+                _, version, _, filetags = parse_wheel_filename(f['filename'])
+            except Exception:
+                continue
+
+            if version.is_prerelease and update < 2:
+                continue
+
+            if filetags.intersection(tags):
+                requires = f.get('requires-python')
+                marker = False
+                evaluator = None
+                if requires:
+                    evaluator = SpecifierSet(requires)
+                elif requirement.specifier and version in requirement.specifier:
+                    if requirement.marker:
+                        marker = True
+                        evaluator = requirement.marker
+                    else:
+                        continue
+                else:
+                    continue
+
+                releases.append({'url': f['url'],
+                                 'version': str(version),
+                                 'marker': marker,
+                                 'evaluator': evaluator})
+    releases.sort(key=lambda x: pkg_parse(x['version']), reverse=True)
+
+    info = sys.version_info
+    python = f'{info.major}.{info.minor}.{info.micro}'
+    for release in releases:
+        marker = release['marker']
+        evaluator = release['evaluator']
+        try:
+            if marker:
+                if evaluator.evaluate():
+                    return release['version'], release['url']
+            elif python in evaluator:
+                return release['version'], release['url']
+        except Exception:
+            continue
+    return None, None
+
+def uninstallPackage(package, url):
+    try:
+        pythonpath = uno.fileUrlToSystemPath(url)
+        if not os.path.exists(pythonpath):
+            return
+
+        roots = set()
+        namespaces = set()
+        depth = len(package.split('.'))
+
+        dists = [d for d in importlib.metadata.distributions() if d.metadata['Name'] == package]
+        for dist in dists:
+            try:
+                distinfo = None
+                if dist._path:
+                    distinfo = os.path.basename(str(dist._path))
+                if distinfo:
+                    shutil.rmtree(os.path.join(pythonpath, distinfo))
+            except Exception:
+                pass
+
+            modules = dist.files
+            if modules:
+                for module in modules:
+                    parts = module.parts
+                    if not parts:
+                        continue
+                    if len(parts) == 1:
+                        roots.add(parts[0])
+                    else:
+                        path = os.path.join(*parts[:depth])
+                        roots.add(path)
+                        if depth > 1:
+                            namespaces.add(parts[0])
+
+        for r in roots:
+            root = os.path.join(pythonpath, r)
+            if os.path.exists(root):
+                if os.path.isdir(root):
+                    shutil.rmtree(root)
+                else:
+                    os.remove(root)
+
+        for ns in namespaces:
+            parent = os.path.join(pythonpath, ns)
+            if os.path.exists(parent) and os.path.isdir(parent):
+                entries = [e for e in os.listdir(parent) if e != '__pycache__']
+                if not entries:
+                    shutil.rmtree(parent)
+
+        importlib.invalidate_caches()
+
+    except Exception as e:
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
+
+def installPackage(url, path):
+    try:
+        headers = {'User-Agent': f'LibreOffice {g_extension} Extension'}
+        req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req) as response:
             data = response.read()
 
@@ -170,26 +318,80 @@ def installPackage(url, path, onError=None):
             z.extractall(uno.fileUrlToSystemPath(path))
         return True
     except Exception as e:
-        if onError:
-            onError(e)
-        return False
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
 
-def checkConnection(ctx, source, connection, logger, new, warn=False):
-    version = connection.getMetaData().getDriverVersion()
-    if not checkVersion(version, g_version):
-        connection.close()
-        title, msg = _getExceptionMessage(logger, 511, g_extension2, version, g_version)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
-    service = 'com.sun.star.sdb.Connection'
-    interface = 'com.sun.star.sdbcx.XGroupsSupplier'
-    if new and not _checkConnection(connection, service, interface):
-        connection.close()
-        title, msg = _getExceptionMessage(logger, 513, g_extension2, service, interface)
-        if warn:
-            _showWarning(ctx, title, msg)
-        raise UnoException(msg, source)
+def checkPython(url):
+    packages = getInstalledPackages()
+    for requirement in parseRequirements(url):
+        try:
+            package = parsePackageName(requirement.name)
+            version1 = packages.get(package)
+            if not version1:
+                return False
+            specs = _getRequirementSpecs(requirement)
+            if not all(checkVersion(version1, version2, op) for op, version2 in specs):
+                return False
+        except Exception as e:
+            return False
+    return True
+
+def parseRequirements(url):
+    info = sys.version_info
+    python = {'python_version': f'{info.major}.{info.minor}'}
+    for requirement in _parseRequirements(url):
+        if requirement.marker and not requirement.marker.evaluate(python):
+            continue
+        yield requirement
+
+def parsePackageName(package):
+    return package.lower().replace('-', '_')
+
+def getRequirementversion(requirement, update=0):
+    if requirement.specifier:
+        for specifier in requirement.specifier:
+            if specifier.operator == '==' or update == 0:
+                return specifier.version
+
+    if requirement.url:
+        try:
+            version = _parseVersionUrl(requirement.url)
+            if version:
+                return version
+        except Exception:
+            pass
+    return None
+
+def _getRequirementSpecs(requirement):
+    specs = []
+    if requirement.specifier:
+        for specifier in requirement.specifier:
+            op = OPERATORS.get(specifier.operator, operator.eq)
+            specs.append((op, specifier.version))
+        return specs
+
+    if requirement.url:
+        try:
+            version = _parseVersionUrl(requirement.url)
+            if version:
+                specs.append((operator.eq, version))
+                return specs
+        except Exception:
+            pass
+    return specs
+
+def _parseVersionUrl(url):
+    parsed = urlparse(url)
+    if parsed.scheme == "version":
+        return parsed.netloc
+    return None
+
+def _parseRequirements(url):
+    for requirement in _iterRequirements(url):
+        try:
+            yield Requirement(requirement)
+        except Exception as e:
+            continue
 
 def _iterRequirements(url):
     with open(uno.fileUrlToSystemPath(url), 'r', encoding='utf-8') as requirements:
@@ -197,20 +399,9 @@ def _iterRequirements(url):
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
+            if '#' in line:
+                line = line.split('#')[0].strip()
             yield line
-
-def _getModules():
-    modules = {}
-    for dist in importlib.metadata.distributions():
-        toplevel = dist.read_text('top_level.txt')
-        if toplevel:
-            for module in toplevel.splitlines():
-                module = module.strip()
-                if module:
-                    if module not in modules:
-                        modules[module] = []
-                    modules[module].append(dist.metadata['Name'])
-    return modules
 
 def _parseJavaVersion(version):
     clean = version.replace('_', '.post')
@@ -225,7 +416,4 @@ def _parseJavaVersion(version):
             else:
                 clean = basenum
     return clean
-
-def _parseModuleName(module):
-    return module.lower().replace('-', '_')
 

@@ -29,11 +29,11 @@
 
 from .check import Check
 
-from ..helper import getPackageData
-from ..helper import getPackageUrl
 from ..helper import installPackage
+from ..helper import uninstallPackage
 
 from ...unotool import getResourceLocation
+from ...unotool import getSimpleFile
 
 from ...configuration import g_identifier
 
@@ -41,76 +41,80 @@ import traceback
 
 
 class Pypi(Check):
-    def __init__(self, ctx, callback, modules):
-        super().__init__(ctx, callback)
+    def __init__(self, ctx, packages):
+        super().__init__(ctx)
         self._installed = {}
         self._aborted = {}
-        self._path = None
-        self._pythonpath = 'service/pythonpath'
-        self._data = None
-        self._url = None
-        self._version = None
-        self.total = 1 + len(modules) * 3
+        self._path = getResourceLocation(ctx, g_identifier, 'service/pythonpath')
+        self.total = 0
         self.label1 = self.resolver.resolveString(411)
         self.label2 = self.resolver.resolveString(412)
-        self.steps = self._getCheckStep(modules)
+        self.steps = self._getCheckStep(packages)
 
     def getHeader(self, **kwargs):
         return self.resolver.resolveString(421).format(**kwargs)
 
-    def getResults(self, success):
-        return self._getHeader(), self._getResult(), True
+    def setReport(self, reports, success):
+        if not success:
+            reports.append(self._getReport(success))
+        return self._getHeader(success), self._getResult(success), True
 
-    def callback(self, success):
-        self._callback(self._getSuccess(success))
+    def callback(self, callback, success=True, error=None):
+        callback(self._getSuccess(success), error)
 
-    def stepGetPythonPath(self):
-        self._path = getResourceLocation(self._ctx, g_identifier, self._pythonpath)
+    def stepGetStepCount(self, packages):
+        self.total += sum(i for i in self._getStepCount(packages))
 
-    def stepGetPackageData(self, package):
-        self._data = getPackageData(package)
+    def stepUninstallPackage(self, package):
+        uninstallPackage(package, self._path)
 
-    def stepGetPackageUrl(self):
-        self._url, self._version = getPackageUrl(self._data)
-        self._data = None
-
-    def stepInstallPackage(self, package):
-        if installPackage(self._url, self._path):
-            self._installed[package] = self._version
+    def stepInstallPackage(self, package, version, url):
+        if installPackage(url, self._path):
+            self._installed[package] = version
         else:
-            self._aborted[package] = self._version
-        self._url = self._version = None
+            print("Pypi.stepInstallPackage() package: %s" % package)
+            self._aborted[package] = version
 
     def _getCheckStep(self, packages):
-        yield self._getStepGetPythonPath()
-        if self._path:
-            for package in packages:
-                yield self._getStepGetPackageData(package)
-                if self._data:
-                    yield self._getStepGetPackageUrl(package)
-                    if self._url and self._version:
-                        yield self._getStepInstallPackage(package)
+        if not getSimpleFile(self._ctx).exists(self._path):
+            return
+        self.total += 1
+        yield self._getStepGetStepCount(packages)
+        for package, data in packages.items():
+            version1, version2, url = data
+            if version1 != version2:
+                if version1:
+                    yield self._getStepUninstallPackage(package)
+                yield self._getStepInstallPackage(package, version2, url)
 
-    def _getStepGetPythonPath(self):
-        return 431, (), self.stepGetPythonPath
+    def _getStepGetStepCount(self, packages):
+        return 431, (), self.stepGetStepCount, packages
 
-    def _getStepGetPackageData(self, package):
-        return 441, (package, ), self.stepGetPackageData, package
+    def _getStepUninstallPackage(self, package):
+        return 441, (package, ), self.stepUninstallPackage, package
 
-    def _getStepGetPackageUrl(self, package):
-        return 451, (package, ), self.stepGetPackageUrl
+    def _getStepInstallPackage(self, package, version, url):
+        return 451, (package, ), self.stepInstallPackage, package, version, url
 
-    def _getStepInstallPackage(self, package):
-        return 461, (package, ), self.stepInstallPackage, package
+    def _getStepCount(self, packages):
+        for package, data in packages.items():
+            version1, version2, url = data
+            if version1 != version2:
+                yield 2 if version1 else 1
+
+    def _getHeader(self, success):
+        code = 461 if success else 462
+        return self.resolver.resolveString(code)
+
+    def _getReport(self, success):
+        return self._getHeader(success), self._getResult(success), True
+
+    def _getResult(self, success):
+        modules = self._installed if success else self._aborted
+        result = ', '.join(['%s version %s' % (module, version) for module, version in modules.items()])
+        print("Pypi._getResult() result: %s" % result)
+        return result
 
     def _getSuccess(self, success):
         return success and len(self._aborted) == 0
-
-    def _getHeader(self):
-        code = 471 if len(self._aborted) else 472
-        return self.resolver.resolveString(code)
-
-    def _getResult(self):
-        modules = self._aborted if len(self._aborted) else self._installed
-        return ', '.join(['%s version %s' % (module, version) for module, version in modules.items()])
 

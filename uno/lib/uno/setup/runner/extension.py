@@ -35,8 +35,8 @@ import traceback
 
 
 class Extension(Check):
-    def __init__(self, ctx, callback, extensions):
-        super().__init__(ctx, callback)
+    def __init__(self, ctx, extensions):
+        super().__init__(ctx)
         self._absent = []
         self._present = []
         self.total = len(extensions)
@@ -47,17 +47,16 @@ class Extension(Check):
     def getHeader(self, **kwargs):
         return self.resolver.resolveString(121).format(**kwargs)
 
-    def getResults(self, success):
-        return self._getHeader(), self._getResult()
+    def setReport(self, reports, success):
+        if not success:
+            reports.append(self._getReport(success))
+        return self._getHeader(success), self._getResult(success)
 
-    def getLastPage(self):
-        return self.resolver.resolveString(151), self._getResult(), False
-
-    def callback(self, success):
-        self._callback(self._getSuccess(success))
+    def callback(self, callback, success=True, error=None):
+        callback(self._getSuccess(success), error)
 
     def stepCheckExtension(self, identifier, infos):
-        if checkExtension(self._ctx, identifier, infos):
+        if checkExtension(self._ctx, identifier, *infos):
             self._present.append(infos)
         else:
             self._absent.append(infos)
@@ -69,14 +68,17 @@ class Extension(Check):
     def _getStepCheckExtension(self, identifier, infos):
         return 131, infos, self.stepCheckExtension, identifier, infos
 
-    def _getSuccess(self, success):
-        return success and len(self._absent) == 0
-
-    def _getHeader(self):
-        code = 141 if len(self._absent) else 142
+    def _getHeader(self, success):
+        code = 142 if success else 141
         return self.resolver.resolveString(code)
 
-    def _getResult(self):
-        extensions = self._absent if len(self._absent) else self._present
+    def _getReport(self, success):
+        return self.resolver.resolveString(151), self._getResult(success), False
+
+    def _getResult(self, success):
+        extensions =  self._present if success else self._absent
         return '\n'.join(['%s version %s' % (name, version) for (name, version) in extensions])
+
+    def _getSuccess(self, success):
+        return success and len(self._absent) == 0
 

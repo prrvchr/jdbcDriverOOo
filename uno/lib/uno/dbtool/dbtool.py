@@ -76,11 +76,13 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from .object import Object
 
+from ..unotool import checkVersion
 from ..unotool import createService
 from ..unotool import getDefaultPropertyValueSet
 from ..unotool import getPropertyValueSet
 from ..unotool import getResourceLocation
 from ..unotool import getUrlPresentation
+from ..unotool import hasInterface
 
 from ..dbqueries import getSqlQuery
 
@@ -105,6 +107,15 @@ from datetime import datetime
 def getConnectionUrl(ctx, path):
     location = getResourceLocation(ctx, g_identifier, path)
     return getUrlPresentation(ctx, location)
+
+def checkConnection(connection, version, minimum, new):
+    if not checkVersion(version, minimum):
+        return False
+    service = 'com.sun.star.sdb.Connection'
+    interface = 'com.sun.star.sdbcx.XGroupsSupplier'
+    if new and not _checkConnectionApi(connection, service, interface):
+        return False
+    return True
 
 def getDataSourceConnection(ctx, url, name='', password='', create=False, infos=None, isolated=True):
     if create:
@@ -847,4 +858,7 @@ def _addRole(groups, role):
         group = groups.createDataDescriptor()
         group.setPropertyValue('Name', role)
         groups.appendByDescriptor(group)
+
+def _checkConnectionApi(connection, service, interface):
+    return connection.supportsService(service) and hasInterface(connection, interface)
 
