@@ -40,13 +40,12 @@ from ...configuration import State
 
 from ...runner import Cancel
 
-from ...helper import getTransferable
+from ...unotool import Transferable
 
 from ...unotool import getSystemClipboard
 from ...unotool import notifyDispatch
 
 import traceback
-import unohelper
 
 
 class SetupManager():
@@ -73,7 +72,7 @@ class SetupManager():
         source.removeCloseListener(self._listener)
 
     def copy(self):
-        transferable = getTransferable(self._ctx).getByString(self._view.getTraceBack())
+        transferable = Transferable(self._ctx).getByString(self._view.getTraceBack())
         getSystemClipboard(self._ctx).setContents(transferable, None)
 
     def cancel(self):

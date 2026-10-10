@@ -46,3 +46,5 @@ g_basename = 'Driver'
 g_defaultlog = 'Driver'
 g_errorlog = 'jdbcDriverError'
 
+class State:
+    restart = False

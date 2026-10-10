@@ -27,6 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .transferable import Factory as Transferable
+
 from .unotool import checkInternet
 from .unotool import checkVersion
 from .unotool import createMessageBox
