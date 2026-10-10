@@ -33,8 +33,9 @@ from .optionsview import OptionsWindow
 
 from .optionshandler import WindowHandler
 
+from ...runner import DispatchListener
+
 from ...setup import CheckSetup
-from ...setup import DispatchListener
 
 from ..logger import LogManager
 

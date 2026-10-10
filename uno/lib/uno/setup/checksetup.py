@@ -85,7 +85,7 @@ class CheckSetup(unohelper.Base,
         self._results['java'] = self._hasJava()
 
     def stepCheckJavaAgent(self, ctx, service, url, agent):
-        self._results['agent'] = checkAgent(ctx, extension, version, script)
+        self._results['agent'] = checkAgent(ctx, service, version, script)
 
     def stepCheckDataBase(self, ctx, database):
         self._results['database'] = getSimpleFile(ctx).exists(database + '.odb')
