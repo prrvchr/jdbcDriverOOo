@@ -32,14 +32,15 @@ import uno
 from ..unotool import createService
 from ..unotool import getExtensionVersion
 
+from ..configuration import State
+
 from .configuration import g_chunk
 from .configuration import g_identifier
 from .configuration import g_service
-
 try:
     import ijson
 except ImportError as e:
-    pass
+    State.restart = True
 
 from string import Formatter
 from string import Template

@@ -40,6 +40,8 @@ from ..helper import parsePackageName
 from ..helper import parsePackageSimpleData
 from ..helper import parsePackageVersionData
 from ..helper import parseRequirements
+from ..helper import getRequirementsUrl
+from ..helper import getSetupUpdateMode
 
 from ...unotool import getConfiguration
 from ...unotool import getResourceLocation
@@ -54,17 +56,18 @@ class Python(Check):
     def __init__(self, ctx):
         super().__init__(ctx)
         self._packages ={}
-        self._path = getResourceLocation(ctx, g_identifier, 'requirements.txt')
         self._distro = False
         self._update = 0
         self._data = None
         self._url = None
         self._version = None
         self._success = True
+        self.path = getResourceLocation(ctx, g_identifier)
+        self._requirements = getRequirementsUrl(self.path)
+        self.packages = {}
         self.total = 0
         self.label1 = self.resolver.resolveString(311)
         self.label2 = self.resolver.resolveString(312)
-        self.packages = {}
         self.steps = self._getCheckStep(ctx)
 
     def getHeader(self, **kwargs):
@@ -78,8 +81,8 @@ class Python(Check):
 
     def stepGetInstalledPackages(self, ctx):
         self._distro = isLinuxDistribution(ctx)
-        self._update = getConfiguration(ctx, g_identifier).getByName('SetupUpdate')
-        self._packages = getInstalledPackages()
+        self._update = getSetupUpdateMode(ctx, g_identifier)
+        self._packages = getInstalledPackages(self.path)
 
     def stepGetStepCount(self):
         self.total += sum(i for i in self._getStepCount())
@@ -99,47 +102,38 @@ class Python(Check):
         self._data = None
 
     def _getCheckStep(self, ctx):
-        try:
-            if not getSimpleFile(ctx).exists(self._path):
-                return
-            self.total += 2
-            yield self._getStepGetInstalledPackages(ctx)
-            yield self._getStepGetStepCount()
-            for requirement, version1, version2 in self._parsePackages():
-                print("Python._getCheckStep() requirement: %s - version1: %s - version2: %s" % (requirement.name, version1, version2))
-                if requirement.url:
-                    self.packages[requirement.name] = version1, version2, None
-                    self._success &= version1 == version2
-                elif self._distro and version1:
-                    self.packages[requirement.name] = version1, version2, None
-                    self._success &= version1 == version2
-                elif not version1 or version1 != version2:
-                    if version2:
-                        yield self._getStepGetPackageVersionData(requirement, version2)
-                        if self._data:
-                            yield self._getStepParsePackageVersionData(requirement, version2)
-                            if self._version and self._url:
-                                self.packages[requirement.name] = version1, self._version, self._url
-                                self._version = self._url = None
-                                self._success = False
-                            else:
-                                print("Python._getCheckStep() 1 requirement: %s - version1: %s" % (requirement.name, version1))
-                    else:
-                        yield self._getStepGetPackageSimpleData(requirement)
-                        if self._data:
-                            yield self._getStepParsePackageSimpleData(requirement)
-                            if self._version and self._url:
-                                #print("Python._getCheckStep() version1: %s - version2: %s - url: %s" % (version1, self._version, self._url))
-                                self.packages[requirement.name] = version1, self._version, self._url
-                                self._success &= version1 == self._version
-                                self._version = self._url = None
-                            else:
-                                print("Python._getCheckStep() 2 requirement: %s - version1: %s - version2: %s - url: %s" % (requirement.name, version1, self._version, self._url))
-                                
+        if not getSimpleFile(ctx).exists(self._requirements):
+            return
+        self.total += 2
+        yield self._getStepGetInstalledPackages(ctx)
+        yield self._getStepGetStepCount()
+        for requirement, version1, version2 in self._parsePackages():
+            if requirement.url:
+                self.packages[requirement.name] = version1, version2, None
+                self._success &= version1 == version2
+            elif self._distro and version1:
+                self.packages[requirement.name] = version1, version2, None
+                self._success &= version1 == version2
+            elif not version1 or version1 != version2:
+                if version2:
+                    yield self._getStepGetPackageVersionData(requirement, version2)
+                    if self._data:
+                        yield self._getStepParsePackageVersionData(requirement, version2)
+                        if self._version and self._url:
+                            self.packages[requirement.name] = version1, self._version, self._url
+                            self._version = self._url = None
+                            self._success = False
                 else:
-                    self.packages[requirement.name] = version1, version2, None
-        except Exception as e:
-            print("Python._getCheckStep() ERROR: %s" % traceback.format_exc())
+                    yield self._getStepGetPackageSimpleData(requirement)
+                    if self._data:
+                        yield self._getStepParsePackageSimpleData(requirement)
+                        if self._version and self._url:
+                            #print("Python._getCheckStep() version1: %s - version2: %s - url: %s" % (version1, self._version, self._url))
+                            self.packages[requirement.name] = version1, self._version, self._url
+                            self._success &= version1 == self._version
+                            self._version = self._url = None
+            else:
+                self.packages[requirement.name] = version1, version2, None
 
     def _getStepGetInstalledPackages(self, ctx):
         return 331, (), self.stepGetInstalledPackages, ctx
@@ -167,7 +161,7 @@ class Python(Check):
                 yield 2
 
     def _parsePackages(self):
-        for requirement in parseRequirements(self._path):
+        for requirement in parseRequirements(self._requirements):
             version1 = self._packages.get(parsePackageName(requirement.name))
             version2 = getRequirementversion(requirement, self._update)
             yield requirement, version1, version2
@@ -179,11 +173,7 @@ class Python(Check):
     def _getResult(self, success):
         if success:
             modules = ('%s version %s' % (package, data[1]) for package, data in self.packages.items())
-            result = ', '.join(modules)
-            print("Python._getResult() installed result: %s" % result)
         else:
             modules = ('%s version %s' % (package, data[1]) for package, data in self.packages.items() if data[0] != data[1])
-            result = ', '.join(modules)
-            print("Python._getResult() missing result: %s" % result)
-        return result
+        return ', '.join(modules)
 

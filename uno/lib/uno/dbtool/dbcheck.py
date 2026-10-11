@@ -71,9 +71,9 @@ import traceback
 
 
 class DBCheck():
-    def __init__(self, ctx, url):
+    def __init__(self, ctx, path, url):
         self._url = url
-        self._path = url + '.odb'
+        self._path = path
         self._exists = getSimpleFile(ctx).exists(self._path)
         self._success = False
         self._version = None
@@ -82,7 +82,7 @@ class DBCheck():
         self._connection = None
         self._connected = False
         self._statement = None
-        self.total = 2
+        self.total = 3
         self.resolver = getStringResource(ctx, g_identifier, 'resource', 'dbtool')
         self.label1 = self.resolver.resolveString(211)
         self.label2 = self.resolver.resolveString(212)
@@ -106,7 +106,7 @@ class DBCheck():
         try:
             if new:
                 infos = getDriverInfos(ctx, self._url, g_drvinfos)
-            self._connection = getDataSourceConnection(ctx, self._url, user, pwd, new, infos)
+            self._connection = getDataSourceConnection(ctx, self._path, user, pwd, self._url, infos)
         except Exception as e:
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
@@ -132,9 +132,11 @@ class DBCheck():
                 trace = traceback.format_exc()
                 raise RunnerException(e, trace)
 
-    def stepCreateStaticTables(self):
+    def stepCreateStaticTables(self, tables):
         try:
-            self._statics = createStaticTables(g_catalog, g_schema, self._tables)
+            success, statics = createStaticTables(g_catalog, g_schema, self._tables, tables)
+            if success:
+                self._statics = statics
         except Exception as e:
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
@@ -146,9 +148,9 @@ class DBCheck():
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
 
-    def stepCreateStaticForeignKeys(self):
+    def stepCreateStaticForeignKeys(self, foreignkeys):
         try:
-            createStaticForeignKeys(g_catalog, g_schema, self._tables)
+            createStaticForeignKeys(g_catalog, g_schema, self._tables, foreignkeys)
         except Exception as e:
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
@@ -182,17 +184,16 @@ class DBCheck():
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
 
-    def stepCreateViews(self, ctx, getViews):
+    def stepCreateViews(self, ctx, views):
         try:
-            views = getViews(ctx, g_catalog, g_schema, 'Spooler', CheckOption.CASCADE)
-            createViews(self._connection.getViews(), views)
+            createViews(self._connection.getViews(), views(ctx, self._connection))
         except Exception as e:
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
 
-    def stepCreateProcedures(self, ctx, getProcedures):
+    def stepCreateProcedures(self, ctx, procedures):
         try:
-            executeQueries(ctx, self._statement, getProcedures(), 'create%s')
+            executeQueries(ctx, self._statement, procedures, 'create%s')
         except Exception as e:
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
@@ -201,11 +202,13 @@ class DBCheck():
         try:
             if self._statement:
                 self._statement.close()
+                self._statement = None
             if self._connection:
                 if save:
                     self._connection.getParent().DatabaseDocument.storeAsURL(self._path, ())
                     self._success = True
                 self._connection.close()
+                self._connection = None
         except Exception:
             pass
 
@@ -215,14 +218,14 @@ class DBCheck():
     def _getStepCheckConnection(self, ctx):
         return 232, (), self.stepCheckConnection, ctx
 
-    def _getStepCreateStaticTables(self):
-        return 233, (), self.stepCreateStaticTables
+    def _getStepCreateStaticTables(self, tables=None):
+        return 233, (), self.stepCreateStaticTables, tables
 
     def _getStepCreateStaticIndexes(self):
         return 234, (), self.stepCreateStaticIndexes
 
-    def _getStepCreateStaticForeignKeys(self):
-        return 235, (), self.stepCreateStaticForeignKeys
+    def _getStepCreateStaticForeignKeys(self, foreignkeys=None):
+        return 235, (), self.stepCreateStaticForeignKeys, foreignkeys
 
     def _getStepSetStaticTable(self):
         return 236, (), self.stepSetStaticTable
@@ -236,11 +239,11 @@ class DBCheck():
     def _getstepCreateForeignKeys(self):
         return 239, (), self.stepCreateForeignKeys
 
-    def _getStepCreateViews(self, ctx, getViews):
-        return 240, (), self.stepCreateViews, ctx, getViews
+    def _getStepCreateViews(self, ctx, views):
+        return 240, (), self.stepCreateViews, ctx, views
 
-    def _getStepCreateProcedures(self, ctx, getProcedures):
-        return 241, (), self.stepCreateProcedures, ctx, getProcedures
+    def _getStepCreateProcedures(self, ctx, procedures):
+        return 241, (), self.stepCreateProcedures, ctx, procedures
 
     def _getStepFinalize(self, save):
         return 242, (), self.stepFinalize, save

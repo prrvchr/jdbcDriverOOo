@@ -94,9 +94,9 @@ class Factory():
             descriptor['InputStream'] = stream
         uiname, mimetype = self._getMimeValues(descriptor, self._uiname, self._mimetype)
         mimetype = self._getMimeType(mimetype, force)
-        datatype = self._getDataTypeName(data)
-        flavors = self._getFlavors(typemap, uiname, mimetype, datatype)
-        return Transferable(self._ctx, typemap, flavors, datatype, data)
+        typename = self._getDataTypeName(data)
+        flavors = self._getFlavors(typemap, uiname, mimetype, typename)
+        return Transferable(self._ctx, typemap, flavors, typename, data)
 
     def _getMimeValues(self, descriptor, uiname, mimetype, deep=True):
         itype, descriptor = self._detection.queryTypeByDescriptor(getPropertyValueSet(descriptor), deep)
@@ -117,19 +117,18 @@ class Factory():
         self._encode = False
         return mimetype
 
-    def _getFlavors(self, typemap, uiname, mimetype, datatype):
+    def _getFlavors(self, typemap, uiname, mimetype, typename):
         flavors = []
         for input, output in typemap.keys():
-            if input == datatype:
+            if input == typename:
                 flavors.append(self._getFlavor(uiname, mimetype, output))
         return tuple(flavors)
 
-    def _getFlavor(self, uiname, mimetype, datatype):
+    def _getFlavor(self, uiname, mimetype, typename):
         flavor = uno.createUnoStruct('com.sun.star.datatransfer.DataFlavor')
         flavor.HumanPresentableName = uiname
         flavor.MimeType = mimetype
-        cls = uno.Enum('com.sun.star.uno.TypeClass', 'INTERFACE' if '.X' in datatype else 'STRUCT')
-        flavor.DataType = uno.Type(datatype, cls)
+        flavor.DataType = uno.getTypeByName(typename)
         return flavor
 
     def _getDataTypeName(self, data):
@@ -152,28 +151,29 @@ class Factory():
                 ('[]byte', 'string'): lambda x: x.value.decode(encoding, errors='ignore')}
 
 
-    class Transferable(unohelper.Base, XTransferable):
-        def __init__(self, ctx, typemap, flavors, datatype, data):
-            self._ctx = ctx
-            self._typemap = typemap
-            self._flavors = flavors
-            self._datatype = datatype
-            self._data = data
+class Transferable(unohelper.Base,
+                   XTransferable):
+    def __init__(self, ctx, typemap, flavors, typename, data):
+        self._ctx = ctx
+        self._typemap = typemap
+        self._flavors = flavors
+        self._typename = typename
+        self._data = data
 
-    # XTransferable
-        def getTransferData(self, flavor):
-            if not self.isDataFlavorSupported(flavor):
-                resolver = getStringResource(self._ctx, g_identifier, g_resource, 'Transferable')
-                msg = resolver.resolveString(101) % (flavor.MimeType, flavor.DataType.typeName)
-                raise UnsupportedFlavorException(msg, self)
+# XTransferable
+    def getTransferData(self, flavor):
+        if not self.isDataFlavorSupported(flavor):
+            resolver = getStringResource(self._ctx, g_identifier, g_resource, 'Transferable')
+            msg = resolver.resolveString(101) % (flavor.MimeType, flavor.DataType.typeName)
+            raise UnsupportedFlavorException(msg, self)
 
-            key = (self._datatype, flavor.DataType.typeName)
-            return self._typemap[key](self._data)
+        key = (self._typename, flavor.DataType.typeName)
+        return self._typemap[key](self._data)
 
-        def getTransferDataFlavors(self):
-            return self._flavors
+    def getTransferDataFlavors(self):
+        return self._flavors
 
-        def isDataFlavorSupported(self, flavor):
-            return any(flavor.MimeType == f.MimeType and
-                       flavor.DataType.typeName == f.DataType.typeName for f in self._flavors)
+    def isDataFlavorSupported(self, flavor):
+        return any(flavor.MimeType == f.MimeType and
+                   flavor.DataType.typeName == f.DataType.typeName for f in self._flavors)
 

@@ -28,33 +28,35 @@
 """
 
 from ...unotool import createService
-from ...unotool import getConfiguration
-from ...unotool import getSimpleFile
 
-from ...helper import getDataBaseUrl
+from ...dbinit import getDataSourceUrl
 
 from ...configuration import g_identifier
 from ...configuration import g_implementation
 
 
-class OptionsModel():
-    def __init__(self, ctx):
+class OptionModel():
+    def __init__(self, ctx, config):
         self._ctx = ctx
-        self._config = getConfiguration(ctx, g_identifier, True)
-        self._url = getDataBaseUrl(ctx)
+        self._config = config
+        self._url = getDataSourceUrl(ctx)
         self._factor = 60
 
     @property
     def _Timeout(self):
         timeout = self._config.getByName('ReplicateTimeout')
         return timeout // self._factor
+
     @property
     def _ViewName(self):
         return self._config.getByName('AddressBookName')
 
-# OptionsModel getter methods
-    def getViewData(self):
-        return self._Timeout, self._ViewName, self._hasDatasource()
+# OptionModel getter methods
+    def getInitData(self, *args):
+        return self._Timeout, self._ViewName, self._hasDatasource(*args)
+
+    def getRefreshData(self, *args):
+        return self._hasDatasource(*args)
 
     def getTimeout(self):
          return self._Timeout
@@ -62,10 +64,10 @@ class OptionsModel():
     def getViewName(self):
         return self._ViewName
 
-    def getDatasourceUrl(self):
+    def getDataSourceUrl(self):
         return self._url
 
-# OptionsModel setter methods
+# OptionModel setter methods
     def loadDriver(self):
         try:
             driver = createService(self._ctx, g_implementation)
@@ -75,17 +77,16 @@ class OptionsModel():
 
 # OptionsModel getter methods
     def setViewData(self, timeout, view):
-        changed = False
         if timeout != self._Timeout:
             self._config.replaceByName('ReplicateTimeout', timeout * self._factor)
         if view != self._ViewName:
             self._config.replaceByName('AddressBookName', view)
         if self._config.hasPendingChanges():
             self._config.commitChanges()
-            changed = True
-        return changed
+            return True
+        return False
 
-# OptionsModel private getter methods
-    def _hasDatasource(self):
-        return getSimpleFile(self._ctx).exists(self._url)
+# OptionModel private getter methods
+    def _hasDatasource(self, extension, java, agent, database, python):
+        return database
 

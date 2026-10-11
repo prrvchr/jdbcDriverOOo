@@ -32,20 +32,17 @@ from .check import Check
 from ..helper import installPackage
 from ..helper import uninstallPackage
 
-from ...unotool import getResourceLocation
 from ...unotool import getSimpleFile
-
-from ...configuration import g_identifier
 
 import traceback
 
 
 class Pypi(Check):
-    def __init__(self, ctx, packages):
+    def __init__(self, ctx, packages, path):
         super().__init__(ctx)
         self._installed = {}
         self._aborted = {}
-        self._path = getResourceLocation(ctx, g_identifier, 'service/pythonpath')
+        self._path = path + '/service/pythonpath'
         self.total = 0
         self.label1 = self.resolver.resolveString(411)
         self.label2 = self.resolver.resolveString(412)
@@ -72,7 +69,6 @@ class Pypi(Check):
         if installPackage(url, self._path):
             self._installed[package] = version
         else:
-            print("Pypi.stepInstallPackage() package: %s" % package)
             self._aborted[package] = version
 
     def _getCheckStep(self, packages):
@@ -111,9 +107,7 @@ class Pypi(Check):
 
     def _getResult(self, success):
         modules = self._installed if success else self._aborted
-        result = ', '.join(['%s version %s' % (module, version) for module, version in modules.items()])
-        print("Pypi._getResult() result: %s" % result)
-        return result
+        return ', '.join(['%s version %s' % (module, version) for module, version in modules.items()])
 
     def _getSuccess(self, success):
         return success and len(self._aborted) == 0

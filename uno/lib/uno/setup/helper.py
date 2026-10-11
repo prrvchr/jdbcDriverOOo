@@ -35,8 +35,10 @@ from ..unotool import checkVersion
 from ..unotool import createService
 from ..unotool import executeDesktopDispatch
 from ..unotool import getExtensionVersion
+from ..unotool import getConfiguration
 from ..unotool import getPathSubstitution
 from ..unotool import getPropertyValueSet
+from ..unotool import getResourceLocation
 from ..unotool import hasInterface
 
 from ..configuration import g_extension
@@ -67,6 +69,12 @@ OPERATORS = {'==': operator.eq,
              '<=': operator.le,
              '>':  operator.gt,
              '<':  operator.lt}
+
+def getRequirementsUrl(url):
+    return url + '/requirements.txt'
+
+def getSetupUpdateMode(ctx, identifier):
+    return getConfiguration(ctx, identifier).getByName('SetupUpdate')
 
 def canUpdatePackages():
     return sys.version_info >= (3, 10)
@@ -133,10 +141,14 @@ def isLinuxDistribution(ctx):
         raise RunnerException(e, trace)
     return True
 
-def getInstalledPackages():
+def getInstalledPackages(url):
     packages = {}
+    location = os.path.normpath(uno.fileUrlToSystemPath(url))
     for dist in importlib.metadata.distributions():
         try:
+            path = os.path.normpath(dist.locate_file(''))
+            if not path.startswith(location):
+                continue
             package = dist.metadata.get('Name')
             version = dist.version
             if not package or not version:
@@ -321,15 +333,15 @@ def installPackage(url, path):
         trace = traceback.format_exc()
         raise RunnerException(e, trace)
 
-def checkPython(url):
-    packages = getInstalledPackages()
-    for requirement in parseRequirements(url):
+def checkPython(url, requirements, mode):
+    packages = getInstalledPackages(url)
+    for requirement in parseRequirements(requirements):
         try:
             package = parsePackageName(requirement.name)
             version1 = packages.get(package)
             if not version1:
                 return False
-            specs = _getRequirementSpecs(requirement)
+            specs = _getRequirementSpecs(requirement, mode == 0)
             if not all(checkVersion(version1, version2, op) for op, version2 in specs):
                 return False
         except Exception as e:
@@ -362,11 +374,11 @@ def getRequirementversion(requirement, update=0):
             pass
     return None
 
-def _getRequirementSpecs(requirement):
+def _getRequirementSpecs(requirement, strict):
     specs = []
     if requirement.specifier:
         for specifier in requirement.specifier:
-            op = OPERATORS.get(specifier.operator, operator.eq)
+            op = operator.eq if strict else OPERATORS.get(specifier.operator, operator.eq)
             specs.append((op, specifier.version))
         return specs
 

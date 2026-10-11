@@ -40,6 +40,8 @@ from .helper import checkExtension
 from .helper import checkPython
 from .helper import getJavaStatus
 from .helper import getJavaVersion
+from .helper import getRequirementsUrl
+from .helper import getSetupUpdateMode
 
 from ..configuration import g_identifier
 
@@ -52,7 +54,6 @@ class CheckSetup(unohelper.Base,
     def __init__(self, ctx, callback, database=None, java=None, agent=None, python=False, **extensions):
         self._ctx = ctx
         self._callback = callback
-        self._requirements = 'requirements.txt'
         self._asyncCall = getCallBack(ctx)
         self._results = self._getDefaultResults(True)
         self._count = 0
@@ -70,7 +71,6 @@ class CheckSetup(unohelper.Base,
         except StopIteration:
             self._callback(**self._results)
         except Exception as e:
-            print("CheckSetup.notify() count: %s - ERROR: %s" % (self._count, traceback.format_exc()))
             self._callback(**self._getDefaultResults(False))
 
     def stepCheckExtension(self, ctx, identifier, infos):
@@ -85,16 +85,18 @@ class CheckSetup(unohelper.Base,
         self._results['java'] = self._hasJava()
 
     def stepCheckJavaAgent(self, ctx, service, url, agent):
-        self._results['agent'] = checkAgent(ctx, service, version, script)
+        self._results['agent'] = checkAgent(ctx, service, url, agent)
 
     def stepCheckDataBase(self, ctx, database):
-        self._results['database'] = getSimpleFile(ctx).exists(database + '.odb')
+        self._results['database'] = getSimpleFile(ctx).exists(database)
 
     def stepCheckPython(self, ctx):
         result = False
-        url = getResourceLocation(ctx, g_identifier, self._requirements)
-        if getSimpleFile(ctx).exists(url):
-            result = checkPython(url)
+        url = getResourceLocation(ctx, g_identifier)
+        requirements = getRequirementsUrl(url)
+        if getSimpleFile(ctx).exists(requirements):
+            mode = getSetupUpdateMode(ctx, g_identifier)
+            result = checkPython(url, requirements, mode)
         self._results['python'] = result
 
     def _getCheckStep(self, ctx, database, java, agent, python, extensions):
@@ -140,24 +142,28 @@ class CheckSetup(unohelper.Base,
         return self._code == 0
 
     @classmethod
-    def isValid(cls, ctx, database=None, java=None, python=False, **extensions):
+    def isValid(cls, ctx, database=None, java=None, agent=None, python=False, **extensions):
         code = None
         for identifier, infos in extensions.items():
             if not checkExtension(ctx, identifier, *infos):
                 return False
         if java:
             code = getJavaStatus(ctx)
-            if code > 0:
+            if code != 0:
                 return False
             code, _, _ = getJavaVersion(ctx, *java)
-            if code > 0:
+            if code != 0:
                 return False
-        if database and not getSimpleFile(ctx).exists(database + '.odb'):
+            if agent and not checkAgent(ctx, *agent):
+                return False
+        if database and not getSimpleFile(ctx).exists(database):
             return False
         if python:
-            url = getResourceLocation(ctx, g_identifier, self._requirements)
-            if getSimpleFile(self._ctx).exists(url):
-                return checkPython(url)
+            url = getResourceLocation(ctx, g_identifier)
+            requirements = getRequirementsUrl(url)
+            if getSimpleFile(self._ctx).exists(requirements):
+                mode = getSetupUpdateMode(ctx, g_identifier)
+                return checkPython(url, requirements, mode)
             return False
         return True
 

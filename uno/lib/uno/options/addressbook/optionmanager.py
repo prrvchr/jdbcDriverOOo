@@ -27,52 +27,53 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import getContainerWindow
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
 
-from ...configuration import g_identifier
+from .optionmodel import OptionModel
 
-import traceback
+from .optionview import OptionView
+
+from .optionhandler import WindowHandler
+
+from ...unotool import getDesktop
+
+from ..logger import LogManager
+
+from ...configuration import g_defaultlog
+from ...configuration import g_synclog
 
 
-class OptionsView():
-    def __init__(self, ctx, window, handler, timeout, view, enabled):
-        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
-        self._window.setVisible(True)
-        self._getTimeout().Value = timeout
-        self._getDatasource().Model.Enabled = enabled
-        self._setViewName(view, not enabled)
+class OptionManager():
+    def __init__(self, ctx, logger, window, config):
+        self._ctx = ctx
+        self._model = OptionModel(ctx, config)
+        self._view = OptionView(ctx, window, WindowHandler(self))
+        self._logmanager = LogManager(ctx, self._view.getWindow(), 'requirements.txt', g_defaultlog, g_synclog)
+        self._logmanager.initView()
+        self._logger = logger
+        self._logger.logprb(INFO, 'OptionManager', '__init__()', 301)
+        self._model.loadDriver()
 
-# OptionsView getter methods
-    def getWindow(self):
-        return self._window
+    def init(self, extension, java, agent, database, python):
+        self._view.initView(*self._model.getInitData(extension, java, agent, database, python))
 
-    def getViewData(self):
-        return int(self._getTimeout().Value), self._getViewName().Text
+    def refresh(self, extension, java, agent, database, python):
+        self._view.refreshView(self._model.getRefreshData(extension, java, agent, database, python))
 
-# OptionsView setter methods
-    def setTimeout(self, timeout):
-        self._getTimeout().Value = timeout
+    def loadSetting(self):
+        self._logmanager.loadSetting()
+        self._logger.logprb(INFO, 'OptionManager', 'loadSetting()', 311)
 
-    def setViewName(self, view):
-        self._getViewName().Text = view
+    def saveSetting(self):
+        option = self._model.setViewData(*self._view.getViewData())
+        saved = self._logmanager.saveSetting()
+        self._logger.logprb(INFO, 'OptionManager', 'saveSetting()', 321, option, saved)
+        return saved
 
-# OptionsView private setter methods
-    def _setViewName(self, view, disabled):
-        self._getViewLabel().Model.Enabled = disabled
-        control = self._getViewName()
-        control.Model.Enabled = disabled
-        control.Text = view
+    def viewData(self):
+        getDesktop(self._ctx).loadComponentFromURL(self.getDataSourceUrl(), '_default', 0, ())
 
-# OptionsView private control methods
-    def _getTimeout(self):
-        return self._window.getControl('NumericField1')
-
-    def _getDatasource(self):
-        return self._window.getControl('CommandButton1')
-
-    def _getViewLabel(self):
-        return self._window.getControl('Label3')
-
-    def _getViewName(self):
-        return self._window.getControl('TextField1')
+    def getDataSourceUrl(self):
+        return self._model.getDataSourceUrl()
 

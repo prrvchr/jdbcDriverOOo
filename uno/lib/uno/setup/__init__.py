@@ -32,6 +32,7 @@ from .checksetup import CheckSetup
 from .dialog import SetupManager
 
 from .helper import canUpdatePackages
+from .helper import getSetupUpdateMode
 from .helper import isLinuxDistribution
 from .helper import parseRequirements
 from .helper import showSetup
