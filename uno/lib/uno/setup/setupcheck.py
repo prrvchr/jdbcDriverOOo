@@ -31,6 +31,8 @@ import unohelper
 
 from com.sun.star.awt import XCallback
 
+from .setupstate import SetupState
+
 from ..unotool import getCallBack
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
@@ -49,13 +51,13 @@ from threading import Timer
 import traceback
 
 
-class CheckSetup(unohelper.Base,
+class SetupCheck(unohelper.Base,
                  XCallback):
     def __init__(self, ctx, callback, database=None, java=None, agent=None, python=False, **extensions):
         self._ctx = ctx
         self._callback = callback
         self._asyncCall = getCallBack(ctx)
-        self._results = self._getDefaultResults(True)
+        self._state = SetupState()
         self._count = 0
         self._steps = self._getCheckStep(ctx, database, java, agent, python, extensions)
 
@@ -69,35 +71,32 @@ class CheckSetup(unohelper.Base,
             call(*args)
             Timer(0.1, self._call).start()
         except StopIteration:
-            self._callback(**self._results)
+            self._callback(self._state)
         except Exception as e:
-            self._callback(**self._getDefaultResults(False))
+            self._callback(SetupState(False))
 
     def stepCheckExtension(self, ctx, identifier, infos):
-        self._results['extension'] &= checkExtension(ctx, identifier, *infos)
+        self._state.extension &= checkExtension(ctx, identifier, *infos)
 
     def stepCheckJavaStatus(self, ctx):
-        self._code = getJavaStatus(ctx)
-        self._results['java'] = self._hasJava()
+        self._state.jcode = getJavaStatus(ctx)
 
     def stepCheckJavaVersion(self, ctx, extension, version, script):
-        self._code, _, _ = getJavaVersion(ctx, extension, version, script)
-        self._results['java'] = self._hasJava()
+        self._state.jcode, _ = getJavaVersion(ctx, False, extension, version, script)
 
     def stepCheckJavaAgent(self, ctx, service, url, agent):
-        self._results['agent'] = checkAgent(ctx, service, url, agent)
+        self._state.agent = checkAgent(ctx, service, url, agent)
 
     def stepCheckDataBase(self, ctx, database):
-        self._results['database'] = getSimpleFile(ctx).exists(database)
+        self._state.database = getSimpleFile(ctx).exists(database)
 
     def stepCheckPython(self, ctx):
-        result = False
+        self._state.pcode = 2
         url = getResourceLocation(ctx, g_identifier)
         requirements = getRequirementsUrl(url)
         if getSimpleFile(ctx).exists(requirements):
             mode = getSetupUpdateMode(ctx, g_identifier)
-            result = checkPython(url, requirements, mode)
-        self._results['python'] = result
+            self._state.pcode = checkPython(url, requirements, mode)
 
     def _getCheckStep(self, ctx, database, java, agent, python, extensions):
         if extensions:
@@ -105,9 +104,9 @@ class CheckSetup(unohelper.Base,
                 yield self._getStepCheckExtension(ctx, identifier, infos)
         if java:
             yield self._getStepCheckJavaStatus(ctx)
-            if self._hasJava():
+            if self._state.java:
                 yield self._getStepCheckJavaVersion(ctx, *java)
-            if self._hasJava() and agent:
+            if self._state.java and agent:
                 yield self._getStepCheckJavaAgent(ctx, *agent)
         if database:
             yield self._getStepCheckDataBase(ctx, database)
@@ -135,9 +134,6 @@ class CheckSetup(unohelper.Base,
     def _getStepCheckPython(self, ctx):
         return self.stepCheckPython, ctx
 
-    def _getDefaultResults(self, value):
-        return {'extension': value, 'java': value, 'agent':value, 'database': value, 'python': value}
-
     def _hasJava(self):
         return self._code == 0
 
@@ -151,7 +147,7 @@ class CheckSetup(unohelper.Base,
             code = getJavaStatus(ctx)
             if code != 0:
                 return False
-            code, _, _ = getJavaVersion(ctx, *java)
+            code, _ = getJavaVersion(ctx, False, *java)
             if code != 0:
                 return False
             if agent and not checkAgent(ctx, *agent):
@@ -163,7 +159,8 @@ class CheckSetup(unohelper.Base,
             requirements = getRequirementsUrl(url)
             if getSimpleFile(self._ctx).exists(requirements):
                 mode = getSetupUpdateMode(ctx, g_identifier)
-                return checkPython(url, requirements, mode)
-            return False
+                code = checkPython(url, requirements, mode)
+                if code != 0:
+                    return False
         return True
 

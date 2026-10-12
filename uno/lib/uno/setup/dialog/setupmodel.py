@@ -102,7 +102,7 @@ class SetupModel():
         self._check = Python(self._ctx)
 
     def setCheckPypi(self):
-        self._check = Pypi(self._ctx, self._check.packages, self._check.path)
+        self._check = Pypi(self._ctx, self._check.packages, self._check.url)
 
     def startCheck(self, callback, progress, cancel):
         runner = Runner(self._ctx, self._check, callback, progress, cancel)

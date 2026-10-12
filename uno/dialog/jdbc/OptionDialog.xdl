@@ -45,18 +45,18 @@
     </dlg:radiogroup>
     <dlg:text dlg:id="Label2" dlg:tab-index="5" dlg:left="10" dlg:top="100" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionDialog.Label2.HelpText" dlg:value="&amp;OptionDialog.Label2.Label" dlg:valign="center"/>
     <dlg:radiogroup>
-      <dlg:radio dlg:id="OptionButton4" dlg:tab-index="6" dlg:left="85" dlg:top="100" dlg:width="45" dlg:height="15" dlg:help-text="&amp;OptionDialog.OptionButton4.HelpText" dlg:value="&amp;OptionDialog.OptionButton4.Label" dlg:valign="center">
+      <dlg:radio dlg:id="OptionButton4" dlg:disabled="true" dlg:tab-index="6" dlg:left="85" dlg:top="100" dlg:width="45" dlg:height="15" dlg:help-text="&amp;OptionDialog.OptionButton4.HelpText" dlg:value="&amp;OptionDialog.OptionButton4.Label" dlg:valign="center">
         <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:RowSet0" script:language="UNO"/>
       </dlg:radio>
-      <dlg:radio dlg:id="OptionButton5" dlg:tab-index="7" dlg:left="145" dlg:top="100" dlg:width="50" dlg:height="15" dlg:help-text="&amp;OptionDialog.OptionButton5.HelpText" dlg:value="&amp;OptionDialog.OptionButton5.Label" dlg:valign="center">
+      <dlg:radio dlg:id="OptionButton5" dlg:disabled="true" dlg:tab-index="7" dlg:left="145" dlg:top="100" dlg:width="50" dlg:height="15" dlg:help-text="&amp;OptionDialog.OptionButton5.HelpText" dlg:value="&amp;OptionDialog.OptionButton5.Label" dlg:valign="center">
         <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:RowSet1" script:language="UNO"/>
       </dlg:radio>
-      <dlg:radio dlg:id="OptionButton6" dlg:tab-index="8" dlg:left="205" dlg:top="100" dlg:width="45" dlg:height="15" dlg:help-text="&amp;OptionDialog.OptionButton6.HelpText" dlg:value="&amp;OptionDialog.OptionButton6.Label" dlg:valign="center">
+      <dlg:radio dlg:id="OptionButton6" dlg:disabled="true" dlg:tab-index="8" dlg:left="205" dlg:top="100" dlg:width="45" dlg:height="15" dlg:help-text="&amp;OptionDialog.OptionButton6.HelpText" dlg:value="&amp;OptionDialog.OptionButton6.Label" dlg:valign="center">
         <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:RowSet2" script:language="UNO"/>
       </dlg:radio>
     </dlg:radiogroup>
     <dlg:text dlg:id="Label3" dlg:tab-index="9" dlg:left="10" dlg:top="120" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionDialog.Label3.HelpText" dlg:value="&amp;OptionDialog.Label3.Label" dlg:valign="center"/>
-    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="10" dlg:left="145" dlg:top="120" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionDialog.CheckBox1.HelpText" dlg:value="&amp;OptionDialog.CheckBox1.Label" dlg:valign="center" dlg:checked="true">
+    <dlg:checkbox dlg:id="CheckBox1" dlg:disabled="true" dlg:tab-index="10" dlg:left="145" dlg:top="120" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionDialog.CheckBox1.HelpText" dlg:value="&amp;OptionDialog.CheckBox1.Label" dlg:valign="center" dlg:checked="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:UseCache" script:language="UNO"/>
     </dlg:checkbox>
     <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="11" dlg:left="10" dlg:top="140" dlg:width="80" dlg:height="15" dlg:help-text="&amp;OptionDialog.CheckBox2.HelpText" dlg:value="&amp;OptionDialog.CheckBox2.Label" dlg:valign="center" dlg:checked="false">

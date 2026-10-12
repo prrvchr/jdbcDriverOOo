@@ -27,87 +27,53 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .optionsmodel import OptionsModel
-
-from .optionsview import OptionsWindow
-
-from .optionshandler import WindowHandler
-
-from ...runner import DispatchListener
-
-from ...setup import CheckSetup
-
-from ..logger import LogManager
-
-from ...setup import showSetup
+from ...unotool import getContainerWindow
 
 from ...configuration import g_identifier
 
 import traceback
 
 
-class OptionsManager():
-    def __init__(self, ctx, window, java, agent, logger, *loggers):
-        self._ctx = ctx
-        self._java = java
-        self._agent = agent
-        self._logmanager = LogManager(ctx, window, 'requirements.txt', logger, *loggers)
-        self._model = OptionsModel(ctx)
-        self._view = OptionsWindow(ctx, window, WindowHandler(self), *self._model.getViewData())
-        if java and agent:
-            setup = CheckSetup(ctx, self.notify, java=java, agent=agent)
-            setup.start()
+class OptionView():
+    def __init__(self, ctx, window, handler):
+        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
+        self._window.setVisible(True)
 
-    def notify(self, extension, java, agent, database, python):
-        if java and agent:
-            pass
-
-# OptionManager setter methods
-    def initView(self):
-        self._logmanager.initView()
-        self._initView()
-
+# OptionView setter methods
     def dispose(self):
-        self._logmanager.dispose()
-        self._view.dispose()
+        self._window.dispose()
 
-# OptionManager getter methods
-    def getConfigApiLevel(self):
-        return self._model.getConfigApiLevel()
+    def initView(self, level, crs, system, rst, enabled, state):
+        self._getApiLevel(level).State = 1
+        self._getCachedRowSet().State = int(crs)
+        self._getSytemTable().State = int(system)
+        self.refreshView(rst, enabled, state)
 
-# OptionManager setter methods
-    def saveSetting(self):
-        saved = self._logmanager.saveSetting()
-        saved |= self._model.saveSetting()
-        return saved
+    def refreshView(self, rst, enabled, state):
+        if state.agent:
+            self._getResultSetType(rst).State = 1
+        else:
+            self._getResultSetType(0).State = 1
+        self.enableResultSetType(state.agent and enabled)
+        self.enableCachedRowSet(state.agent and enabled and rst != 0)
 
-    def loadSetting(self):
-        self._logmanager.loadSetting()
-        self._initView()
+    def enableResultSetType(self, enabled, options=(0, 1, 2)):
+        for index in options:
+            self._getResultSetType(index).Model.Enabled = enabled
 
-    def setApiLevel(self, level):
-        enabled = self._model.setApiLevel(level)
-        self._view.enableResultSetType(enabled)
-        self._view.enableCachedRowSet(enabled)
+    def enableCachedRowSet(self, enabled):
+        self._getCachedRowSet().Model.Enabled = enabled
 
-    def setResultSetType(self, level):
-        enabled = self._model.setResultSetType(level)
-        self._view.enableCachedRowSet(enabled)
+# OptionView private control methods
+    def _getApiLevel(self, index):
+        return self._window.getControl('OptionButton%s' % (index + 1))
 
-    def setCachedRowSet(self, state):
-        self._model.setCachedRowSet(state)
+    def _getResultSetType(self, index):
+        return self._window.getControl('OptionButton%s' % (index + 4))
 
-    def setSystemTable(self, state):
-        self._model.setSystemTable(state)
+    def _getCachedRowSet(self):
+        return self._window.getControl('CheckBox1')
 
-    def showSetup(self):
-        showSetup(self._ctx, g_identifier, DispatchListener=DispatchListener(self))
-
-    def dispatchFinished(self, notification):
-        setup = CheckSetup(self._ctx, self.notify, java=self._java, agent=self._agent)
-        setup.start()
-
-# OptionManager private methods
-    def _initView(self):
-        self._view.initView(*self._model.getViewData())
+    def _getSytemTable(self):
+        return self._window.getControl('CheckBox2')
 

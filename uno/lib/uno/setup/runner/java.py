@@ -63,7 +63,7 @@ class Java(Check):
         self._code = getJavaStatus(self._ctx)
 
     def stepCheckJavaVersion(self, extension, version, script):
-        self._code, _, self._version = getJavaVersion(self._ctx, extension, version, script)
+        self._code, self._version = getJavaVersion(self._ctx, True, extension, version, script)
 
     def stepCheckJavaAgent(self, service, url, agent):
         self._agent = checkAgent(self._ctx, service, url, agent)

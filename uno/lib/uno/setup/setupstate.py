@@ -27,58 +27,59 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import getContainerWindow
+from ..configuration import State
 
-from ...configuration import g_identifier
+from dataclasses import dataclass
+from dataclasses import InitVar
 
-import traceback
 
+@dataclass
+class SetupState:
+    state: InitVar[bool] = True
 
-class OptionsWindow():
-    def __init__(self, ctx, window, handler, level, crs, system):
-        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
-        self._window.setVisible(True)
-        self.enableResultSetType(False)
-        self.enableCachedRowSet(False)
-        self.initView(level, crs, system)
+    extension: bool = True
+    jcode: int = 0
+    agent: bool = True
+    database: bool = True
+    pcode: int = 0
 
-# OptionWindow setter methods
-    def dispose(self):
-        self._window.dispose()
+    def __post_init__(self, state: bool):
+        if not state:
+            self.extension = False
+            self.jcode = 4
+            self.agent = False
+            self.database = False
+            self.pcode = 2
 
-    def initView(self, level, crs, system):
-        self._getApiLevel(level).State = 1
-        self._getCachedRowSet().State = int(crs)
-        self._getSytemTable().State = int(system)
+    @property
+    def java(self) -> bool:
+        return self.jcode == 0
 
-    def refreshView(self, instrumented, level, rst, crs, system, enabled):
-        self._getApiLevel(level).State = 1
-        if instrumented:
-            self._getResultSetType(rst).State = 1
-        else:
-            self._getResultSetType(0).State = 1
-        self._getCachedRowSet().State = int(crs)
-        self.enableResultSetType(instrumented and enabled)
-        self.enableCachedRowSet(instrumented and enabled and rst != 0)
-        self._getSytemTable().State = int(system)
+    @property
+    def python(self) -> bool:
+        return self.pcode == 0
 
-    def enableResultSetType(self, enabled, options=(0, 1, 2)):
-        for index in options:
-            self._getResultSetType(index).Model.Enabled = enabled
+    @property
+    def restart(self) -> bool:
+        return State.restart
 
-    def enableCachedRowSet(self, enabled):
-        self._getCachedRowSet().Model.Enabled = enabled
+    @property
+    def isperfect(self) -> bool:
+        return all([self.extension, self.java, self.agent, self.python]) and not self.restart
 
-# OptionWindow private control methods
-    def _getApiLevel(self, index):
-        return self._window.getControl('OptionButton%s' % (index + 1))
-
-    def _getResultSetType(self, index):
-        return self._window.getControl('OptionButton%s' % (index + 4))
-
-    def _getCachedRowSet(self):
-        return self._window.getControl('CheckBox1')
-
-    def _getSytemTable(self):
-        return self._window.getControl('CheckBox2')
+    @property
+    def step(self) -> int:
+        if not self.extension:
+            return 2
+        if not self.java:
+            return 2 + self.jcode
+        if not self.agent:
+            return 8
+        if not self.database:
+            return 9
+        if not self.python:
+            return 9 + self.pcode
+        if self.restart:
+            return 13
+        return 1
 

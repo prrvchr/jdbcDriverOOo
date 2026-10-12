@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .checksetup import CheckSetup
+from .setupcheck import SetupCheck
 
 from .dialog import SetupManager
 

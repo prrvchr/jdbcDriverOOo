@@ -70,6 +70,9 @@ OPERATORS = {'==': operator.eq,
              '>':  operator.gt,
              '<':  operator.lt}
 
+def getOsLocation(url):
+    return os.path.normpath(uno.fileUrlToSystemPath(url))
+
 def getRequirementsUrl(url):
     return url + '/requirements.txt'
 
@@ -91,13 +94,13 @@ def getJavaStatus(ctx):
     service = 'com.sun.star.comp.stoc.JavaVirtualMachine'
     jvm = createService(ctx, service)
     if jvm is None:
-        return 4
+        return 5
     if jvm.isVMEnabled():
         return 0
-    return 3
+    return 4
 
-def getJavaVersion(ctx, extension, java, script):
-    results = 2, java, java
+def getJavaVersion(ctx, error, extension, java, script):
+    results = 2, java
     try:
         service = 'com.sun.star.script.provider.MasterScriptProviderFactory'
         factory = createService(ctx, service)
@@ -108,12 +111,14 @@ def getJavaVersion(ctx, extension, java, script):
             result = macro.invoke((), (), ())[0]
             version = _parseJavaVersion(result)
             if checkVersion(version, java):
-                results = 0, java, version
+                results = 0, version
             else:
-                results = 1, java, version
+                results = 1, version
     except Exception as e:
-        trace = traceback.format_exc()
-        raise RunnerException(e, trace)
+        if error:
+            trace = traceback.format_exc()
+            raise RunnerException(e, trace)
+        result = 3, java
     return results
 
 def checkAgent(ctx, service, url, agent):
@@ -141,9 +146,8 @@ def isLinuxDistribution(ctx):
         raise RunnerException(e, trace)
     return True
 
-def getInstalledPackages(url):
+def getInstalledPackages(location):
     packages = {}
-    location = os.path.normpath(uno.fileUrlToSystemPath(url))
     for dist in importlib.metadata.distributions():
         try:
             path = os.path.normpath(dist.locate_file(''))
@@ -277,8 +281,8 @@ def uninstallPackage(package, url):
         for dist in dists:
             try:
                 distinfo = None
-                if dist._path:
-                    distinfo = os.path.basename(str(dist._path))
+                if dist._location:
+                    distinfo = os.path.basename(str(dist._location))
                 if distinfo:
                     shutil.rmtree(os.path.join(pythonpath, distinfo))
             except Exception:
@@ -334,19 +338,28 @@ def installPackage(url, path):
         raise RunnerException(e, trace)
 
 def checkPython(url, requirements, mode):
-    packages = getInstalledPackages(url)
+    location = getOsLocation(url)
+    packages = getInstalledPackages(location)
+    dists = list(importlib.metadata.distributions())
     for requirement in parseRequirements(requirements):
         try:
             package = parsePackageName(requirement.name)
             version1 = packages.get(package)
             if not version1:
-                return False
+                return 1
             specs = _getRequirementSpecs(requirement, mode == 0)
             if not all(checkVersion(version1, version2, op) for op, version2 in specs):
-                return False
+                return 2
+            for dist in dists:
+                name = dist.metadata.get('Name')
+                if name and parsePackageName(name) == package:
+                    path = os.path.normpath(dist.locate_file(""))
+                    if not path.startswith(location):
+                        if dist.version != version1:
+                            return 3
         except Exception as e:
-            return False
-    return True
+            return 4
+    return 0
 
 def parseRequirements(url):
     info = sys.version_info

@@ -32,6 +32,7 @@ import uno
 from .check import Check
 
 from ..helper import getInstalledPackages
+from ..helper import getOsLocation
 from ..helper import getPackageSimpleData
 from ..helper import getPackageVersionData
 from ..helper import getRequirementversion
@@ -49,6 +50,7 @@ from ...unotool import getSimpleFile
 
 from ...configuration import g_identifier
 
+import os
 import traceback
 
 
@@ -62,8 +64,9 @@ class Python(Check):
         self._url = None
         self._version = None
         self._success = True
-        self.path = getResourceLocation(ctx, g_identifier)
-        self._requirements = getRequirementsUrl(self.path)
+        self.url = getResourceLocation(ctx, g_identifier)
+        self._location = getOsLocation(self.url)
+        self._requirements = getRequirementsUrl(self.url)
         self.packages = {}
         self.total = 0
         self.label1 = self.resolver.resolveString(311)
@@ -82,7 +85,7 @@ class Python(Check):
     def stepGetInstalledPackages(self, ctx):
         self._distro = isLinuxDistribution(ctx)
         self._update = getSetupUpdateMode(ctx, g_identifier)
-        self._packages = getInstalledPackages(self.path)
+        self._packages = getInstalledPackages(self._location)
 
     def stepGetStepCount(self):
         self.total += sum(i for i in self._getStepCount())
