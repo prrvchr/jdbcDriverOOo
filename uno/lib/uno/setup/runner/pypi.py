@@ -29,6 +29,8 @@
 
 from .check import Check
 
+from ..helper import checkPython
+from ..helper import getRequirementsUrl
 from ..helper import installPackage
 from ..helper import uninstallPackage
 
@@ -38,11 +40,15 @@ import traceback
 
 
 class Pypi(Check):
-    def __init__(self, ctx, packages, path):
+    def __init__(self, ctx, packages, url, mode, state):
         super().__init__(ctx)
         self._installed = {}
         self._aborted = {}
-        self._path = path + '/service/pythonpath'
+        self._url = url
+        self._path = url + '/service/pythonpath'
+        self._mode = mode
+        self._state = state
+        self.packages = {}
         self.total = 0
         self.label1 = self.resolver.resolveString(411)
         self.label2 = self.resolver.resolveString(412)
@@ -71,6 +77,11 @@ class Pypi(Check):
         else:
             self._aborted[package] = version
 
+    def stepSetPythonCode(self, packages):
+        requirements = getRequirementsUrl(self._url)
+        self._state.pcode = checkPython(self._url, requirements, self._mode)
+        self.packages = packages
+
     def _getCheckStep(self, packages):
         if not getSimpleFile(self._ctx).exists(self._path):
             return
@@ -82,6 +93,7 @@ class Pypi(Check):
                 if version1:
                     yield self._getStepUninstallPackage(package)
                 yield self._getStepInstallPackage(package, version2, url)
+        yield self._getStepSetPythonCode(packages)
 
     def _getStepGetStepCount(self, packages):
         return 431, (), self.stepGetStepCount, packages
@@ -91,6 +103,9 @@ class Pypi(Check):
 
     def _getStepInstallPackage(self, package, version, url):
         return 451, (package, ), self.stepInstallPackage, package, version, url
+
+    def _getStepSetPythonCode(self, packages):
+        return 461, (), self.stepSetPythonCode, packages
 
     def _getStepCount(self, packages):
         for package, data in packages.items():

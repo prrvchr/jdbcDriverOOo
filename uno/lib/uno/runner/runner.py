@@ -68,11 +68,11 @@ class Runner(unohelper.Base,
                     self._progress.setValue(self._step)
 
             resource, args, call, *kwargs = next(self._check.steps)
-            self._step += 1
+            call(*kwargs)
             if self._progress:
+                self._step += 1
                 self._progress.setText(self._check.resolver.resolveString(resource) % args)
                 self._progress.setValue(self._step)
-            call(*kwargs)
             Timer(0.1, self._call).start()
 
         except StopIteration:

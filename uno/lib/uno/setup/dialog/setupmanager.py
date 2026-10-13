@@ -36,6 +36,10 @@ from .setupview import SetupView
 from .setuphandler import CloseListener
 from .setuphandler import WindowHandler
 
+from ..setupcheck import SetupCheck
+
+from ..setupstate import SetupState
+
 from ...configuration import State
 
 from ...runner import Cancel
@@ -47,18 +51,58 @@ from ...unotool import notifyDispatch
 
 import traceback
 
-
 class SetupManager():
     def __init__(self, ctx, source, dispatch, name, /, database=None, java=None, agent=None, python=False, **extensions):
         self._ctx = ctx
         self._source = source
         self._dispatch = dispatch
         self._cancel = Cancel()
-        self._running = False
-        self._step = 1
+        self._running = True
+        self._steps = None
+        self._reported = False
         self._model = SetupModel(ctx, name, database, java, agent, python, extensions)
         self._listener = CloseListener(self)
         self._view = SetupView(ctx, WindowHandler(self), self._listener, name, *self._model.getViewData())
+        self._check = SetupCheck(ctx, self.notify, database.path, java, agent, python, **extensions)
+        self._check.start()
+
+    def notify(self, state):
+        self._running = False
+        self._state = state
+        self._steps = self._buildSteps()
+        self._view.enableButtons(True)
+
+    def _buildSteps(self) -> list:
+        steps = []
+        if not self._state.extension:
+            steps.append(self._checkExtension)
+        if not self._state.java or not self._state.agent:
+            steps.append(self._checkJava)
+        if not self._state.database:
+            steps.append(self._checkDataBase)
+        if self._model.hasPython():
+            steps.append(self._checkPython)
+        return steps
+
+    def next(self):
+        if self._running:
+            return
+
+        if self._steps:
+            step = self._steps.pop(0)
+            step()
+            return
+
+        if self._state.isperfect or not self._steps:
+            if not self._reported:
+                self._setReport()
+                self._reported = True
+            else:
+                self._running = True
+                self._model.deregisterJob()
+                self._running = False
+                self._close()
+                self._dispose()
 
 # XCloseListener
     def queryClosing(self, source, ownership):
@@ -80,52 +124,6 @@ class SetupManager():
         if not self._running:
             self._dispose()
 
-    def next(self):
-        if self._step == 1:
-            if self._model.hasExtensions():
-                self._checkExtension()
-            elif self._model.hasJava():
-                self._checkJava()
-            elif self._model.hasDataBase():
-                self._checkDataBase()
-            elif self._model.hasPython():
-                self._checkPython()
-            else:
-                self._setReport()
-        elif self._step == 2:
-            if self._model.hasJava():
-                self._checkJava()
-            elif self._model.hasDataBase():
-                self._checkDataBase()
-            elif self._model.hasPython():
-                self._checkPython()
-            else:
-                self._setReport()
-        elif self._step == 3:
-            if self._model.hasDataBase():
-                self._checkDataBase()
-            elif self._model.hasPython():
-                self._checkPython()
-            else:
-                self._setReport()
-        elif self._step == 4:
-            if self._model.hasPython():
-                self._checkPython()
-            else:
-                self._setReport()
-        elif self._step == 5:
-            self._installPackages()
-        elif self._step == 6:
-            self._setReport()
-        elif self._step == 7:
-            self._running = True
-            self._model.deregisterJob()
-            self._running = False
-            self._close()
-            self._dispose()
-        else:
-            print("SetupManager.next() step: %s " + self._step)
-
     def setMaxProgress(self, value):
         self._view.setMaxProgress(value)
 
@@ -142,53 +140,31 @@ class SetupManager():
             notifyDispatch(self._source, self._dispatch)
         self._view.dispose()
 
+    def notifyCheck(self, success, error):
+        self._running = False
+        if self._cancel.isSet():
+            return self._dispose()
+        if error:
+            return self._setError(error)
+        self._setResult(success)
+
     def _checkExtension(self):
         self._running = True
         self._model.setCheckExtension()
         self._setHeader()
-        self._model.startCheck(self.notifyExtension, self._view.getIndicator(), self._cancel)
-
-    def notifyExtension(self, success, error):
-        self._running = False
-        if self._cancel.isSet():
-            self._dispose()
-        elif error:
-            self._setError(error)
-        else:
-            self._step = 2 if success else 4
-            self._setResult(success)
+        self._model.startCheck(self.notifyCheck, self._view.getIndicator(), self._cancel)
 
     def _checkJava(self):
         self._running = True
         self._model.setCheckJava()
         self._setHeader()
-        self._model.startCheck(self.notifyJava, self._view.getIndicator(), self._cancel)
-
-    def notifyJava(self, success, error):
-        self._running = False
-        if self._cancel.isSet():
-            self._dispose()
-        elif error:
-            self._setError(error)
-        else:
-            self._step = 3 if success else 4
-            self._setResult(success)
+        self._model.startCheck(self.notifyCheck, self._view.getIndicator(), self._cancel)
 
     def _checkDataBase(self):
         self._running = True
         self._model.setCheckDataBase()
         self._setHeader()
-        self._model.startCheck(self.notifyDataBase, self._view.getIndicator(), Cancel())
-
-    def notifyDataBase(self, success, error=None):
-        self._running = False
-        if self._cancel.isSet():
-            self._dispose()
-        elif error:
-            self._setError(error)
-        else:
-            self._step = 4
-            self._setResult(success)
+        self._model.startCheck(self.notifyCheck, self._view.getIndicator(), Cancel())
 
     def _checkPython(self):
         self._running = True
@@ -199,17 +175,19 @@ class SetupManager():
     def notifyPython(self, success, checked, error):
         self._running = False
         if self._cancel.isSet():
-            self._dispose()
-        elif error:
-            self._setError(error)
-        elif success:
-            self._step = 6 if checked else 5
-            self._setResult(checked)
+            return self._dispose()
+        if error:
+            return self._setError(error)
+        self._model.setPythonData()
+        if not checked:
+            self._steps.insert(0, self._installPackages)
+        elif self._state.pcode == 3:
+            self._steps.insert(0, self._checkConflict)
+        self._setResult(checked)
 
     def _installPackages(self):
-        self._step = 6
         self._running = True
-        self._model.setCheckPypi()
+        self._model.setCheckPypi(self._state)
         self._setHeader()
         self._model.startCheck(self.notifyPypi, self._view.getIndicator(), self._cancel)
 
@@ -218,11 +196,18 @@ class SetupManager():
         if success:
             State.restart = True
         if self._cancel.isSet():
-            self._dispose()
-        elif error:
-            self._setError(error)
-        else:
-            self._setResult(success)
+            return self._dispose()
+        if error:
+            return self._setError(error)
+        if self._state.pcode == 3:
+            self._steps.insert(0, self._checkConflict)
+        self._setResult(success)
+
+    def _checkConflict(self):
+        self._running = True
+        self._model.setCheckConflict()
+        self._setHeader()
+        self._model.startCheck(self.notifyCheck, self._view.getIndicator(), self._cancel)
 
     def _setHeader(self):
         if not self._cancel.isSet():

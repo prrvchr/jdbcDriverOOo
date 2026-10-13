@@ -58,7 +58,6 @@ class SetupCheck(unohelper.Base,
         self._callback = callback
         self._asyncCall = getCallBack(ctx)
         self._state = SetupState()
-        self._count = 0
         self._steps = self._getCheckStep(ctx, database, java, agent, python, extensions)
 
     def start(self):
@@ -66,7 +65,6 @@ class SetupCheck(unohelper.Base,
 
     def notify(self, data):
         try:
-            self._count += 1
             call, *args = next(self._steps)
             call(*args)
             Timer(0.1, self._call).start()

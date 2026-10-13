@@ -73,8 +73,8 @@ import traceback
 class DBCheck():
     def __init__(self, ctx, path, url):
         self._url = url
-        self._path = path
-        self._exists = getSimpleFile(ctx).exists(self._path)
+        self.path = path
+        self._exists = getSimpleFile(ctx).exists(self.path)
         self._success = False
         self._version = None
         self._statics = None
@@ -106,7 +106,7 @@ class DBCheck():
         try:
             if new:
                 infos = getDriverInfos(ctx, self._url, g_drvinfos)
-            self._connection = getDataSourceConnection(ctx, self._path, user, pwd, self._url, infos)
+            self._connection = getDataSourceConnection(ctx, self.path, user, pwd, self._url, infos)
         except Exception as e:
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
@@ -205,7 +205,7 @@ class DBCheck():
                 self._statement = None
             if self._connection:
                 if save:
-                    self._connection.getParent().DatabaseDocument.storeAsURL(self._path, ())
+                    self._connection.getParent().DatabaseDocument.storeAsURL(self.path, ())
                     self._success = True
                 self._connection.close()
                 self._connection = None

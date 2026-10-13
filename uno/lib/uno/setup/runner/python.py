@@ -59,7 +59,6 @@ class Python(Check):
         super().__init__(ctx)
         self._packages ={}
         self._distro = False
-        self._update = 0
         self._data = None
         self._url = None
         self._version = None
@@ -67,6 +66,7 @@ class Python(Check):
         self.url = getResourceLocation(ctx, g_identifier)
         self._location = getOsLocation(self.url)
         self._requirements = getRequirementsUrl(self.url)
+        self.mode = 0
         self.packages = {}
         self.total = 0
         self.label1 = self.resolver.resolveString(311)
@@ -84,7 +84,7 @@ class Python(Check):
 
     def stepGetInstalledPackages(self, ctx):
         self._distro = isLinuxDistribution(ctx)
-        self._update = getSetupUpdateMode(ctx, g_identifier)
+        self.mode = getSetupUpdateMode(ctx, g_identifier)
         self._packages = getInstalledPackages(self._location)
 
     def stepGetStepCount(self):
@@ -101,7 +101,7 @@ class Python(Check):
         self._data = None
 
     def stepParsePackageSimpleData(self, requirement):
-        self._version, self._url = parsePackageSimpleData(requirement, self._update, self._data)
+        self._version, self._url = parsePackageSimpleData(requirement, self.mode, self._data)
         self._data = None
 
     def _getCheckStep(self, ctx):
@@ -131,7 +131,6 @@ class Python(Check):
                     if self._data:
                         yield self._getStepParsePackageSimpleData(requirement)
                         if self._version and self._url:
-                            #print("Python._getCheckStep() version1: %s - version2: %s - url: %s" % (version1, self._version, self._url))
                             self.packages[requirement.name] = version1, self._version, self._url
                             self._success &= version1 == self._version
                             self._version = self._url = None
@@ -166,7 +165,7 @@ class Python(Check):
     def _parsePackages(self):
         for requirement in parseRequirements(self._requirements):
             version1 = self._packages.get(parsePackageName(requirement.name))
-            version2 = getRequirementversion(requirement, self._update)
+            version2 = getRequirementversion(requirement, self.mode)
             yield requirement, version1, version2
 
     def _getHeader(self, success):

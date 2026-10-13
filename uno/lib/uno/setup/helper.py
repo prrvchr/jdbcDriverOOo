@@ -59,6 +59,7 @@ import shutil
 import sys
 import urllib.request
 from urllib.parse import urlparse
+import xml.etree.ElementTree as ET
 import zipfile
 import traceback
 
@@ -89,6 +90,25 @@ def showSetup(ctx, identifier, listener=None, /, **kwargs):
 def checkExtension(ctx, identifier, _, minimum):
     version = getExtensionVersion(ctx, identifier)
     return version is not None and checkVersion(version, minimum)
+
+def getExtensionName(location, default):
+    path = os.path.join(location, 'description.xml')
+    if not os.path.exists(path):
+        return default
+    try:
+        tree = ET.parse(path)
+        root = tree.getroot()
+        ns = {'d': 'http://openoffice.org/extensions/description/2006'}
+        node = root.find('.//d:display-name', ns)
+        if node:
+            value = node.find('.//d:name', ns)
+            if value is not None and value.text:
+                return value.text
+            if node.text and node.text.strip():
+                return node.text.strip()
+    except Exception:
+        pass
+    return default
 
 def getJavaStatus(ctx):
     service = 'com.sun.star.comp.stoc.JavaVirtualMachine'

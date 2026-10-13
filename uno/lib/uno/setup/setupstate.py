@@ -80,6 +80,6 @@ class SetupState:
         if not self.python:
             return 9 + self.pcode
         if self.restart:
-            return 13
+            return 14
         return 1
 

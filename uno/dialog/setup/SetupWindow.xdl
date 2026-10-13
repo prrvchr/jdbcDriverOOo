@@ -41,10 +41,10 @@
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="2" dlg:left="10" dlg:top="140" dlg:width="45" dlg:height="15" dlg:help-text="&amp;SetupWindow.CommandButton1.HelpText" dlg:value="&amp;SetupWindow.CommandButton1.Label" dlg:page="4">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Copy" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="3" dlg:left="220" dlg:top="140" dlg:width="45" dlg:height="15" dlg:help-text="&amp;SetupWindow.CommandButton2.HelpText" dlg:value="&amp;SetupWindow.CommandButton2.Label">
+    <dlg:button dlg:id="CommandButton2" dlg:disabled="true" dlg:tab-index="3" dlg:left="220" dlg:top="140" dlg:width="45" dlg:height="15" dlg:help-text="&amp;SetupWindow.CommandButton2.HelpText" dlg:value="&amp;SetupWindow.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Cancel" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton3" dlg:tab-index="4" dlg:left="270" dlg:top="140" dlg:width="45" dlg:height="15" dlg:help-text="&amp;SetupWindow.CommandButton3.HelpText" dlg:value="&amp;SetupWindow.CommandButton3.Label">
+    <dlg:button dlg:id="CommandButton3" dlg:disabled="true" dlg:tab-index="4" dlg:left="270" dlg:top="140" dlg:width="45" dlg:height="15" dlg:help-text="&amp;SetupWindow.CommandButton3.HelpText" dlg:value="&amp;SetupWindow.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Next" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>

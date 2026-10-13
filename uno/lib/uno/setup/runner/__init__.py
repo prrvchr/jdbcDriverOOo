@@ -27,6 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .conflict import Conflict
+
 from .extension import Extension
 
 from .java import Java

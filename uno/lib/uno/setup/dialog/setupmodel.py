@@ -29,6 +29,7 @@
 
 import uno
 
+from ..runner import Conflict
 from ..runner import Extension
 from ..runner import Java
 from ..runner import Pypi
@@ -59,6 +60,9 @@ class SetupModel():
         self._database = database
         self._python = python
         self._check = None
+        self._packages = None
+        self._url = None
+        self._mode = 0
         self._reports = []
         self._position = 'SetupPosition'
         self._config = getConfiguration(ctx, g_identifier, True)
@@ -101,24 +105,23 @@ class SetupModel():
     def setCheckPython(self):
         self._check = Python(self._ctx)
 
-    def setCheckPypi(self):
-        self._check = Pypi(self._ctx, self._check.packages, self._check.url)
+    def setPythonData(self):
+        self._packages = self._check.packages
+        self._url = self._check.url
+        self._mode = self._check.mode
+
+    def setCheckPypi(self, state):
+        self._check = Pypi(self._ctx, self._packages, self._url, self._mode, state)
+
+    def setCheckConflict(self):
+        self._check = Conflict(self._ctx, self._packages, self._url)
 
     def startCheck(self, callback, progress, cancel):
         runner = Runner(self._ctx, self._check, callback, progress, cancel)
         runner.start()
 
-    def hasDataBase(self):
-        return self._database is not None
-
-    def hasJava(self):
-        return self._java is not None
-
     def hasPython(self):
         return self._python
-
-    def hasExtensions(self):
-        return len(self._extensions) != 0 
 
     def deregisterJob(self):
         deregisterStartupJob(self._ctx, self._name)
