@@ -35,21 +35,29 @@ import traceback
 
 
 class OptionView():
-    def __init__(self, ctx, window, handler):
+    def __init__(self, ctx, window, handler, label, update):
         self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
+        self._getSetupLabel().Model.Label = label
+        self._getSetup().Model.Enabled = update
         self._window.setVisible(True)
+
+# OptionsView getter methods
+    def getSetup(self):
+        return self._getSetup().getSelectedItemPos()
 
 # OptionView setter methods
     def dispose(self):
         self._window.dispose()
 
-    def initView(self, level, crs, system, rst, enabled, state):
+    def initView(self, level, crs, system, rst, enabled, setup, state):
         self._getApiLevel(level).State = 1
         self._getCachedRowSet().State = int(crs)
         self._getSytemTable().State = int(system)
+        self._setSetup(setup)
         self.refreshView(rst, enabled, state)
 
     def refreshView(self, rst, enabled, state):
+        self._window.Model.Step = state.step
         if state.agent:
             self._getResultSetType(rst).State = 1
         else:
@@ -64,6 +72,11 @@ class OptionView():
     def enableCachedRowSet(self, enabled):
         self._getCachedRowSet().Model.Enabled = enabled
 
+    def _setSetup(self, setup):
+        control = self._getSetup()
+        if control.Model.Enabled:
+            control.selectItemPos(setup, True)
+
 # OptionView private control methods
     def _getApiLevel(self, index):
         return self._window.getControl('OptionButton%s' % (index + 1))
@@ -76,4 +89,10 @@ class OptionView():
 
     def _getSytemTable(self):
         return self._window.getControl('CheckBox2')
+
+    def _getSetupLabel(self):
+        return self._window.getControl('FixedLine2')
+
+    def _getSetup(self):
+        return self._window.getControl('ListBox1')
 

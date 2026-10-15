@@ -56,15 +56,22 @@
       </dlg:radio>
     </dlg:radiogroup>
     <dlg:text dlg:id="Label3" dlg:tab-index="9" dlg:left="10" dlg:top="120" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionDialog.Label3.HelpText" dlg:value="&amp;OptionDialog.Label3.Label" dlg:valign="center"/>
-    <dlg:checkbox dlg:id="CheckBox1" dlg:disabled="true" dlg:tab-index="10" dlg:left="145" dlg:top="120" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionDialog.CheckBox1.HelpText" dlg:value="&amp;OptionDialog.CheckBox1.Label" dlg:valign="center" dlg:checked="true">
+    <dlg:checkbox dlg:id="CheckBox1" dlg:disabled="true" dlg:tab-index="10" dlg:left="85" dlg:top="120" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionDialog.CheckBox1.HelpText" dlg:value="&amp;OptionDialog.CheckBox1.Label" dlg:valign="center" dlg:checked="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:UseCache" script:language="UNO"/>
     </dlg:checkbox>
-    <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="11" dlg:left="10" dlg:top="140" dlg:width="80" dlg:height="15" dlg:help-text="&amp;OptionDialog.CheckBox2.HelpText" dlg:value="&amp;OptionDialog.CheckBox2.Label" dlg:valign="center" dlg:checked="false">
+    <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="11" dlg:left="180" dlg:top="120" dlg:width="80" dlg:height="15" dlg:help-text="&amp;OptionDialog.CheckBox2.HelpText" dlg:value="&amp;OptionDialog.CheckBox2.Label" dlg:valign="center" dlg:checked="false">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SystemTable" script:language="UNO"/>
     </dlg:checkbox>
     <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine2" dlg:tab-index="12" dlg:left="6" dlg:top="163" dlg:width="244" dlg:height="15" dlg:help-text="&amp;OptionDialog.FixedLine2.HelpText" dlg:value="&amp;OptionDialog.FixedLine2.Label"/>
-    <dlg:text dlg:id="Label4" dlg:tab-index="13" dlg:left="10" dlg:top="180" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionDialog.Label4.HelpText" dlg:value="&amp;OptionDialog.Label4.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="14" dlg:left="155" dlg:top="180" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionDialog.CommandButton1.HelpText" dlg:value="&amp;OptionDialog.CommandButton1.Label">
+    <dlg:text dlg:id="Label4" dlg:tab-index="13" dlg:left="10" dlg:top="180" dlg:width="40" dlg:height="15" dlg:help-text="&amp;OptionDialog.Label4.HelpText" dlg:value="&amp;OptionDialog.Label4.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="14" dlg:disabled="true" dlg:left="60" dlg:top="180" dlg:width="90" dlg:height="15" dlg:help-text="&amp;OptionsDialog.ListBox1.HelpText" dlg:spin="true">
+      <dlg:menupopup>
+        <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.0" dlg:selected="true"/>
+        <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.1"/>
+        <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox1.StringItemList.2"/>
+      </dlg:menupopup>
+    </dlg:menulist>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="15" dlg:left="155" dlg:top="180" dlg:width="95" dlg:height="15" dlg:help-text="&amp;OptionDialog.CommandButton1.HelpText" dlg:value="&amp;OptionDialog.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowSetup" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>

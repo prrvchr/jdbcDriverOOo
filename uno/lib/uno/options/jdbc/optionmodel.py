@@ -27,8 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import getConfiguration
+from ...setup import canUpdatePackages
 
+from ...unotool import getConfiguration
+from ...unotool import getStringResource
+
+from ...configuration import g_extension
 from ...configuration import g_identifier
 
 import traceback
@@ -37,26 +41,35 @@ import traceback
 class OptionModel():
     def __init__(self, ctx):
         self._rebootkeys = ('ApiLevel', 'ResultSetType')
-        configkeys = ('UseCachedRowSet', 'ShowSystemTable', )
+        configkeys = ('UseCachedRowSet', 'ShowSystemTable', 'SetupUpdate')
         self._keys = self._rebootkeys + configkeys
+        self._update = canUpdatePackages()
         self._config = getConfiguration(ctx, g_identifier, True)
         self._settings = self._getSettings()
         self._agent = False
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionDialog')
+        self._resources = {'SetupLabel': 'OptionDialog.FixedLine2.Label'}
 
 # OptionModel getter methods
+    def getViewData(self):
+        return self._getSetupLabel(), self._update
+
     def getInitData(self, state):
         self._settings = self._getSettings()
         level = self._settings.get('ApiLevel')
-        rst = self._settings.get('ResultSetType')
         crs = self._settings.get('UseCachedRowSet')
         system = self._settings.get('ShowSystemTable')
+        rst = self._settings.get('ResultSetType')
         enabled = self._isRowSetEnabled(level)
-        return level, crs, system, rst, enabled, state
+        setup = self._settings.get('SetupUpdate')
+        self._agent = state.agent
+        return level, crs, system, rst, enabled, setup, state
 
     def getRefreshData(self, state):
         level = self._settings.get('ApiLevel')
         rst = self._settings.get('ResultSetType')
         enabled = self._isRowSetEnabled(level)
+        self._agent = state.agent
         return rst, enabled, state
 
     def getConfigApiLevel(self):
@@ -77,7 +90,9 @@ class OptionModel():
     def setSystemTable(self, state):
         self._settings['ShowSystemTable'] = bool(state)
 
-    def saveSetting(self):
+    def saveSetting(self, setup):
+        if self._update:
+            self._settings['SetupUpdate'] = setup
         reboot = False
         for key in self._keys:
             if key != 'ResultSetType' or self._agent:
@@ -99,4 +114,8 @@ class OptionModel():
 
     def _isRowSetEnabled(self, level):
         return level != 0
+
+    def _getSetupLabel(self):
+        resource = self._resources.get('SetupLabel')
+        return self._resolver.resolveString(resource).format(extension=g_extension)
 

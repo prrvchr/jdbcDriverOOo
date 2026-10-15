@@ -53,7 +53,7 @@ class OptionManager():
         self._model = OptionModel(ctx)
         self._logmanager = LogManager(ctx, window, 'requirements.txt', logger, *loggers)
         self._logmanager.initView()
-        self._view = OptionView(ctx, window, WindowHandler(self))
+        self._view = OptionView(ctx, window, WindowHandler(self), *self._model.getViewData())
 
     def init(self, state):
         self._view.initView(*self._model.getInitData(state))
@@ -73,12 +73,11 @@ class OptionManager():
 # OptionManager setter methods
     def saveSetting(self):
         saved = self._logmanager.saveSetting()
-        saved |= self._model.saveSetting()
+        saved |= self._model.saveSetting(self._view.getSetup())
         return saved
 
     def loadSetting(self):
         self._logmanager.loadSetting()
-        self._initView()
 
     def setApiLevel(self, level):
         enabled = self._model.setApiLevel(level)
