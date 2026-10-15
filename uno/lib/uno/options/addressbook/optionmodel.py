@@ -52,17 +52,8 @@ class OptionModel():
         return self._config.getByName('AddressBookName')
 
 # OptionModel getter methods
-    def getInitData(self, *args):
-        return self._Timeout, self._ViewName, self._hasDatasource(*args)
-
-    def getRefreshData(self, *args):
-        return self._hasDatasource(*args)
-
-    def getTimeout(self):
-         return self._Timeout
-
-    def getViewName(self):
-        return self._ViewName
+    def getInitData(self, state):
+        return self._Timeout, self._ViewName, state
 
     def getDataSourceUrl(self):
         return self._url
@@ -85,8 +76,4 @@ class OptionModel():
             self._config.commitChanges()
             return True
         return False
-
-# OptionModel private getter methods
-    def _hasDatasource(self, extension, java, agent, database, python):
-        return database
 

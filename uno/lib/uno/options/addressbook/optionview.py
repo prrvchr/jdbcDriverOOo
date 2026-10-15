@@ -47,26 +47,14 @@ class OptionView():
         return int(self._getTimeout().Value), self._getViewName().Text
 
 # OptionView setter methods
-    def initView(self, timeout, view, enabled):
+    def initView(self, timeout, view, state):
         self._getTimeout().Value = timeout
-        self._getDatasource().Model.Enabled = enabled
-        self._setViewName(view, not enabled)
-
-    def refreshView(self, enabled):
-        self._getDatasource().Model.Enabled = enabled
-
-    def setTimeout(self, timeout):
-        self._getTimeout().Value = timeout
-
-    def setViewName(self, view):
         self._getViewName().Text = view
+        self.refreshView(state)
 
-# OptionView private setter methods
-    def _setViewName(self, view, disabled):
-        self._getViewLabel().Model.Enabled = disabled
-        control = self._getViewName()
-        control.Model.Enabled = disabled
-        control.Text = view
+    def refreshView(self, state):
+        self._getDatasource().Model.Enabled = state.database
+        self._getViewName().Model.Enabled = not state.database
 
 # OptionView private control methods
     def _getTimeout(self):

@@ -55,11 +55,11 @@ class OptionManager():
         self._logger.logprb(INFO, 'OptionManager', '__init__()', 301)
         self._model.loadDriver()
 
-    def init(self, extension, java, agent, database, python):
-        self._view.initView(*self._model.getInitData(extension, java, agent, database, python))
+    def init(self, state):
+        self._view.initView(*self._model.getInitData(state))
 
-    def refresh(self, extension, java, agent, database, python):
-        self._view.refreshView(self._model.getRefreshData(extension, java, agent, database, python))
+    def refresh(self, state):
+        self._view.refreshView(state)
 
     def loadSetting(self):
         self._logmanager.loadSetting()

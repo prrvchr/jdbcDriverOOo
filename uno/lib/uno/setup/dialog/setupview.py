@@ -70,12 +70,8 @@ class SetupView():
     def getWindowPosition(self):
         window = self._frame.getContainerWindow()
         if self._dialog:
-            pos = getDialogPosition(self._dialog, window)
-            print("SetupView.getDialogPosition() x: %s - y: %s" % (pos.X, pos.Y))
-        else:
-            pos = getWindowPosition(window)
-            print("SetupView.getWindowPosition() x: %s - y: %s" % (pos.X, pos.Y))
-        return pos
+            return getDialogPosition(self._dialog, window)
+        return getWindowPosition(window)
 
     def getTraceBack(self):
         return self._getErrorText().Text
