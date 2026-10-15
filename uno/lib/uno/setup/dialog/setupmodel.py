@@ -93,6 +93,9 @@ class SetupModel():
     def getViewData(self):
         return self._getDialogPosition(), self._getTitle(), self._getHeader(1, extension=g_extension)
 
+    def getDataBasePath(self):
+        return self._database.path if self.hasDataBase() else None
+
     def setCheckExtension(self):
         self._check = Extension(self._ctx, self._extensions)
 
@@ -119,6 +122,9 @@ class SetupModel():
     def startCheck(self, callback, progress, cancel):
         runner = Runner(self._ctx, self._check, callback, progress, cancel)
         runner.start()
+
+    def hasDataBase(self):
+        return self._database is not None
 
     def hasPython(self):
         return self._python

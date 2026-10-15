@@ -64,7 +64,7 @@ class SetupState:
         return State.restart
 
     @property
-    def isperfect(self) -> bool:
+    def runnable(self) -> bool:
         return all([self.extension, self.java, self.agent, self.python]) and not self.restart
 
     @property

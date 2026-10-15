@@ -42,7 +42,7 @@ class Extension(Check):
         self.total = len(extensions)
         self.label1 = self.resolver.resolveString(111)
         self.label2 = self.resolver.resolveString(112)
-        self.steps = self._getCheckStep(extensions)
+        self.steps = self._getCheckStep(ctx, extensions)
 
     def getHeader(self, **kwargs):
         return self.resolver.resolveString(121).format(**kwargs)
@@ -55,18 +55,18 @@ class Extension(Check):
     def callback(self, callback, success=True, error=None):
         callback(self._getSuccess(success), error)
 
-    def stepCheckExtension(self, identifier, infos):
-        if checkExtension(self._ctx, identifier, *infos):
-            self._present.append(infos)
+    def stepCheckExtension(self, ctx, identifier, name, version):
+        if checkExtension(ctx, identifier, name, version):
+            self._present.append((name, version))
         else:
-            self._absent.append(infos)
+            self._absent.append((name, version))
 
-    def _getCheckStep(self, extensions):
+    def _getCheckStep(self, ctx, extensions):
         for identifier, infos in extensions.items():
-            yield self._getStepCheckExtension(identifier, infos)
+            yield self._getStepCheckExtension(ctx, identifier, *infos)
 
-    def _getStepCheckExtension(self, identifier, infos):
-        return 131, infos, self.stepCheckExtension, identifier, infos
+    def _getStepCheckExtension(self, ctx, identifier, name, version):
+        return 131, (name, version), self.stepCheckExtension, ctx, identifier, name, version
 
     def _getHeader(self, success):
         code = 142 if success else 141

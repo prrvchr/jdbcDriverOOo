@@ -34,6 +34,7 @@ from com.sun.star.awt import Rectangle
 from com.sun.star.awt import Size
 
 from com.sun.star.awt.PosSize import POSSIZE
+from com.sun.star.awt.PosSize import SIZE
 
 from com.sun.star.awt.MessageBoxType import ERRORBOX
 
@@ -421,9 +422,57 @@ def getTopWindow(ctx, name, rectangle=None, parent=None, modal=TOP, attrs=BORDER
     getDesktop(ctx).getFrames().append(frame)
     return frame
 
+def getDialogPosition(dialog, window):
+    size = window.getPosSize()
+    pos = dialog.convertPointToLogic(Point(size.X, size.Y), APPFONT)
+    x = dialog.Model.PositionX + pos.X
+    y = dialog.Model.PositionY + pos.Y
+    return Point(x, y)
+
+def setDialogPosition(ctx, dialog, window, point, titlebar=9):
+    x, y = _getPosition(ctx, dialog, point)
+    size = window.getPosSize()
+    pos = dialog.convertPointToLogic(Point(size.X, size.Y), APPFONT)
+    dialog.Model.PositionX = x - pos.X
+    dialog.Model.PositionY = y - pos.Y - titlebar
+
 def getWindowPosition(window):
     size = window.getPosSize()
-    return Point(size.X, size.Y)
+    return window.convertPointToLogic(Point(size.X, size.Y), APPFONT)
+
+def setWindowPosition(ctx, window, dialog, point, title):
+    x, y = _getPosition(ctx, dialog, point)
+    size = dialog.convertSizeToPixel(Size(dialog.Model.Width, dialog.Model.Height), APPFONT)
+    point = dialog.convertPointToPixel(Point(x, y), APPFONT)
+    window.getContainerWindow().setPosSize(point.X, point.Y, size.Width, size.Height, POSSIZE)
+    window.setTitle(title)
+    # FIXME: If the window loads before the desktop, it should not be made visible.
+    if getDesktop(ctx).getCurrentFrame() is not None:
+        window.getContainerWindow().setVisible(True)
+    dialog.setVisible(True)
+
+def _getPosition(ctx, dialog, point):
+    area = getToolKit(ctx).getWorkArea()
+    size = dialog.convertSizeToLogic(Size(area.Width, area.Height), APPFONT)
+    width = dialog.Model.Width
+    height = dialog.Model.Height
+    if 0 <= point.X <= (size.Width - width) and 0 <= point.Y <= (size.Height - height):
+        x = point.X
+        y = point.Y
+    else:
+        x = (size.Width - width) // 2
+        y = (size.Height - height) // 2
+    x = max(0, min(x, size.Width - width))
+    y = max(0, min(y, size.Height - height))
+    return x, y
+
+def getDialogSize(ctx, extension, xdl, point=None, unit=APPFONT):
+    dialog = getDialog(ctx, extension, xdl)
+    size = dialog.convertSizeToPixel(Size(dialog.Model.Width, dialog.Model.Height), unit)
+    dialog.dispose()
+    if point is None:
+        point = Point(0, 0)
+    return Rectangle(point.X, point.Y, size.Width, size.Height)
 
 def saveWindowPosition(config, position, property):
     if config.hasByName(property):
@@ -431,30 +480,15 @@ def saveWindowPosition(config, position, property):
         uno.invoke(config, 'replaceByName', (property, any))
         config.commitChanges()
 
-def setWindowPosition(ctx, window, dialog, point, title):
-    screen = getToolKit(ctx).getWorkArea()
-    frame = getDesktop(ctx).getCurrentFrame()
-    size = dialog.convertSizeToPixel(Size(dialog.Model.Width, dialog.Model.Height), APPFONT)
-    if 0 <= point.X <= screen.Width - size.Width and 0 <= point.Y <= screen.Height - size.Height:
-        x, y = point.X, point.Y
-    else:
-        x, y = _getWindowPosition(frame, screen, size)
-    x = max(0, min(x, screen.Width - size.Width))
-    y = max(0, min(y, screen.Height - size.Height))
-    window.getContainerWindow().setPosSize(x, y, size.Width, size.Height, POSSIZE)
-    window.setTitle(title)
-    # FIXME: If the window loads before the desktop, it should not be made visible.
-    if frame is not None:
-        window.getContainerWindow().setVisible(True)
-    dialog.setVisible(True)
+def getWindowHeight(window, offset):
+    size = window.getPosSize()
+    point = window.convertPointToPixel(Point(0, offset), APPFONT)
+    return Point(size.Height, size.Height + point.Y)
 
-def _getWindowPosition(frame, screen, size):
-    area = screen
-    if frame is not None:
-        area = frame.getContainerWindow().getPosSize()
-    x = area.X + ((area.Width - size.Width) // 2)
-    y = area.Y + ((area.Height - size.Height) // 2)
-    return x, y
+def setWindowHeight(frame, height):
+    window = frame.getContainerWindow()
+    size = window.getPosSize()
+    window.setPosSize(0, 0, size.Width, height, SIZE)
 
 def getContainerWindow(ctx, parent, handler, identifier, xdl):
     service = 'com.sun.star.awt.ContainerWindowProvider'

@@ -36,6 +36,7 @@ from .setupstate import SetupState
 from ..unotool import getCallBack
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
+from ..unotool import getStringResource
 
 from .helper import checkAgent
 from .helper import checkExtension
@@ -46,6 +47,7 @@ from .helper import getRequirementsUrl
 from .helper import getSetupUpdateMode
 
 from ..configuration import g_identifier
+from ..configuration import g_resource
 
 from threading import Timer
 import traceback
@@ -53,28 +55,38 @@ import traceback
 
 class SetupCheck(unohelper.Base,
                  XCallback):
-    def __init__(self, ctx, callback, database=None, java=None, agent=None, python=False, **extensions):
+    def __init__(self, ctx, callback, /, database=None, java=None, agent=None, python=False, *, progress=None,  **extensions):
         self._ctx = ctx
         self._callback = callback
+        self._progress = progress
+        self._resolver = getStringResource(ctx, g_identifier, g_resource, 'SetupCheck') if progress else None
         self._asyncCall = getCallBack(ctx)
         self._state = SetupState()
+        self._step = 0
+        self._total = len(extensions) + sum(1 for x in (database, java, java, java and agent, python) if x)
         self._steps = self._getCheckStep(ctx, database, java, agent, python, extensions)
 
     def start(self):
+        if self._progress:
+            self._progress.start(self._resolver.resolveString(111), self._total)
         Timer(0.1, self._call).start()
 
     def notify(self, data):
         try:
-            call, *args = next(self._steps)
-            call(*args)
+            resource, args, call, *kwargs = next(self._steps)
+            call(*kwargs)
+            if self._progress:
+                self._step += 1
+                self._progress.setText(self._resolver.resolveString(resource) % args)
+                self._progress.setValue(self._step)
             Timer(0.1, self._call).start()
         except StopIteration:
             self._callback(self._state)
         except Exception as e:
             self._callback(SetupState(False))
 
-    def stepCheckExtension(self, ctx, identifier, infos):
-        self._state.extension &= checkExtension(ctx, identifier, *infos)
+    def stepCheckExtension(self, ctx, identifier, name, version):
+        self._state.extension &= checkExtension(ctx, identifier, name, version)
 
     def stepCheckJavaStatus(self, ctx):
         self._state.jcode = getJavaStatus(ctx)
@@ -99,7 +111,7 @@ class SetupCheck(unohelper.Base,
     def _getCheckStep(self, ctx, database, java, agent, python, extensions):
         if extensions:
             for identifier, infos in extensions.items():
-                yield self._getStepCheckExtension(ctx, identifier, infos)
+                yield self._getStepCheckExtension(ctx, identifier, *infos)
         if java:
             yield self._getStepCheckJavaStatus(ctx)
             if self._state.java:
@@ -114,23 +126,23 @@ class SetupCheck(unohelper.Base,
     def _call(self):
        self._asyncCall.addCallback(self, None)
 
-    def _getStepCheckExtension(self, ctx, identifier, infos):
-        return self.stepCheckExtension, ctx, identifier, infos
+    def _getStepCheckExtension(self, ctx, identifier, name, version):
+        return 121, (name, version), self.stepCheckExtension, ctx, identifier, name, version
 
     def _getStepCheckJavaStatus(self, ctx):
-        return self.stepCheckJavaStatus, ctx
+        return 131, (), self.stepCheckJavaStatus, ctx
 
     def _getStepCheckJavaVersion(self, ctx, extension, version, script):
-        return self.stepCheckJavaVersion, ctx, extension, version, script
+        return 141, (version, ), self.stepCheckJavaVersion, ctx, extension, version, script
 
     def _getStepCheckJavaAgent(self, ctx, service, url, agent):
-        return self.stepCheckJavaAgent, ctx, service, url, agent
+        return 151, (), self.stepCheckJavaAgent, ctx, service, url, agent
 
     def _getStepCheckDataBase(self, ctx, database):
-        return self.stepCheckDataBase, ctx, database
+        return 161, (database, ), self.stepCheckDataBase, ctx, database
 
     def _getStepCheckPython(self, ctx):
-        return self.stepCheckPython, ctx
+        return 171, (), self.stepCheckPython, ctx
 
     def _hasJava(self):
         return self._code == 0

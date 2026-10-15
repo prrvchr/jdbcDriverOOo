@@ -34,5 +34,7 @@ from .error import RunnerException
 
 from .listener import DispatchListener
 
+from .progress import Progress
+
 from .runner import Runner
 

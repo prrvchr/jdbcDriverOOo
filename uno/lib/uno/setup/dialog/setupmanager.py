@@ -52,7 +52,7 @@ from ...unotool import notifyDispatch
 import traceback
 
 class SetupManager():
-    def __init__(self, ctx, source, dispatch, name, /, database=None, java=None, agent=None, python=False, **extensions):
+    def __init__(self, ctx, source, /, database=None, java=None, agent=None, python=False, *, dispatch=None, frame=None, name=None, state=None, **extensions):
         self._ctx = ctx
         self._source = source
         self._dispatch = dispatch
@@ -62,9 +62,13 @@ class SetupManager():
         self._reported = False
         self._model = SetupModel(ctx, name, database, java, agent, python, extensions)
         self._listener = CloseListener(self)
-        self._view = SetupView(ctx, WindowHandler(self), self._listener, name, *self._model.getViewData())
-        self._check = SetupCheck(ctx, self.notify, database.path, java, agent, python, **extensions)
-        self._check.start()
+        self._view = SetupView(ctx, frame, WindowHandler(self), self._listener, name, *self._model.getViewData())
+        if state:
+            self.notify(state)
+        else:
+            path = self._model.getDataBasePath()
+            self._check = SetupCheck(self._ctx, self.notify, path, java, agent, python, **extensions)
+            self._check.start()
 
     def notify(self, state):
         self._running = False
@@ -72,13 +76,19 @@ class SetupManager():
         self._steps = self._buildSteps()
         self._view.enableButtons(True)
 
+    def isRunnable(self):
+        return self._view.execute()
+
+    def dispose(self):
+        self._view.dispose()
+
     def _buildSteps(self) -> list:
         steps = []
         if not self._state.extension:
             steps.append(self._checkExtension)
         if not self._state.java or not self._state.agent:
             steps.append(self._checkJava)
-        if not self._state.database:
+        if self._state.extension and self._state.java and self._model.hasDataBase():
             steps.append(self._checkDataBase)
         if self._model.hasPython():
             steps.append(self._checkPython)
@@ -93,7 +103,7 @@ class SetupManager():
             step()
             return
 
-        if self._state.isperfect or not self._steps:
+        if self._state.runnable or not self._steps:
             if not self._reported:
                 self._setReport()
                 self._reported = True
@@ -138,7 +148,7 @@ class SetupManager():
     def _dispose(self):
         if self._dispatch:
             notifyDispatch(self._source, self._dispatch)
-        self._view.dispose()
+        self._view.close(self._state.runnable)
 
     def notifyCheck(self, success, error):
         self._running = False
