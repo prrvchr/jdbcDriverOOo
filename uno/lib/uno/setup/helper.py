@@ -116,13 +116,13 @@ def getJavaStatus(ctx):
     service = 'com.sun.star.comp.stoc.JavaVirtualMachine'
     jvm = createService(ctx, service)
     if jvm is None:
-        return 5
+        return 6
     if jvm.isVMEnabled():
         return 0
-    return 4
+    return 5
 
 def getJavaVersion(ctx, error, extension, java, script):
-    results = 2, java
+    results = 3, java
     try:
         service = 'com.sun.star.script.provider.MasterScriptProviderFactory'
         factory = createService(ctx, service)
@@ -135,24 +135,22 @@ def getJavaVersion(ctx, error, extension, java, script):
             if checkVersion(version, java):
                 results = 0, version
             else:
-                results = 1, version
+                results = 2, version
     except Exception as e:
         if error:
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
-        result = 3, java
+        result = 4, java
     return results
 
 def checkAgent(ctx, service, url, agent):
-    support = False
     driver = createService(ctx, service)
     if driver:
         properties = getPropertyValueSet({agent: True})
         for info in driver.getPropertyInfo(url, properties):
-            if info.Name == agent:
-                support = info.Value != 'false'
-                break
-    return support
+            if info.Name == agent and info.Value != 'false':
+                return 0
+    return 1
 
 def isLinuxDistribution(ctx):
     if sys.platform != 'linux':

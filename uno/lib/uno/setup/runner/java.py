@@ -39,7 +39,7 @@ import traceback
 class Java(Check):
     def __init__(self, ctx, java, agent=None):
         super().__init__(ctx)
-        self._code = 4
+        self._code = 6
         self._minimum = ''
         self._version = ''
         self.total = 1
@@ -66,7 +66,7 @@ class Java(Check):
         self._code, self._version = getJavaVersion(self._ctx, True, extension, version, script)
 
     def stepCheckJavaAgent(self, service, url, agent):
-        self._agent = checkAgent(self._ctx, service, url, agent)
+        self._code = checkAgent(self._ctx, service, url, agent)
 
     def _getCheckStep(self, java, agent):
         yield self._getStepCheckJavaStatus(*java)
@@ -89,17 +89,23 @@ class Java(Check):
     def _hasJava(self):
         return self._code == 0
 
+    def _noAgent(self):
+        return self._code == 1
+
     def _getHeader(self):
         code = 261 + self._code
         return self.resolver.resolveString(code).format(version=self._version, minimum=self._minimum)
 
     def _getReport(self):
-        return self.resolver.resolveString(271), self._getResult(), False
+        code = 271 if self._noAgent() else 272
+        return self.resolver.resolveString(code), self._getResult(), False
 
     def _getResult(self):
-        if self._code:
-            return 'Java JDK version %s minimum' % self._minimum
-        return 'Java JDK version %s' % self._version
+        if self._hasJava():
+            return 'Java JDK version %s' % self._version
+        if self._noAgent():
+            return ''
+        return 'Java JDK version %s minimum' % self._minimum
 
     def _getSuccess(self, success):
         return success and self._hasJava()

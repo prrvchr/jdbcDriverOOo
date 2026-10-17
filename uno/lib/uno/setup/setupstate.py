@@ -39,15 +39,13 @@ class SetupState:
 
     extension: bool = True
     jcode: int = 0
-    agent: bool = True
     database: bool = True
     pcode: int = 0
 
     def __post_init__(self, state: bool):
         if not state:
             self.extension = False
-            self.jcode = 4
-            self.agent = False
+            self.jcode = 6
             self.database = False
             self.pcode = 2
 
@@ -65,7 +63,7 @@ class SetupState:
 
     @property
     def runnable(self) -> bool:
-        return all([self.extension, self.java, self.agent, self.python]) and not self.restart
+        return all([self.extension, self.java, self.python]) and not self.restart
 
     @property
     def step(self) -> int:
@@ -73,8 +71,6 @@ class SetupState:
             return 2
         if not self.java:
             return 2 + self.jcode
-        if not self.agent:
-            return 8
         if not self.database:
             return 9
         if not self.python:

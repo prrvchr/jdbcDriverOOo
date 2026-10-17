@@ -95,7 +95,7 @@ class SetupCheck(unohelper.Base,
         self._state.jcode, _ = getJavaVersion(ctx, False, extension, version, script)
 
     def stepCheckJavaAgent(self, ctx, service, url, agent):
-        self._state.agent = checkAgent(ctx, service, url, agent)
+        self._state.jcode = checkAgent(ctx, service, url, agent)
 
     def stepCheckDataBase(self, ctx, database):
         self._state.database = getSimpleFile(ctx).exists(database)
@@ -160,7 +160,7 @@ class SetupCheck(unohelper.Base,
             code, _ = getJavaVersion(ctx, False, *java)
             if code != 0:
                 return False
-            if agent and not checkAgent(ctx, *agent):
+            if agent and checkAgent(ctx, *agent):
                 return False
         if database and not getSimpleFile(ctx).exists(database):
             return False

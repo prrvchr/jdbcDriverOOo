@@ -86,7 +86,7 @@ class SetupManager():
         steps = []
         if not self._state.extension:
             steps.append(self._checkExtension)
-        if not self._state.java or not self._state.agent:
+        if not self._state.java:
             steps.append(self._checkJava)
         if self._state.extension and self._state.java and self._model.hasDataBase():
             steps.append(self._checkDataBase)

@@ -46,7 +46,7 @@ class OptionModel():
         self._update = canUpdatePackages()
         self._config = getConfiguration(ctx, g_identifier, True)
         self._settings = self._getSettings()
-        self._agent = False
+        self._java = False
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionDialog')
         self._resources = {'SetupLabel': 'OptionDialog.FixedLine2.Label'}
 
@@ -62,14 +62,14 @@ class OptionModel():
         rst = self._settings.get('ResultSetType')
         enabled = self._isRowSetEnabled(level)
         setup = self._settings.get('SetupUpdate')
-        self._agent = state.agent
+        self._java = state.java
         return level, crs, system, rst, enabled, setup, state
 
     def getRefreshData(self, state):
         level = self._settings.get('ApiLevel')
         rst = self._settings.get('ResultSetType')
         enabled = self._isRowSetEnabled(level)
-        self._agent = state.agent
+        self._java = state.java
         return rst, enabled, state
 
     def getConfigApiLevel(self):
@@ -78,7 +78,7 @@ class OptionModel():
 # OptionModel setter methods
     def setApiLevel(self, level):
         self._settings['ApiLevel'] = level
-        return self._agent and self._isRowSetEnabled(level)
+        return self._java and self._isRowSetEnabled(level)
 
     def setResultSetType(self, level):
         self._settings['ResultSetType'] = level
@@ -95,7 +95,7 @@ class OptionModel():
             self._settings['SetupUpdate'] = setup
         reboot = False
         for key in self._keys:
-            if key != 'ResultSetType' or self._agent:
+            if key != 'ResultSetType' or self._java:
                 value = self._settings.get(key)
                 if value != self._config.getByName(key):
                     self._config.replaceByName(key, value)

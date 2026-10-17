@@ -58,12 +58,12 @@ class OptionView():
 
     def refreshView(self, rst, enabled, state):
         self._window.Model.Step = state.step
-        if state.agent:
+        if state.java:
             self._getResultSetType(rst).State = 1
         else:
             self._getResultSetType(0).State = 1
-        self.enableResultSetType(state.agent and enabled)
-        self.enableCachedRowSet(state.agent and enabled and rst != 0)
+        self.enableResultSetType(state.java and enabled)
+        self.enableCachedRowSet(state.java and enabled and rst != 0)
 
     def enableResultSetType(self, enabled, options=(0, 1, 2)):
         for index in options:
