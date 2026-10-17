@@ -36,7 +36,6 @@ from ..helper import getOsLocation
 from ..helper import getPackageSimpleData
 from ..helper import getPackageVersionData
 from ..helper import getRequirementversion
-from ..helper import isLinuxDistribution
 from ..helper import parsePackageName
 from ..helper import parsePackageSimpleData
 from ..helper import parsePackageVersionData
@@ -44,13 +43,11 @@ from ..helper import parseRequirements
 from ..helper import getRequirementsUrl
 from ..helper import getSetupUpdateMode
 
-from ...unotool import getConfiguration
 from ...unotool import getResourceLocation
 from ...unotool import getSimpleFile
 
 from ...configuration import g_identifier
 
-import os
 import traceback
 
 
@@ -58,7 +55,6 @@ class Python(Check):
     def __init__(self, ctx):
         super().__init__(ctx)
         self._packages ={}
-        self._distro = False
         self._data = None
         self._url = None
         self._version = None
@@ -83,7 +79,6 @@ class Python(Check):
         callback(success, self._success, error)
 
     def stepGetInstalledPackages(self, ctx):
-        self._distro = isLinuxDistribution(ctx)
         self.mode = getSetupUpdateMode(ctx, g_identifier)
         self._packages = getInstalledPackages(self._location)
 
@@ -112,9 +107,6 @@ class Python(Check):
         yield self._getStepGetStepCount()
         for requirement, version1, version2 in self._parsePackages():
             if requirement.url:
-                self.packages[requirement.name] = version1, version2, None
-                self._success &= version1 == version2
-            elif self._distro and version1:
                 self.packages[requirement.name] = version1, version2, None
                 self._success &= version1 == version2
             elif not version1 or version1 != version2:
@@ -157,7 +149,7 @@ class Python(Check):
 
     def _getStepCount(self):
         for requirement, version1, version2 in self._parsePackages():
-            if requirement.url or self._distro:
+            if requirement.url:
                 continue
             if not version1 or version1 != version2:
                 yield 2

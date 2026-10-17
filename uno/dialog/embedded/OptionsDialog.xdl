@@ -30,8 +30,8 @@
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:text dlg:id="Label1" dlg:left="10" dlg:top="140" dlg:width="60" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label1.HelpText" dlg:value="&amp;OptionsDialog.Label1.Label" dlg:valign="center"/>
-    <dlg:text dlg:id="Label2" dlg:left="85" dlg:top="140" dlg:width="110" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label2.HelpText" dlg:value="&amp;OptionsDialog.Label2.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label1" dlg:left="125" dlg:top="140" dlg:width="50" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label1.HelpText" dlg:value="&amp;OptionsDialog.Label1.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label2" dlg:left="180" dlg:top="140" dlg:width="70" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label2.HelpText" dlg:value="&amp;OptionsDialog.Label2.Label" dlg:align="right" dlg:valign="center"/>
     <dlg:text dlg:style-id="0" dlg:id="Label3" dlg:tab-index="20" dlg:left="10" dlg:top="205" dlg:width="240" dlg:height="25" dlg:help-text="&amp;OptionsDialog.Label3.HelpText" dlg:value="&amp;OptionsDialog.Label3.Label" dlg:align="center" dlg:valign="center" dlg:multiline="true" dlg:tabstop="false" dlg:page="2"/>
     <dlg:text dlg:style-id="0" dlg:id="Label4" dlg:tab-index="21" dlg:left="10" dlg:top="205" dlg:width="240" dlg:height="25" dlg:help-text="&amp;OptionsDialog.Label4.HelpText" dlg:value="&amp;OptionsDialog.Label4.Label" dlg:align="center" dlg:valign="center" dlg:multiline="true" dlg:tabstop="false" dlg:page="3"/>
     <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="22" dlg:left="10" dlg:top="205" dlg:width="240" dlg:height="25" dlg:help-text="&amp;OptionsDialog.Label5.HelpText" dlg:value="&amp;OptionsDialog.Label5.Label" dlg:align="center" dlg:valign="center" dlg:multiline="true" dlg:tabstop="false" dlg:page="4"/>

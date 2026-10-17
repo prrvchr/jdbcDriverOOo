@@ -54,9 +54,11 @@ from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.utils import parse_wheel_filename
 from packaging.version import parse as pkg_parse
+import platform
 import re
 import shutil
 import sys
+import sysconfig
 import urllib.request
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
@@ -168,6 +170,10 @@ def isLinuxDistribution(ctx):
 
 def getInstalledPackages(location):
     packages = {}
+    info = sys.version_info
+    python = f'{info.major}{info.minor}'
+    ext = _getBinaryExtension()
+
     for dist in importlib.metadata.distributions():
         try:
             path = os.path.normpath(dist.locate_file(''))
@@ -177,6 +183,22 @@ def getInstalledPackages(location):
             version = dist.version
             if not package or not version:
                 continue
+
+            files = dist.files or []
+            valide = True
+            for f in files:
+                if not f.parts:
+                    continue
+                filename = f.parts[-1]
+                if filename.endswith(ext):
+                    if 'abi3' in filename:
+                        continue
+                    if python not in filename:
+                        valide = False
+                        break
+            if not valide:
+                version = '0.0.0'
+
             packages[parsePackageName(package)] = version
         except Exception:
             continue
@@ -290,9 +312,6 @@ def parsePackageSimpleData(requirement, update, data):
 def uninstallPackage(package, url):
     try:
         pythonpath = uno.fileUrlToSystemPath(url)
-        if not os.path.exists(pythonpath):
-            return
-
         roots = set()
         namespaces = set()
         depth = len(package.split('.'))
@@ -310,10 +329,26 @@ def uninstallPackage(package, url):
 
             modules = dist.files
             if modules:
+                ext = _getBinaryExtension()
                 for module in modules:
                     parts = module.parts
                     if not parts:
                         continue
+
+                    filename = parts[-1]
+                    if filename.endswith(ext):
+                        basename = filename.split('.')[0]
+                        folder = os.path.join(pythonpath, *parts[:-1])
+                        if os.path.exists(folder) and os.path.isdir(folder):
+                            for item in os.listdir(folder):
+                                if item.startswith(basename) and item.endswith(ext):
+                                    alias = os.path.join(folder, item)
+                                    try:
+                                        if os.path.isfile(alias):
+                                            os.remove(alias)
+                                    except Exception:
+                                        pass
+
                     if len(parts) == 1:
                         roots.add(parts[0])
                     else:
@@ -357,6 +392,65 @@ def installPackage(url, path):
         trace = traceback.format_exc()
         raise RunnerException(e, trace)
 
+def hasFaultySuffix():
+    system = sys.platform
+    info = sys.version_info
+    arch = platform.machine().lower()
+    version = f'{info.major}{info.minor}'
+    if system.startswith('linux'):
+        if '64' in arch and 'arm' not in arch and 'aarch' not in arch:
+            architecture = 'x86_64'
+        elif 'arm64' in arch or 'aarch64' in arch:
+            architecture = 'aarch64'
+        else:
+            architecture = arch
+        suffix = f'.cpython-{version}-{architecture}-linux-gnu.so'
+    elif system.startswith('win32'):
+        if 'arm' in arch or 'aarch' in arch:
+            architecture = 'win_arm64'
+        else:
+            is64bit = sys.maxsize > 2**32
+            architecture = 'win_amd64' if is64bit else 'win32'
+        suffix = f'.cp{version}-{architecture}.pyd'
+    elif system.startswith('darwin'):
+        suffix = f'.cpython-{version}-darwin.so'
+    else:
+        return False
+    return suffix != sysconfig.get_config_var('EXT_SUFFIX')
+
+def renamePackageSuffix(package, url):
+    try:
+        pythonpath = uno.fileUrlToSystemPath(url)
+        suffix = sysconfig.get_config_var('EXT_SUFFIX')
+        ext = _getBinaryExtension()
+        importlib.invalidate_caches()
+
+        dists = [d for d in importlib.metadata.distributions() if d.metadata['Name'] == package]
+        for dist in dists:
+            modules = dist.files
+            if not modules:
+                continue
+
+            for module in modules:
+                parts = module.parts
+                if not parts:
+                    continue
+
+                filename = parts[-1]
+                if filename.endswith(ext) and not filename.endswith(suffix):
+                    source = os.path.join(pythonpath, *parts)
+                    if os.path.exists(source):
+                        basename = filename.split('.')[0]
+                        target = os.path.join(pythonpath, *parts[:-1], basename + suffix)
+
+                        if not os.path.exists(target):
+                            shutil.copy2(source, target)
+        importlib.invalidate_caches()
+
+    except Exception as e:
+        trace = traceback.format_exc()
+        raise RunnerException(e, trace)
+
 def checkPython(url, requirements, mode):
     location = getOsLocation(url)
     packages = getInstalledPackages(location)
@@ -373,7 +467,7 @@ def checkPython(url, requirements, mode):
             for dist in dists:
                 name = dist.metadata.get('Name')
                 if name and parsePackageName(name) == package:
-                    path = os.path.normpath(dist.locate_file(""))
+                    path = os.path.normpath(dist.locate_file(''))
                     if not path.startswith(location):
                         if dist.version != version1:
                             return 3
@@ -427,7 +521,7 @@ def _getRequirementSpecs(requirement, strict):
 
 def _parseVersionUrl(url):
     parsed = urlparse(url)
-    if parsed.scheme == "version":
+    if parsed.scheme == 'version':
         return parsed.netloc
     return None
 
@@ -452,7 +546,7 @@ def _parseJavaVersion(version):
     clean = version.replace('_', '.post')
     match = re.match(r'^([0-9.]+)(.*)$', clean)
     if match:
-        basenum = match.group(1).strip(".")
+        basenum = match.group(1).strip('.')
         extra = match.group(2)
         if extra:
             extraclean = re.sub(r'[^a-zA-Z0-9.]', '', extra)
@@ -461,4 +555,7 @@ def _parseJavaVersion(version):
             else:
                 clean = basenum
     return clean
+
+def _getBinaryExtension():
+    return '.pyd' if sys.platform.startswith('win32') else '.so'
 

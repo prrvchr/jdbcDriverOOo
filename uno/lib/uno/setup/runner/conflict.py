@@ -34,7 +34,6 @@ from ..helper import getInstalledPackages
 from ..helper import getOsLocation
 from ..helper import parsePackageName
 
-from ...unotool import createService
 from ...unotool import getResourceLocation
 
 from ...configuration import g_identifier
@@ -78,51 +77,59 @@ class Conflict(Check):
             self._parse = lambda x: x
         self._packages = packages
 
-    def stepGetPackages(self, name, dist):
-        if name and parsePackageName(name) in self._packages:
-            version = self._parse(self._packages[parsePackageName(name)])
+    def stepGetPackages(self, package, dist):
+        if package and parsePackageName(package) in self._packages:
+            version = self._parse(self._packages[parsePackageName(package)])
             path = os.path.normpath(dist.locate_file(''))
             if not path.startswith(self._location):
                 if dist.version != version:
                     if not path in self._paths:
                         self._paths[path] = []
-                    self._paths[path].append((name, dist.version))
+                    self._paths[path].append((package, dist.version))
 
     def stepGetExtensions(self, ctx):
+        extensions = {}
         service = '/singletons/com.sun.star.deployment.PackageInformationProvider'
-        self._provider = ctx.getValueByName(service)
-        self._extensions = self._provider.getExtensionList()
+        provider = ctx.getValueByName(service)
+        for identifier, version in provider.getExtensionList():
+            location = getOsLocation(provider.getPackageLocation(identifier))
+            extensions[getExtensionName(location, identifier)] = location
+        self._extensions = extensions
 
-    def stepGetResults(self, identifier):
-        location = getOsLocation(self._provider.getPackageLocation(identifier))
-        for path in self._paths:
+    def stepGetResults(self, path, package, version):
+        for name, location in self._extensions.items():
             if path.startswith(location):
-                self._results[getExtensionName(location, identifier)] = self._paths[path]
+                if name not in self._results:
+                    self._results[name] = []
+                self._results[name].append((package, version))
+                break
+        else:
+            if path not in self._results:
+                self._results[path] = []
+            self._results[path].append((package, version))
 
     def _getCheckStep(self, ctx, dists, packages, url):
         yield self._getStepInitialize(ctx, packages, url)
         for dist in dists:
             yield self._getStepGetPackages(dist)
         if self._paths:
-            self.total += 1
+            self.total += len(self._paths) + 1
             yield self._getStepGetExtensions(ctx)
-            if self._extensions:
-                self.total += len(self._extensions)
-                for identifier, version in self._extensions:
-                    yield self._getStepGetResults(identifier)
+            for path, data in self._paths.items():
+                yield self._getStepGetResults(path, *data)
 
     def _getStepInitialize(self, ctx, packages, url):
         return 531, (), self.stepInitialize, ctx, packages, url
 
     def _getStepGetPackages(self, dist):
-        name = dist.metadata.get('Name')
-        return 541, (name, ), self.stepGetPackages, name, dist
+        package = dist.metadata.get('Name')
+        return 541, (package, ), self.stepGetPackages, package, dist
 
     def _getStepGetExtensions(self, ctx):
         return 551, (), self.stepGetExtensions, ctx
 
-    def _getStepGetResults(self, identifier):
-        return 561, (), self.stepGetResults, identifier
+    def _getStepGetResults(self, path, package, version):
+        return 561, (package, ), self.stepGetResults, path, package, version
 
     def _getHeader(self):
         return self.resolver.resolveString(571)

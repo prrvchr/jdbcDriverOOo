@@ -31,10 +31,10 @@ from .check import Check
 
 from ..helper import checkPython
 from ..helper import getRequirementsUrl
+from ..helper import hasFaultySuffix
 from ..helper import installPackage
+from ..helper import renamePackageSuffix
 from ..helper import uninstallPackage
-
-from ...unotool import getSimpleFile
 
 import traceback
 
@@ -48,8 +48,9 @@ class Pypi(Check):
         self._path = url + '/service/pythonpath'
         self._mode = mode
         self._state = state
+        self._fautly = False
         self.packages = {}
-        self.total = 0
+        self.total = 2
         self.label1 = self.resolver.resolveString(411)
         self.label2 = self.resolver.resolveString(412)
         self.steps = self._getCheckStep(packages)
@@ -77,15 +78,15 @@ class Pypi(Check):
         else:
             self._aborted[package] = version
 
+    def stepRenamePackage(self, package):
+        renamePackageSuffix(package, self._path)
+
     def stepSetPythonCode(self, packages):
         requirements = getRequirementsUrl(self._url)
         self._state.pcode = checkPython(self._url, requirements, self._mode)
         self.packages = packages
 
     def _getCheckStep(self, packages):
-        if not getSimpleFile(self._ctx).exists(self._path):
-            return
-        self.total += 1
         yield self._getStepGetStepCount(packages)
         for package, data in packages.items():
             version1, version2, url = data
@@ -93,6 +94,8 @@ class Pypi(Check):
                 if version1:
                     yield self._getStepUninstallPackage(package)
                 yield self._getStepInstallPackage(package, version2, url)
+                if self._fautly:
+                    yield self._getStepRenamePackage(package)
         yield self._getStepSetPythonCode(packages)
 
     def _getStepGetStepCount(self, packages):
@@ -104,17 +107,24 @@ class Pypi(Check):
     def _getStepInstallPackage(self, package, version, url):
         return 451, (package, ), self.stepInstallPackage, package, version, url
 
+    def _getStepRenamePackage(self, package):
+        return 461, (package, ), self.stepRenamePackage, package
+
     def _getStepSetPythonCode(self, packages):
-        return 461, (), self.stepSetPythonCode, packages
+        return 471, (), self.stepSetPythonCode, packages
 
     def _getStepCount(self, packages):
+        self._fautly = hasFaultySuffix()
         for package, data in packages.items():
             version1, version2, url = data
             if version1 != version2:
-                yield 2 if version1 else 1
+                if self._fautly:
+                    yield 3 if version1 else 2
+                else:
+                    yield 2 if version1 else 1
 
     def _getHeader(self, success):
-        code = 461 if success else 462
+        code = 481 if success else 482
         return self.resolver.resolveString(code)
 
     def _getReport(self, success):
