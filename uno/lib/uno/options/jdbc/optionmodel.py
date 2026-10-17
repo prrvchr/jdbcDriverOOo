@@ -40,8 +40,8 @@ import traceback
 
 class OptionModel():
     def __init__(self, ctx):
-        self._rebootkeys = ('ApiLevel', 'ResultSetType')
-        configkeys = ('UseCachedRowSet', 'ShowSystemTable', 'SetupUpdate')
+        self._rebootkeys = ('ApiLevel', )
+        configkeys = ('ResultSetType', 'ShowSystemTable', 'SetupUpdate', 'UseCachedRowSet')
         self._keys = self._rebootkeys + configkeys
         self._update = canUpdatePackages()
         self._config = getConfiguration(ctx, g_identifier, True)

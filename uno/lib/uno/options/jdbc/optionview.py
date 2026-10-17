@@ -57,7 +57,6 @@ class OptionView():
         self.refreshView(rst, enabled, state)
 
     def refreshView(self, rst, enabled, state):
-        self._window.Model.Step = state.step
         if state.java:
             self._getResultSetType(rst).State = 1
         else:

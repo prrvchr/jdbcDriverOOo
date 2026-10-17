@@ -61,20 +61,20 @@ class OptionsManager():
         self._extensions = getExtensions()
         self._model = OptionsModel(ctx, logger, url)
         self._manager = Manager(ctx, window, DispatchListener(self), g_defaultlog)
-        self._view = OptionsView(window)
+        self._view = OptionsView(window, self._model.getViewData())
         window.addEventListener(OptionsListener(self))
         self._loadView(self.init)
 
     def init(self, state):
         self._manager.init(state)
-        self._view.initView(state)
+        self._view.refreshView(state)
         if state.java:
             version = self._model.getDriverVersion(self._getConfigApiLevel())
             self._view.setDriverVersion(version)
 
     def refresh(self, state):
         self._manager.refresh(state)
-        self._view.initView(state)
+        self._view.refreshView(state)
 
     def dispose(self):
         self._manager.dispose()

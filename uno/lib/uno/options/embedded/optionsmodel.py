@@ -33,6 +33,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.uno import Exception as UnoException
 
 from ..unotool import createService
+from ..unotool import getStringResource
 
 from ..jdbcdriver import g_service as jdbc
 
@@ -47,9 +48,14 @@ class OptionsModel():
         self._ctx = ctx
         self._url = url
         self._logger = logger
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
+        self._resources = {'Links': 'OptionsDialog.Hyperlink%s.Url'}
         self._logger.logprb(INFO, 'OptionsModel', '__init__', 401)
 
 # OptionsModel getter methods
+    def getViewData(self):
+        return self._getLinks()
+
     def getDriverVersion(self, apilevel):
         driver = None
         version = 'N/A'
@@ -66,4 +72,11 @@ class OptionsModel():
             if driver is not None:
                 self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 102, g_service, apilevel, e.Message)
         return version
+
+    def _getLinks(self):
+        links = []
+        for i in range(1, 2):
+            resource = self._resources.get('Links') % i
+            links.append(self._resolver.resolveString(resource))
+        return tuple(links)
 

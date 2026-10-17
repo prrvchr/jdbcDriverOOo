@@ -31,11 +31,13 @@ import traceback
 
 
 class OptionsView():
-    def __init__(self, window):
+    def __init__(self, window, links):
         self._window = window
+        for i, link in enumerate(links, start=1):
+            self._getLink(i).URL = link
 
 # OptionsView setter methods
-    def initView(self, state):
+    def refreshView(self, state):
         self._window.Model.Step = state.step
 
     def setDriverVersion(self, version):
@@ -44,4 +46,7 @@ class OptionsView():
 # OptionsView private control methods
     def _getVersion(self):
         return self._window.getControl('Label2')
+
+    def _getLink(self, index):
+        return self._window.getControl(f'Hyperlink{index}')
 
