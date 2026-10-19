@@ -37,8 +37,8 @@ import traceback
 
 
 class Java(Check):
-    def __init__(self, ctx, java, agent=None):
-        super().__init__(ctx)
+    def __init__(self, ctx, callback, java, agent=None):
+        super().__init__(ctx, callback)
         self._code = 6
         self._minimum = ''
         self._version = ''
@@ -55,8 +55,8 @@ class Java(Check):
             reports.append(self._getReport())
         return self._getHeader(), self._getResult()
 
-    def callback(self, callback, success=True, error=None):
-        callback(self._getSuccess(success), error)
+    def callback(self, success=True, error=None):
+        self._callback(self._getSuccess(success), error)
 
     def stepCheckJavaStatus(self, extension, version, script):
         self._minimum = version

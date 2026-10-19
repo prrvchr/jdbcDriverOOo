@@ -96,31 +96,31 @@ class SetupModel():
     def getDataBasePath(self):
         return self._database.path if self.hasDataBase() else None
 
-    def setCheckExtension(self):
-        self._check = Extension(self._ctx, self._extensions)
+    def setCheckExtension(self, callback):
+        self._check = Extension(self._ctx, callback, self._extensions)
 
-    def setCheckJava(self):
-        self._check = Java(self._ctx, self._java, self._agent)
+    def setCheckJava(self, callback):
+        self._check = Java(self._ctx, callback, self._java, self._agent)
 
-    def setCheckDataBase(self):
-        self._check = self._database
+    def setCheckDataBase(self, callback):
+        self._check = self._database.withCallback(callback)
 
-    def setCheckPython(self):
-        self._check = Python(self._ctx)
+    def setCheckPython(self, callback):
+        self._check = Python(self._ctx, callback)
 
     def setPythonData(self):
         self._packages = self._check.packages
         self._url = self._check.url
         self._mode = self._check.mode
 
-    def setCheckPypi(self, state):
-        self._check = Pypi(self._ctx, self._packages, self._url, self._mode, state)
+    def setCheckPypi(self, callback, state):
+        self._check = Pypi(self._ctx, callback, self._packages, self._url, self._mode, state)
 
-    def setCheckConflict(self):
-        self._check = Conflict(self._ctx, self._packages, self._url)
+    def setCheckConflict(self, callback):
+        self._check = Conflict(self._ctx, callback, self._packages, self._url)
 
-    def startCheck(self, callback, progress, cancel):
-        runner = Runner(self._ctx, self._check, callback, progress, cancel)
+    def startCheck(self, progress, cancel):
+        runner = Runner(self._ctx, self._check, progress, cancel)
         runner.start()
 
     def hasDataBase(self):

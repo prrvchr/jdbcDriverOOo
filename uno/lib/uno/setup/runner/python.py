@@ -53,8 +53,8 @@ import traceback
 
 
 class Python(Check):
-    def __init__(self, ctx):
-        super().__init__(ctx)
+    def __init__(self, ctx, callback):
+        super().__init__(ctx, callback)
         self._packages ={}
         self._data = None
         self._url = None
@@ -80,8 +80,8 @@ class Python(Check):
             reports.append((self._getReport(), result, False))
         return self._getHeader(success), result
 
-    def callback(self, callback, success=True, error=None):
-        callback(success, self._success, self._internet, error)
+    def callback(self, success=True, error=None):
+        self._callback(success, self._success, self._internet, error)
 
     def stepGetInstalledPackages(self, ctx):
         self.mode = getSetupUpdateMode(ctx, g_identifier)
