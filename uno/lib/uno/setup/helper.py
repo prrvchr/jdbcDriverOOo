@@ -121,7 +121,7 @@ def getJavaStatus(ctx):
         return 0
     return 5
 
-def getJavaVersion(ctx, error, extension, java, script):
+def getJavaVersion(ctx, extension, java, script, error=False):
     results = 3, java
     try:
         service = 'com.sun.star.script.provider.MasterScriptProviderFactory'

@@ -92,7 +92,7 @@ class SetupCheck(unohelper.Base,
         self._state.jcode = getJavaStatus(ctx)
 
     def stepCheckJavaVersion(self, ctx, extension, version, script):
-        self._state.jcode, _ = getJavaVersion(ctx, False, extension, version, script)
+        self._state.jcode, _ = getJavaVersion(ctx, extension, version, script)
 
     def stepCheckJavaAgent(self, ctx, service, url, agent):
         self._state.jcode = checkAgent(ctx, service, url, agent)
@@ -157,7 +157,7 @@ class SetupCheck(unohelper.Base,
             code = getJavaStatus(ctx)
             if code != 0:
                 return False
-            code, _ = getJavaVersion(ctx, False, *java)
+            code, _ = getJavaVersion(ctx, *java)
             if code != 0:
                 return False
             if agent and checkAgent(ctx, *agent):
