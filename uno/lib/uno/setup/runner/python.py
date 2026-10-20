@@ -53,7 +53,7 @@ import traceback
 
 
 class Python(Check):
-    def __init__(self, ctx, callback):
+    def __init__(self, ctx, callback, mode):
         super().__init__(ctx, callback)
         self._packages ={}
         self._data = None
@@ -64,7 +64,7 @@ class Python(Check):
         self.url = getResourceLocation(ctx, g_identifier)
         self._location = getOsLocation(self.url)
         self._requirements = getRequirementsUrl(self.url)
-        self.mode = 0
+        self.mode = mode
         self.packages = {}
         self.total = 2
         self.label1 = self.resolver.resolveString(30101)
@@ -84,7 +84,8 @@ class Python(Check):
         self._callback(success, self._success, self._internet, error)
 
     def stepGetInstalledPackages(self, ctx):
-        self.mode = getSetupUpdateMode(ctx, g_identifier)
+        if self.mode is None:
+            self.mode = getSetupUpdateMode(ctx, g_identifier)
         self._packages = getInstalledPackages(self._location)
 
     def stepGetStepCount(self):

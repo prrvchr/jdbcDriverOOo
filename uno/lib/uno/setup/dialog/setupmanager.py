@@ -52,7 +52,7 @@ from ...unotool import notifyDispatch
 import traceback
 
 class SetupManager():
-    def __init__(self, ctx, source, /, database=None, java=None, agent=None, python=False, *, dispatch=None, frame=None, name=None, state=None, **extensions):
+    def __init__(self, ctx, source, /, database=None, java=None, agent=None, python=False, extensions=None, *, dispatch=None, mode=None, frame=None, name=None, state=None):
         self._ctx = ctx
         self._source = source
         self._dispatch = dispatch
@@ -60,14 +60,14 @@ class SetupManager():
         self._running = True
         self._steps = None
         self._reported = False
-        self._model = SetupModel(ctx, name, database, java, agent, python, extensions)
+        self._model = SetupModel(ctx, name, database, java, agent, python, extensions, mode)
         self._listener = CloseListener(self)
         self._view = SetupView(ctx, frame, WindowHandler(self), self._listener, name, *self._model.getViewData())
         if state:
             self.notify(state)
         else:
             path = self._model.getDataBasePath()
-            self._check = SetupCheck(self._ctx, self.notify, path, java, agent, python, **extensions)
+            self._check = SetupCheck(self._ctx, self.notify, path, java, agent, python, extensions)
             self._check.start()
 
     def notify(self, state):

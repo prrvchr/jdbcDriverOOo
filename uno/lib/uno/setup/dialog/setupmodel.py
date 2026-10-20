@@ -51,7 +51,7 @@ import traceback
 
 
 class SetupModel():
-    def __init__(self, ctx, name, database, java, agent, python, extensions):
+    def __init__(self, ctx, name, database, java, agent, python, extensions, mode):
         self._ctx = ctx
         self._name = name
         self._extensions = extensions
@@ -62,7 +62,7 @@ class SetupModel():
         self._check = None
         self._packages = None
         self._url = None
-        self._mode = 0
+        self._mode = mode
         self._reports = []
         self._position = 'SetupPosition'
         self._config = getConfiguration(ctx, g_identifier, True)
@@ -106,7 +106,7 @@ class SetupModel():
         self._check = self._database.withCallback(callback)
 
     def setCheckPython(self, callback):
-        self._check = Python(self._ctx, callback)
+        self._check = Python(self._ctx, callback, self._mode)
 
     def setPythonData(self):
         self._packages = self._check.packages

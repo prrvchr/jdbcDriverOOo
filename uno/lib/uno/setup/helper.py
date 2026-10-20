@@ -450,6 +450,7 @@ def renamePackageSuffix(package, url):
         raise RunnerException(e, trace)
 
 def checkPython(url, requirements, mode):
+    importlib.invalidate_caches()
     location = getOsLocation(url)
     packages = getInstalledPackages(location)
     dists = list(importlib.metadata.distributions())
