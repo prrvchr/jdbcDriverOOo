@@ -32,8 +32,6 @@ import unohelper
 
 from com.sun.star.container import NoSuchElementException
 
-from com.sun.star.lang import XComponent
-from com.sun.star.lang import XInitialization
 from com.sun.star.lang import IllegalArgumentException
 
 from com.sun.star.logging.LogLevel import SEVERE
