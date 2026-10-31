@@ -119,8 +119,8 @@ class SetupModel():
     def setCheckConflict(self, callback):
         self._check = Conflict(self._ctx, callback, self._packages, self._url)
 
-    def startCheck(self, progress, cancel):
-        runner = Runner(self._ctx, self._check, progress, cancel)
+    def startCheck(self, cancel, indicator):
+        runner = Runner(self._ctx, self._check, cancel, indicator)
         runner.start()
 
     def hasDataBase(self):

@@ -50,7 +50,7 @@ class Task():
     def skipSteps(self):
         return 0
 
-    def callback(self, callback, success=True, error=None):
+    def callback(self, success=True, error=None):
         pass
 
     def resolveString(self, resource, *args):

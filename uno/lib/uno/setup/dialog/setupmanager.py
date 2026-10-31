@@ -162,25 +162,25 @@ class SetupManager():
         self._running = True
         self._model.setCheckExtension(self.notifyCheck)
         self._setHeader()
-        self._model.startCheck(self._view.getIndicator(), self._cancel)
+        self._model.startCheck(self._cancel, self._view.getIndicator())
 
     def _checkJava(self):
         self._running = True
         self._model.setCheckJava(self.notifyCheck)
         self._setHeader()
-        self._model.startCheck(self._view.getIndicator(), self._cancel)
+        self._model.startCheck(self._cancel, self._view.getIndicator())
 
     def _checkDataBase(self):
         self._running = True
         self._model.setCheckDataBase(self.notifyCheck)
         self._setHeader()
-        self._model.startCheck(self._view.getIndicator(), Cancel())
+        self._model.startCheck(Cancel(), self._view.getIndicator())
 
     def _checkPython(self):
         self._running = True
         self._model.setCheckPython(self.notifyPython)
         self._setHeader()
-        self._model.startCheck(self._view.getIndicator(), self._cancel)
+        self._model.startCheck(self._cancel, self._view.getIndicator())
 
     def notifyPython(self, success, checked, internet, error):
         self._running = False
@@ -199,7 +199,7 @@ class SetupManager():
         self._running = True
         self._model.setCheckPypi(self.notifyPypi, self._state)
         self._setHeader()
-        self._model.startCheck(self._view.getIndicator(), self._cancel)
+        self._model.startCheck(self._cancel, self._view.getIndicator())
 
     def notifyPypi(self, success, error):
         self._running = False
@@ -217,7 +217,7 @@ class SetupManager():
         self._running = True
         self._model.setCheckConflict(self.notifyCheck)
         self._setHeader()
-        self._model.startCheck(self._view.getIndicator(), self._cancel)
+        self._model.startCheck(self._cancel, self._view.getIndicator())
 
     def _setHeader(self):
         if not self._cancel.isSet():

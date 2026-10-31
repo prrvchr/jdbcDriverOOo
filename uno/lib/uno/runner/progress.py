@@ -39,7 +39,7 @@ class Progress():
         if self._progress:
             self._progress.ProgressValue = 0
             self._progress.ProgressValueMax = int(value)
-            
+
         if self._label:
             self._label.Text = text
 

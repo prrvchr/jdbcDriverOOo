@@ -27,6 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .callback import CallBack
+
 from .transferable import Factory as Transferable
 
 from .resource import Resource
