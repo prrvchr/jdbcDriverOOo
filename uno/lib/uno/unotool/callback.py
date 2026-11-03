@@ -31,8 +31,6 @@ import unohelper
 
 from com.sun.star.awt import XCallback
 
-import traceback
-
 
 class CallBack(unohelper.Base,
                XCallback):
@@ -41,6 +39,5 @@ class CallBack(unohelper.Base,
         self._args = args
         self._kwargs = kwargs
 
-    def notify(self, data):
+    def notify(self, _data):
         self._call(*self._args, **self._kwargs)
-

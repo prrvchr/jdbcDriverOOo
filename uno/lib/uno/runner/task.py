@@ -32,11 +32,9 @@ from ..unotool import getStringResource
 from ..configuration import g_identifier
 from ..configuration import g_resource
 
-import traceback
-
 
 class Task():
-    def __init__(self, ctx, resource , callback=None):
+    def __init__(self, ctx, resource, callback=None):
         self._resolver = getStringResource(ctx, g_identifier, g_resource, resource)
         self._resources = {}
         self._callback = callback
@@ -81,4 +79,3 @@ class Task():
 
     def _getResource(self, resource, factor):
         return (resource // factor) * factor
-

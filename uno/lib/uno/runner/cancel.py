@@ -46,4 +46,3 @@ class Cancel():
 
     def isDisposed(self):
         return self._disposed
-

@@ -29,10 +29,7 @@
 
 from ...runner import Task
 
-import traceback
-
 
 class Setup(Task):
     def __init__(self, ctx, callback):
         super().__init__(ctx, 'SetupRunner', callback)
-

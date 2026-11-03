@@ -28,7 +28,6 @@
 """
 
 from queue import SimpleQueue
-import traceback
 
 
 class Indicators():
@@ -85,4 +84,3 @@ class Indicators():
             return
         for indicator in self._indicators:
             indicator.end()
-

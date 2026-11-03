@@ -64,7 +64,7 @@ class Runner(unohelper.Base,
     def start(self):
         self._call()
 
-    def notify(self, data):
+    def notify(self, _data):
         try:
             if self._indicators.init(self._total, self._task.step) and self._logger:
                 self._logger.logp(INFO, 'Runner', 'start', self._task.getMessage(1))
@@ -174,4 +174,3 @@ class Runner(unohelper.Base,
 
     def _getLogInfos(self, resource, msg):
         return self._task.getClass(resource), self._task.getMethod(resource), msg
-

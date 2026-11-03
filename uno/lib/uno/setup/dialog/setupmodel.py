@@ -47,8 +47,6 @@ from ...unotool import saveWindowPosition
 from ...configuration import g_extension
 from ...configuration import g_identifier
 
-import traceback
-
 
 class SetupModel():
     def __init__(self, ctx, name, database, java, agent, python, extensions, mode):
@@ -142,4 +140,3 @@ class SetupModel():
     def _getHeader(self, code, **kwargs):
         resource = self._resources.get('Header') % code
         return self._resolver.resolveString(resource).format(**kwargs)
-

@@ -35,8 +35,6 @@ from ..helper import checkAgent
 from ..helper import getJavaStatus
 from ..helper import getJavaVersion
 
-import traceback
-
 
 class Java(Setup):
     def __init__(self, ctx, callback, java, agent=None):
@@ -59,7 +57,7 @@ class Java(Setup):
     def callback(self, success=True, error=None):
         self._callback(self._getSuccess(success), error)
 
-    def stepCheckJavaStatus(self, ctx, extension, version, script):
+    def stepCheckJavaStatus(self, ctx, _extension, version, _script):
         self._minimum = version
         self._code = getJavaStatus(ctx)
 
@@ -110,4 +108,3 @@ class Java(Setup):
 
     def _getSuccess(self, success):
         return success and self._hasJava()
-

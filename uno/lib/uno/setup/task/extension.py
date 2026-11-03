@@ -33,8 +33,6 @@ from ...unotool import Resource
 
 from ..helper import checkExtension
 
-import traceback
-
 
 class Extension(Setup):
     def __init__(self, ctx, callback, extensions):
@@ -77,9 +75,8 @@ class Extension(Setup):
         return self._resolver.resolveString(10501), self._getResult(success), False
 
     def _getResult(self, success):
-        extensions =  self._present if success else self._absent
+        extensions = self._present if success else self._absent
         return '\n'.join(['%s version %s' % (name, version) for (name, version) in extensions])
 
     def _getSuccess(self, success):
         return success and len(self._absent) == 0
-
