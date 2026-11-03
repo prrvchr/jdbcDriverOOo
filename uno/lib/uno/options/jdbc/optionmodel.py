@@ -34,8 +34,6 @@ from ...unotool import getStringResource
 from ...configuration import g_extension
 from ...configuration import g_identifier
 
-import traceback
-
 
 class OptionModel():
     def __init__(self, ctx):
@@ -117,4 +115,3 @@ class OptionModel():
     def _getSetupLabel(self):
         resource = self._resources.get('SetupLabel')
         return self._resolver.resolveString(resource).format(extension=g_extension)
-
