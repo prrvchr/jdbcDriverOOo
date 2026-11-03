@@ -37,6 +37,7 @@ from com.sun.star.awt.PosSize import POSSIZE
 from com.sun.star.awt.PosSize import SIZE
 
 from com.sun.star.awt.MessageBoxType import ERRORBOX
+from com.sun.star.awt.MessageBoxType import WARNINGBOX
 
 from com.sun.star.awt.WindowAttribute import SHOW
 from com.sun.star.awt.WindowAttribute import MINSIZE
@@ -574,6 +575,14 @@ def executeFrameDispatch(ctx, frame, url, listener=None, /, *properties):
             dispatcher.dispatchWithNotification(url, properties, listener)
         else:
             dispatcher.dispatch(url, properties)
+
+def showMessageBox(ctx, code, identifier, resource, basename, /, box=WARNINGBOX, **kwargs):
+    resolver = getStringResource(ctx, identifier, resource, basename)
+    title = resolver.resolveString(code)
+    message = resolver.resolveString(code + 1).format(**kwargs)
+    dialog = createMessageBox(ctx, title, message, box=box)
+    dialog.execute()
+    dialog.dispose()
 
 def createMessageBox(ctx, title, message, box=ERRORBOX, button=1, parent=None):
     toolkit = getToolKit(ctx)

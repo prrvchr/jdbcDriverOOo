@@ -50,6 +50,12 @@ class Task():
     def skipSteps(self):
         return 0
 
+    def stepGetSkipStep(self):
+        pass
+
+    def getStepFinalize(self):
+        return None
+
     def callback(self, success=True, error=None):
         pass
 
@@ -70,8 +76,8 @@ class Task():
             return self._resolver.resolveString(resource.id).format(*args)
         return ''
 
-    def stepFinalize(self, **kwargs):
-        pass
+    def _getStepSkipStep(self, code, *args):
+        return code, args, self.stepGetSkipStep
 
     def _getResource(self, resource, factor):
         return (resource // factor) * factor

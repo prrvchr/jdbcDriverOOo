@@ -29,11 +29,11 @@
 
 import uno
 
-from ..runner import Conflict
-from ..runner import Extension
-from ..runner import Java
-from ..runner import Pypi
-from ..runner import Python
+from ..task import Conflict
+from ..task import Extension
+from ..task import Java
+from ..task import Pypi
+from ..task import Python
 
 from ...configuration import State
 

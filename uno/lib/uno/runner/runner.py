@@ -49,10 +49,10 @@ class Runner(unohelper.Base,
              XCallback):
     def __init__(self, ctx, task, cancel, indicator=None, logger=None):
         self._task = task
-        self._total = task.total
-        self._indicators = Indicators(task.getMessage(1), cancel, indicator)
         self._cancel = cancel
+        self._indicators = Indicators(task.getMessage(1), cancel, indicator)
         self._logger = logger
+        self._total = task.total
         self._asyncCall = getCallBack(ctx)
 
     def addStatusIndicator(self, indicator):
@@ -105,7 +105,7 @@ class Runner(unohelper.Base,
 
         except CancelException:
             try:
-                self._task.stepFinalize()
+                self._finalize()
                 if self._indicators.hasIndicator():
                     self._indicators.end()
                     if self._logger:
@@ -115,10 +115,11 @@ class Runner(unohelper.Base,
                 self._task.callback(False)
             except Exception:
                 print("Runner.notify() CancelException ERROR: %s" % traceback.format_exc())
+            print("Runner.notify() CancelException ERROR: %s" % traceback.format_exc())
 
         except RunnerException as e:
             try:
-                self._task.stepFinalize()
+                self._finalize()
                 if self._indicators.hasIndicator():
                     self._indicators.end()
                     if self._logger:
@@ -127,6 +128,7 @@ class Runner(unohelper.Base,
                 self._task.callback(False, e)
             except Exception:
                 print("Runner.notify() RunnerException ERROR: %s" % e.trace)
+            print("Runner.notify() RunnerException ERROR: %s" % traceback.format_exc())
 
         except Exception as e:
             try:
@@ -141,7 +143,7 @@ class Runner(unohelper.Base,
                             self._logger.logp(SEVERE, 'Runner', 'skipSteps', msg)
                     Timer(self._task.delay, self._call).start()
                 else:
-                    self._task.stepFinalize()
+                    self._finalize()
                     trace = traceback.format_exc()
                     if self._indicators.hasIndicator():
                         self._indicators.end()
@@ -151,10 +153,24 @@ class Runner(unohelper.Base,
                             self._logger.logp(SEVERE, 'Runner', 'Exception', msg)
                     self._task.callback(False, RunnerException(e, trace))
             except Exception:
-                print("Runner.notify() RunnerException ERROR: %s" % traceback.format_exc())
+                print("Runner.notify() Exception ERROR: %s" % traceback.format_exc())
+            print("Runner.notify() Exception ERROR: %s" % traceback.format_exc())
 
     def _call(self):
         self._asyncCall.addCallback(self, None)
+
+    def _finalize(self):
+        step = self._task.getStepFinalize()
+        if step is None:
+            return
+        resource, options, call, *args = step
+        call(*args)
+        if self._indicators.hasIndicator():
+            msg = self._task.resolveString(resource, *options)
+            self._indicators.setText(msg)
+            self._indicators.setValue(self._total)
+            if self._logger:
+                self._logger.logp(INFO, *self._getLogInfos(resource, msg))
 
     def _getLogInfos(self, resource, msg):
         return self._task.getClass(resource), self._task.getMethod(resource), msg
