@@ -31,8 +31,6 @@ from ...unotool import getContainerWindow
 
 from ...configuration import g_identifier
 
-import traceback
-
 
 class OptionView():
     def __init__(self, ctx, window, handler):
@@ -68,4 +66,3 @@ class OptionView():
 
     def _getViewName(self):
         return self._window.getControl('TextField1')
-

@@ -31,7 +31,6 @@ from ...unotool import createService
 
 from ...dbinit import getDataSourceUrl
 
-from ...configuration import g_identifier
 from ...configuration import g_implementation
 
 
@@ -61,8 +60,8 @@ class OptionModel():
 # OptionModel setter methods
     def loadDriver(self):
         try:
-            driver = createService(self._ctx, g_implementation)
-        except:
+            _ = createService(self._ctx, g_implementation)
+        except Exception:
             # Nothing to do the error is already logged
             pass
 
@@ -76,4 +75,3 @@ class OptionModel():
             self._config.commitChanges()
             return True
         return False
-

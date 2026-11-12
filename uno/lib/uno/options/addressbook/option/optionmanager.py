@@ -28,7 +28,6 @@
 """
 
 from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
 
 from .optionmodel import OptionModel
 
@@ -74,4 +73,3 @@ class OptionManager():
 
     def getDataSourceUrl(self):
         return self._model.getDataSourceUrl()
-

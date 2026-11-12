@@ -121,7 +121,7 @@ from .unotool import saveWindowPosSize
 from .unotool import setDialogPosition
 from .unotool import setProgress
 from .unotool import setWindowHeight
-from .unotool import setWindowPosition
+from .unotool import setWindowPosSize
 from .unotool import showMessageBox
 from .unotool import unparseDateTime
 from .unotool import unparseTimeStamp

@@ -27,10 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-
 from com.sun.star.awt import Size
-from com.sun.star.awt.PosSize import POS
 from com.sun.star.awt.PosSize import SIZE
 
 from com.sun.star.ui.dialogs.WizardButton import NEXT
@@ -41,50 +38,58 @@ from com.sun.star.ui.dialogs.WizardButton import HELP
 
 from com.sun.star.util.MeasureUnit import APPFONT
 
+from ..unotool import Layout
+from ..unotool import SubLayout
+
 from ..unotool import getContainerWindow
 from ..unotool import getDialog
 from ..unotool import getParentWindow
-from ..unotool import setWindowPosition
+from ..unotool import setWindowPosSize
 from ..unotool import getTopWindow
 
 from ..configuration import g_identifier
 
 
 class WizardView():
-    def __init__(self, ctx, handler, listener, parent, name, title, resize, point):
+    def __init__(self, ctx, handler, listener, parent, name, title, resize, possize):
         if name:
             # XXX: With a name we use a TOP XWindow
             self._frame = getTopWindow(ctx, name)
             window = self._frame.getContainerWindow()
-            self._dialog = getContainerWindow(ctx, window, handler, g_identifier, 'WizardTop')
+            self._window = getContainerWindow(ctx, window, handler, g_identifier, 'Wizard')
             # XXX: setComponent is needed if we want a StatusIndicator at the bottom
-            self._frame.setComponent(self._dialog, None)
+            self._frame.setComponent(self._window, None)
             self._frame.addCloseListener(listener)
-            setWindowPosition(ctx, window, self._dialog, point, POS)
+            setWindowPosSize(ctx, window, self._window, possize)
         else:
             # XXX: Without name we use a MODAL XDialog
             self._frame = None
             parent = getParentWindow(ctx, parent)
-            self._dialog = getDialog(ctx, g_identifier, 'Wizard', handler, parent)
+            self._window = getDialog(ctx, g_identifier, 'WizardDialog', handler, parent)
         self._name = 'Roadmap1'
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 85, 180)
-        self._setRoadmap(title, rectangle, 0)
+        self._setRoadmap(title, 0)
         self._buttons = {CANCEL: 1, FINISH: 2, NEXT: 3, PREVIOUS: 4, HELP: 5}
         self._spacer = 5
+        self._layout = None
         if not self.isModal() and not resize:
+            self._layout = self._getLayout()
+            self._window.addWindowListener(self._layout)
             window.setVisible(True)
-            self._dialog.setVisible(True)
+            self._window.setVisible(True)
 
 # WizardView getter methods
+    def getLayout(self):
+        return self._layout
+
     def isModal(self):
         return self._frame is None
 
-    def getDialog(self):
-        return self._dialog
+    def getPageWindow(self):
+        return self._getPageWindow()
 
     def getDialogWindow(self):
         if self.isModal():
-            return self._dialog
+            return self._window
         return self._frame.getContainerWindow()
 
     def getRoadmapModel(self):
@@ -96,12 +101,12 @@ class WizardView():
 
     def execute(self):
         if self.isModal():
-            return self._dialog.execute()
+            return self._window.execute()
         return 0
 
     def endDialog(self, result):
         if self.isModal():
-            self._dialog.endDialog(result)
+            self._window.endDialog(result)
 
     def close(self):
         if not self.isModal():
@@ -109,30 +114,36 @@ class WizardView():
 
     def dispose(self):
         if self.isModal():
-            self._dialog.dispose()
+            self._window.dispose()
 
     def setDialogTitle(self, title):
         if self.isModal():
-            self._dialog.setTitle(title)
+            self._window.setTitle(title)
         else:
             self._frame.setTitle(title)
 
-    def setDialogSize(self, page):
+    def setDialogSize(self, page, roadmap):
+        roadmap.Height = page.Height
+        frame = self._getPageWindow().Model
+        frame.Height = page.Height
+        frame.Width = page.Width
         button = self._getButton(HELP).Model
         button.PositionY = page.Height + self._spacer
-        dialog = self._dialog.Model
+        dialog = self._window.Model
         dialog.Height = button.PositionY + button.Height + self._spacer
-        dialog.Width = page.PositionX + page.Width
+        dialog.Width = roadmap.Width + page.Width
         # We assume all buttons are named appropriately
-        for i in (1, 2, 3, 4):
+        for i in range(1, 5):
             self._setButtonPosition(i, button.PositionY, dialog.Width)
         if not self.isModal():
             window = self._frame.getContainerWindow()
-            size = self._dialog.convertSizeToPixel(Size(dialog.Width, dialog.Height), APPFONT)
+            size = self._window.convertSizeToPixel(Size(dialog.Width, dialog.Height), APPFONT)
             window.setPosSize(0, 0, size.Width, size.Height, SIZE)
+            self._layout = self._getLayout()
+            self._window.addWindowListener(self._layout)
             # XXX: Visibility should be done after size adjustment
             window.setVisible(True)
-            self._dialog.setVisible(True)
+        self._window.setVisible(True)
 
     def enableHelpButton(self, enabled):
         self._getButton(HELP).Model.Enabled = enabled
@@ -159,24 +170,34 @@ class WizardView():
             button.DefaultButton = True
 
 # WizardView private methods
-    def _setRoadmap(self, title, rectangle, tabindex):
-        roadmap = self._getRoadmapModel(title, rectangle, tabindex)
-        self._dialog.Model.insertByName(self._name, roadmap)
+    def _setRoadmap(self, title, tabindex):
+        roadmap = self._getRoadmapModel(title, tabindex)
+        self._window.Model.insertByName(self._name, roadmap)
 
-    def _getRoadmapModel(self, title, rectangle, tabindex):
+    def _getRoadmapModel(self, title, tabindex):
         service = 'com.sun.star.awt.UnoControlRoadmapModel'
-        model = self._dialog.Model.createInstance(service)
+        model = self._window.Model.createInstance(service)
         model.Name = self._name
         model.Text = title
-        model.PositionX = rectangle.X
-        model.PositionY = rectangle.Y
-        model.Height = rectangle.Height
-        model.Width = rectangle.Width
+        model.PositionX = 0
+        model.PositionY = 0
+        page = self._getPageWindow().Model
+        model.Height = page.Height
+        model.Width = self._window.Model.Width - page.Width
         model.TabIndex = tabindex
         return model
 
+    def _getLayout(self):
+        return SubLayout(Layout(self._window, **self._getLayouts()))
+
+    def _getLayouts(self):
+        return {'verticals': (self._getRoadmapControl(), ),
+                'lefts':     (self._getButtonByIndex(5), ),
+                'bottoms':   (self._getButtonByIndex(i) for i in range(1, 5)),
+                'controls':  (self._getPageWindow(), )}
+
     def _setButtonPosition(self, step, y, width):
-        # We assume that all buttons are the same Width
+        # We assume that all buttons have the same width.
         button = self._getButtonByIndex(step).Model
         button.PositionX = width - step * (button.Width + self._spacer)
         button.PositionY = y
@@ -187,7 +208,10 @@ class WizardView():
 
 # WizardView private control methods
     def _getRoadmapControl(self):
-        return self._dialog.getControl(self._name)
+        return self._window.getControl(self._name)
+
+    def _getPageWindow(self):
+        return self._window.getControl('FrameControl1')
 
     def _getButtonByIndex(self, index):
-        return self._dialog.getControl('CommandButton%s' % index)
+        return self._window.getControl('CommandButton%s' % index)
