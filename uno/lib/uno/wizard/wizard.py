@@ -53,7 +53,6 @@ from .wizardmodel import WizardModel
 from .wizardview import WizardView
 
 from .wizardhandler import CloseListener
-from .wizardhandler import DialogHandler
 from .wizardhandler import ItemListener
 from .wizardhandler import WindowHandler
 
@@ -66,7 +65,7 @@ from ..configuration import g_extension
 
 class Wizard(unohelper.Base,
              XWizard):
-    def __init__(self, ctx, auto=-1, /, name=None, possize=None, parent=None, resize=True, **_):
+    def __init__(self, ctx, auto=-1, /, name=None, possize=None, parent=None, resize=True, **_kwargs):
         self._ctx = ctx
         self._helpUrl = ''
         self._auto = auto
@@ -77,12 +76,9 @@ class Wizard(unohelper.Base,
         self._controller = None
         self._closed = False
         self._model = WizardModel(ctx)
+        self._listener = CloseListener(self)
         title = self._model.getRoadmapTitle()
-        if name:
-            handler, self._listener = WindowHandler(self), CloseListener(self)
-        else:
-            handler, self._listener = DialogHandler(self), None
-        self._view = WizardView(ctx, handler, self._listener, parent, name, title, resize, possize)
+        self._view = WizardView(ctx, WindowHandler(self), self._listener, parent, name, title, resize, possize)
         self._view.addItemListener(ItemListener(self))
         self._model.setRoadmapModel(self._view.getRoadmapModel())
 
@@ -394,7 +390,7 @@ class Wizard(unohelper.Base,
         self._model.activatePage(page)
 
     def _resizeWizard(self, model):
-        self._view.setDialogSize(model, self._model.getRoadmap())
+        self._view.setDialogSize(model)
         self._resize = False
 
     def _setPage(self, pageid):

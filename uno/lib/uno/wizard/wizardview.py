@@ -54,6 +54,7 @@ class WizardView():
     def __init__(self, ctx, handler, listener, parent, name, title, resize, possize):
         if name:
             # XXX: With a name we use a TOP XWindow
+            self._dialog = None
             self._frame = getTopWindow(ctx, name)
             window = self._frame.getContainerWindow()
             self._window = getContainerWindow(ctx, window, handler, g_identifier, 'Wizard')
@@ -65,11 +66,11 @@ class WizardView():
             # XXX: Without name we use a MODAL XDialog
             self._frame = None
             parent = getParentWindow(ctx, parent)
-            self._window = getDialog(ctx, g_identifier, 'WizardDialog', handler, parent)
+            self._dialog = getDialog(ctx, g_identifier, 'WizardDialog', parent=parent)
+            self._window = getContainerWindow(ctx, self._dialog.getPeer(), handler, g_identifier, 'Wizard')
         self._name = 'Roadmap1'
-        self._setRoadmap(title, 0)
-        self._buttons = {CANCEL: 1, FINISH: 2, NEXT: 3, PREVIOUS: 4, HELP: 5}
-        self._spacer = 5
+        self._setRoadmap(title, 1)
+        self._buttons = {HELP: 1, PREVIOUS: 2, NEXT: 3, FINISH: 4, CANCEL: 5}
         self._layout = None
         if not self.isModal() and not resize:
             self._layout = self._getLayout()
@@ -88,25 +89,23 @@ class WizardView():
         return self._getPageWindow()
 
     def getDialogWindow(self):
-        if self.isModal():
-            return self._window
-        return self._frame.getContainerWindow()
+        return self._window
 
     def getRoadmapModel(self):
-        return self._getRoadmapControl().Model
+        return self._getRoadmap().Model
 
 # WizardView setter methods
     def addItemListener(self, listener):
-        self._getRoadmapControl().addItemListener(listener)
+        self._getRoadmap().addItemListener(listener)
 
     def execute(self):
         if self.isModal():
-            return self._window.execute()
+            return self._dialog.execute()
         return 0
 
     def endDialog(self, result):
         if self.isModal():
-            self._window.endDialog(result)
+            self._dialog.endDialog(result)
 
     def close(self):
         if not self.isModal():
@@ -114,35 +113,38 @@ class WizardView():
 
     def dispose(self):
         if self.isModal():
-            self._window.dispose()
+            self._dialog.dispose()
 
     def setDialogTitle(self, title):
         if self.isModal():
-            self._window.setTitle(title)
+            self._dialog.setTitle(title)
         else:
             self._frame.setTitle(title)
 
-    def setDialogSize(self, page, roadmap):
-        roadmap.Height = page.Height
+    def setDialogSize(self, page):
         frame = self._getPageWindow().Model
-        frame.Height = page.Height
+        x = page.Width - frame.Width
+        y = page.Height - frame.Height
         frame.Width = page.Width
-        button = self._getButton(HELP).Model
-        button.PositionY = page.Height + self._spacer
+        frame.Height = page.Height
         dialog = self._window.Model
-        dialog.Height = button.PositionY + button.Height + self._spacer
-        dialog.Width = roadmap.Width + page.Width
-        # We assume all buttons are named appropriately
-        for i in range(1, 5):
-            self._setButtonPosition(i, button.PositionY, dialog.Width)
-        if not self.isModal():
+        dialog.Width += x
+        dialog.Height += y
+        self._getRoadmap().Model.Height += y
+        self._getRoadmapFrame().Model.Height += y
+        for button in self._buttons:
+            self._setButtonPosition(button, x, y)
+        if self.isModal():
+            window = self._dialog
+        else:
             window = self._frame.getContainerWindow()
-            size = self._window.convertSizeToPixel(Size(dialog.Width, dialog.Height), APPFONT)
-            window.setPosSize(0, 0, size.Width, size.Height, SIZE)
-            self._layout = self._getLayout()
+        size = self._window.convertSizeToPixel(Size(dialog.Width, dialog.Height), APPFONT)
+        window.setPosSize(0, 0, size.Width, size.Height, SIZE)
+        self._layout = self._getLayout()
+        if not self.isModal():
             self._window.addWindowListener(self._layout)
-            # XXX: Visibility should be done after size adjustment
-            window.setVisible(True)
+        # XXX: Visibility should be done after size adjustment
+        window.setVisible(True)
         self._window.setVisible(True)
 
     def enableHelpButton(self, enabled):
@@ -179,11 +181,12 @@ class WizardView():
         model = self._window.Model.createInstance(service)
         model.Name = self._name
         model.Text = title
-        model.PositionX = 0
-        model.PositionY = 0
-        page = self._getPageWindow().Model
-        model.Height = page.Height
-        model.Width = self._window.Model.Width - page.Width
+        frame = self._getRoadmapFrame().Model
+        model.PositionX = frame.PositionX + 1
+        model.PositionY = frame.PositionY + 1
+        model.Border = 1
+        model.Height = frame.Height - 2
+        model.Width = frame.Width - 2
         model.TabIndex = tabindex
         return model
 
@@ -191,27 +194,30 @@ class WizardView():
         return SubLayout(Layout(self._window, **self._getLayouts()))
 
     def _getLayouts(self):
-        return {'verticals': (self._getRoadmapControl(), ),
-                'lefts':     (self._getButtonByIndex(5), ),
-                'bottoms':   (self._getButtonByIndex(i) for i in range(1, 5)),
+        return {'verticals': (self._getRoadmapFrame(), self._getRoadmap()),
+                'lefts':     (self._getButton(HELP), ),
+                'bottoms':   (self._getButtonByIndex(i) for i in range(2, 6)),
                 'controls':  (self._getPageWindow(), )}
 
-    def _setButtonPosition(self, step, y, width):
-        # We assume that all buttons have the same width.
-        button = self._getButtonByIndex(step).Model
-        button.PositionX = width - step * (button.Width + self._spacer)
-        button.PositionY = y
+    def _setButtonPosition(self, name, x, y):
+        button = self._getButton(name).Model
+        button.PositionY += y
+        if name != HELP:
+            button.PositionX += x
 
     def _getButton(self, button):
         index = self._buttons.get(button)
         return self._getButtonByIndex(index)
 
 # WizardView private control methods
-    def _getRoadmapControl(self):
+    def _getRoadmap(self):
         return self._window.getControl(self._name)
 
-    def _getPageWindow(self):
+    def _getRoadmapFrame(self):
         return self._window.getControl('FrameControl1')
+
+    def _getPageWindow(self):
+        return self._window.getControl('FrameControl2')
 
     def _getButtonByIndex(self, index):
         return self._window.getControl('CommandButton%s' % index)
