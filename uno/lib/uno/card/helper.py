@@ -27,14 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .replicator import Replicator
-
-from .runner import Runner
-
 from .unotool import createService
 from .unotool import executeDesktopDispatch
 from .unotool import getDesktop
-from .unotool import getJobArguments
 from .unotool import getNamedValue
 
 from .oauth20 import g_identifier as g_identifier1
@@ -46,7 +41,7 @@ from .jdbcdriver import g_extension as g_extension2
 from .jdbcdriver import g_version as g_version2
 
 from .configuration import g_extension
-from .configuration import g_identifier
+# from .configuration import g_identifier
 
 import traceback
 
@@ -56,13 +51,13 @@ def getExtensions():
             g_identifier2: (g_extension2, g_version2)}
 
 
-def executeReplicator(ctx, job, logger, cancel, timeout, queue):
-    indicator = _getAvailableStatusIndicator(ctx)
-    while not queue.empty() and not cancel.isSet():
-        arguments, listener = queue.get_nowait()
-        task = Replicator(ctx, job, listener, timeout, **getJobArguments(arguments))
-        runner = Runner(ctx, task, cancel, indicator=indicator, logger=logger)
-        runner.start()
+# def executeReplicator(ctx, job, logger, cancel, timeout, queue):
+#    indicator = _getAvailableStatusIndicator(ctx)
+#    while not queue.empty() and not cancel.isSet():
+#        arguments, listener = queue.get_nowait()
+#        task = Replicator(ctx, job, listener, timeout, **getJobArguments(arguments))
+#        runner = Runner(ctx, task, cancel, indicator=indicator, logger=logger)
+#        runner.start()
 
 
 def startReplication1(ctx, listener=None, /, **arguments):
@@ -77,13 +72,8 @@ def startReplication1(ctx, listener=None, /, **arguments):
 
 
 def startReplication(ctx, listener=None, /, **kwargs):
-    try:
-        print("helper.startReplication() 1")
-        url = f'vnd.sun.star.job:service={g_identifier}.Replicator'
-        executeDesktopDispatch(ctx, url, listener, **kwargs)
-        print("helper.startReplication() 2")
-    except Exception:
-        print("helper.startReplication() ERROR: %s" % traceback.format_exc())
+    url = f'vnd.sun.star.job:alias={g_extension}.Replicator'
+    executeDesktopDispatch(ctx, url, listener, **kwargs)
 
 
 def _getAvailableStatusIndicator(ctx):

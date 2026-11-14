@@ -54,10 +54,11 @@ from threading import Timer
 
 class SetupCheck(unohelper.Base,
                  XCallback):
-    def __init__(self, ctx, callback, /, database=None, java=None, agent=None, python=False, extensions=None, *, mode=None, progress=None):
+    def __init__(self, ctx, callback, /, database=None, java=None, agent=None, python=False, extensions=None, mode=None, progress=None, **kwargs):
         self._ctx = ctx
         self._callback = callback
         self._progress = progress
+        self._kwargs = kwargs
         self._resolver = getStringResource(ctx, g_identifier, g_resource, 'SetupCheck') if progress else None
         self._asyncCall = getCallBack(ctx)
         self._state = SetupState()
@@ -81,9 +82,9 @@ class SetupCheck(unohelper.Base,
                 self._progress.setValue(self._step)
             Timer(0.1, self._call).start()
         except StopIteration:
-            self._callback(self._state)
+            self._callback(self._state, **self._kwargs)
         except Exception:
-            self._callback(SetupState(False))
+            self._callback(SetupState(False), **self._kwargs)
 
     def stepCheckExtension(self, ctx, identifier, name, version):
         self._state.extension &= checkExtension(ctx, identifier, name, version)

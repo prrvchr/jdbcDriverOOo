@@ -69,12 +69,16 @@ class SubLayout(unohelper.Base,
 
         Args:
             layout (Layout | SubLayout): The child layout instance to attach.
+
+        Returns:
+            SubLayout: Returns `self` to enable method chaining.
         """
         if layout not in self._subs:
             self._subs.append(layout)
             event = WindowEvent()
             event.Source = self.window
             self.windowResized(event)
+        return self
 
     def windowResized(self, event):
         """Propagates resize events to the root layout and cascades size deltas to all children.

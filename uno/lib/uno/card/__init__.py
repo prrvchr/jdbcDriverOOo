@@ -39,7 +39,8 @@ try:
 
     from .dbsetup import DBSetup
 
-    from .helper import executeReplicator
+    from .replicator import ReplicatorManager
+
     from .helper import getExtensions
 
     from .unotool import findFrame
@@ -59,6 +60,7 @@ try:
     from .configuration import g_defaultlog
     from .configuration import g_extension
     from .configuration import g_identifier
+    from .configuration import g_replicator
     from .configuration import g_setup
     from .configuration import g_synclog
 except Exception:

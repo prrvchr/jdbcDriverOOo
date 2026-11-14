@@ -89,6 +89,8 @@ class WizardView():
         return self._getPageWindow()
 
     def getDialogWindow(self):
+        if self.isModal():
+            return self._dialog
         return self._window
 
     def getRoadmapModel(self):

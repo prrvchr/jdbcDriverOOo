@@ -43,7 +43,7 @@ class OptionModel():
 
     @property
     def _Timeout(self):
-        timeout = self._config.getByName('ReplicateTimeout')
+        timeout = self._config.getByName('ReplicatorTimeout')
         return timeout // self._factor
 
     @property
@@ -68,7 +68,7 @@ class OptionModel():
 # OptionsModel getter methods
     def setViewData(self, timeout, view):
         if timeout != self._Timeout:
-            self._config.replaceByName('ReplicateTimeout', timeout * self._factor)
+            self._config.replaceByName('ReplicatorTimeout', timeout * self._factor)
         if view != self._ViewName:
             self._config.replaceByName('AddressBookName', view)
         if self._config.hasPendingChanges():

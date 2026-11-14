@@ -33,6 +33,8 @@ from com.sun.star.awt.PosSize import POS
 from com.sun.star.awt.PosSize import POSSIZE
 from com.sun.star.awt.PosSize import SIZE
 
+from com.sun.star.util.MeasureUnit import APPFONT
+
 from com.sun.star.awt import Point
 from com.sun.star.awt import Rectangle
 from com.sun.star.awt import XWindowListener
@@ -55,6 +57,10 @@ class Layout(unohelper.Base,
     Args:
         window (XWindow): The UNO container window to manage. Must be sized to its factory
             dimensions before instantiating this class.
+        size (Size, optional): A `com.sun.star.awt.Size` object specified in APPFONT units.
+            If provided, it overrides the baseline dimensions by converting the logical APPFONT
+            units into pixels. If omitted, the window's current physical size (`window.getPosSize()`)
+            is captured as the baseline.
         controls (tuple[XControl, ...], optional): Controls anchored to all four edges
             (stretches both width and height).
         columns (tuple[tuple[XControl, XControl, bool], ...], optional): Pairs of side-by-side
@@ -74,9 +80,9 @@ class Layout(unohelper.Base,
             (fixed size).
     """
 
-    def __init__(self, window, controls=(), columns=(), links=(), horizontals=(), verticals=(), tops=(), lefts=(), bottoms=()):
+    def __init__(self, window, /, size=None, controls=(), columns=(), links=(), horizontals=(), verticals=(), tops=(), lefts=(), bottoms=()):
         self.window = window
-        self.size = window.getPosSize()
+        self.size = window.convertSizeToPixel(size, APPFONT) if size else window.getPosSize()
         controls = list(controls)
         columns = list(columns)
         links = list(links)

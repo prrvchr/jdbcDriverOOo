@@ -61,9 +61,10 @@ class OptionsManager():
         self._agent = g_service, g_protocol, g_agent
         self._model = OptionsModel(ctx)
         self._view = OptionsView(window, *self._model.getViewData())
-        self._manager = OptionManager(ctx, logger, window, self._model.getConfig())
+        self._manager = OptionManager(ctx, logger, self._view.getFrame(), self._model.getConfig())
         window.addEventListener(OptionsListener(self))
         self._loadView(self.init)
+        self._view.getLayout().addLayout(self._manager.getLayout())
 
     def init(self, state):
         if not self._disposed:
@@ -88,15 +89,15 @@ class OptionsManager():
         self._disposed = True
 
     def showSetup(self):
-        mode = self._view.getSetup()
+        mode = self._view.getSetupMode()
         showSetup(self._ctx, Dispatch=DispatchListener(self), Mode=mode)
 
-    def dispatchFinished(self, notification):
+    def dispatchFinished(self, _notification):
         if not self._disposed:
             self._loadView(self.refresh)
 
     def _loadView(self, callback):
-        mode = self._view.getSetup()
+        mode = self._view.getSetupMode()
         database = self._manager.getDataSourceUrl()
         setup = SetupCheck(self._ctx, callback, database=database, java=self._java, agent=self._agent, python=True, extensions=getExtensions(), mode=mode)
         setup.start()
