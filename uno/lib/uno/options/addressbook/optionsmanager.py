@@ -69,15 +69,15 @@ class OptionsManager():
     def init(self, state):
         if not self._disposed:
             self._manager.init(state)
-            self._view.initView(*self._model.getInitData(state))
+            self._view.refreshView(*self._model.getRefreshData(state))
 
     def refresh(self, state):
         if not self._disposed:
             self._manager.refresh(state)
-            self._view.refreshView(state)
+            self._view.refreshView(*self._model.getRefreshData(state))
 
     def saveSetting(self):
-        self._model.saveData(self._view.getData())
+        self._model.saveData(self._view.getSetupMode())
         if self._manager.saveSetting():
             State.restart = True
             self._loadView(self.refresh)

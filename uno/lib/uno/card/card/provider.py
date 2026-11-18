@@ -153,5 +153,5 @@ class Provider():
         return ['Provider', mtd, 201, parameter.Name, status, user, parameter.Url, msg]
 
     # Can be overwritten method
-    def syncGroups(self, database, user, book, pages, count):
+    def syncGroups(self, _database, _user, _book, pages, count):
         return pages, count, None

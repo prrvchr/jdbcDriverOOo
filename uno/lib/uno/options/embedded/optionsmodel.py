@@ -32,11 +32,14 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.uno import Exception as UnoException
 
+from ..unotool import canUpdatePackages
 from ..unotool import createService
+from ..unotool import getConfiguration
 from ..unotool import getStringResource
 
 from ..jdbcdriver import g_service as jdbc
 
+from ..configuration import g_extension
 from ..configuration import g_identifier
 from ..configuration import g_service as embedded
 
@@ -46,13 +49,24 @@ class OptionsModel():
         self._ctx = ctx
         self._url = url
         self._logger = logger
+        self._update = canUpdatePackages()
+        self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._resources = {'Links': 'OptionsDialog.Hyperlink%s.Url'}
         self._logger.logprb(INFO, 'OptionsModel', '__init__', 401)
+        self._resources = {'SetupLabel': 'OptionsDialog.FixedLine1.Label',
+                           'Links':      'OptionsDialog.Hyperlink%s.Url'}
 
 # OptionsModel getter methods
     def getViewData(self):
-        return self._getLinks()
+        return self._getSetupLabel(), self._getLinks(), self._update
+
+    def getInitData(self, state):
+        return self._getSetupMode(), state
+
+    def saveSetting(self, mode):
+        if self._update and mode != self._getSetupMode():
+            self._config.replaceByName('SetupUpdate', mode)
+            self._config.commitChanges()
 
     def getDriverVersion(self, apilevel):
         driver = None
@@ -71,9 +85,16 @@ class OptionsModel():
                 self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 102, embedded, apilevel, e.Message)
         return version
 
+    def _getSetupMode(self):
+        return self._config.getByName('SetupUpdate')
+
     def _getLinks(self):
         links = []
         for i in range(1, 2):
             resource = self._resources.get('Links') % i
             links.append(self._resolver.resolveString(resource))
         return tuple(links)
+
+    def _getSetupLabel(self):
+        resource = self._resources.get('SetupLabel')
+        return self._resolver.resolveString(resource).format(extension=g_extension)

@@ -88,7 +88,7 @@ class Driver(unohelper.Base,
         return self.connect(url, infos)
 
 # XDriver
-    def connect(self, url, infos):
+    def connect(self, url, _infos):
         try:
             print("Driver.connect() 1")
             mtd = 'connect'
@@ -114,7 +114,7 @@ class Driver(unohelper.Base,
         accept = url.startswith(self._supportedProtocol)
         return accept
 
-    def getPropertyInfo(self, url, infos):
+    def getPropertyInfo(self, url, _infos):
         properties = ()
         if self.acceptsURL(url):
             properties = getDriverPropertyInfos()

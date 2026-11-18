@@ -36,33 +36,31 @@ from ..configuration import g_identifier
 
 class OptionsModel():
     def __init__(self, ctx):
+        self._ctx = ctx
         self._update = canUpdatePackages()
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._resources = {'Links': 'OptionsDialog.Hyperlink%s.Url'}
+        self._resources = {'Link': 'OptionsDialog.Hyperlink1.Url.%s'}
 
     @property
-    def _Setup(self):
+    def _setup(self):
         return self._config.getByName('SetupUpdate')
 
 # OptionModel getter methods
     def getViewData(self):
-        return self._update, self._getLinks()
-
-    def getInitData(self, state):
-        return self._Setup, state
+        return self._setup, self._update
 
     def getConfig(self):
         return self._config
 
+    def getRefreshData(self, state):
+        return state.getMessage(self._ctx), self._getLink(state.code)
+
 # OptionModel setter methods
     def saveData(self, setup):
-        if self._update and setup != self._Setup:
+        if self._update and setup != self._setup:
             self._config.replaceByName('SetupUpdate', setup)
 
-    def _getLinks(self):
-        links = []
-        for i in range(1, 2):
-            resource = self._resources.get('Links') % i
-            links.append(self._resolver.resolveString(resource))
-        return tuple(links)
+    def _getLink(self, code):
+        resource = self._resources.get('Link') % code
+        return self._resolver.resolveString(resource)

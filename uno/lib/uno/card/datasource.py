@@ -29,11 +29,15 @@
 
 from com.sun.star.logging.LogLevel import INFO
 
+from com.sun.star.sdbc import SQLException
+
 from com.sun.star.uno import Exception as UnoException
 
 from .database import DataBase
 
 from .provider import Provider
+
+from .setup import SetupCheck
 
 from .card import EventListener
 from .card import User
@@ -42,9 +46,17 @@ from .runner import DispatchListener
 
 from .card import getSqlException
 
+from .dbinit import getDataSourceUrl
 # from .setup import showSetup
 
+from .helper import getExtensions
 from .helper import startReplication
+
+from .jdbcdriver import g_agent
+from .jdbcdriver import g_java
+from .jdbcdriver import g_protocol
+from .jdbcdriver import g_script
+from .jdbcdriver import g_service
 
 from .configuration import g_extension
 
@@ -64,6 +76,7 @@ class DataSource():
         self._database = database
         self._provider = provider
         self._listener = EventListener(self)
+        self._checked = False
         logger.logprb(INFO, self._cls, mtd, 1202)
 
     @property
@@ -84,6 +97,8 @@ class DataSource():
 # Procedures called by Driver
     def getConnection(self, source, logger, url, scheme, server, username, token=''):
         print("DataSource.getConnection() 1")
+        if not self._checked:
+            self._checkSetup()
         mtd = 'getConnection'
         uri = self._provider.getUserUri(server, username)
         if uri in self._maps:
@@ -123,3 +138,12 @@ class DataSource():
         for user in self._users.values():
             users.append({'url': user.Url, 'server': user.Server, 'name': user.Name, 'token': user.Token, 'new': user.New})
         return json.dumps(users)
+
+    def _checkSetup(self):
+        java = g_extension, g_java, g_script
+        agent = g_service, g_protocol, g_agent
+        database = getDataSourceUrl(self._ctx)
+        state = SetupCheck.getState(self._ctx, database=database, java=java, agent=agent, python=True, extensions=getExtensions())
+        if not state.runnable:
+            raise SQLException(state.getMessage(self._ctx), self, '08001', state.step, None)
+        self._checked = True

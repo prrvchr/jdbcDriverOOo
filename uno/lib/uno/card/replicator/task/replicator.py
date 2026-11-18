@@ -34,22 +34,22 @@ from com.sun.star.frame import DispatchResultEvent
 
 from com.sun.star.uno import Exception as UnoException
 
-from ..database import DataBase
+from ...database import DataBase
 
-from ..provider import Provider
+from ...provider import Provider
 
-from ..runner import Task
+from ...runner import Task
 
-from ..user import User
+from ...user import User
 
-from ..unotool import getNamedValue
-from ..unotool import getJobArguments
+from ...unotool import getNamedValue
+from ...unotool import getJobArguments
 
 import json
 
 
 class Replicator(Task):
-    def __init__(self, ctx, queue):
+    def __init__(self, ctx, callback, data):
         super().__init__(ctx, 'Replicator')
         print("Replicator.__init__() 1")
         self._job = None
@@ -57,29 +57,29 @@ class Replicator(Task):
         self._timeout = None
         self._database = None
         self._provider = None
-
+        self.callback = callback
         self.total = 2
         self.status = 'SUCCESS'
         self.error_cause = None
 
         self.stats_card = {'users': 0, 'pages': 0, 'count': 0}
         self.stats_group = {'users': 0, 'pages': 0, 'count': 0}
-        self.steps = self.getSteps(ctx, queue)
+        self.steps = self.getSteps(ctx, data)
 
-    def getSteps(self, ctx, queue):
-        size = queue.qsize()
-        yield self.getStepInitialize(size)
-        while not queue.empty():
-            job, listener, arguments = queue.get_nowait()
+    def getSteps(self, ctx, data):
+        size = len(data)
+        yield self.getStepInitialize(len(data))
+        for job, listener, arguments in data:
             kwargs = getJobArguments(arguments)
-            yield from self._getJobStepCount(size, ctx, job, listener, **kwargs)
+            yield from self._getJobStepsCount(size, ctx, job, listener, **kwargs)
             yield from self.getJobSteps(ctx, job, listener, **kwargs)
         yield (10104, (), self._finalize)
 
-    def _getJobStepCount(self, size, **kwargs):
-        self.total += sum(i for i in self.getJobSteps(**kwargs)) * size
+    def _getJobStepsCount(self, size, ctx, job, listener, **kwargs):
+        total = sum(1 for _ in self.getJobSteps(ctx, job, listener, **kwargs)) * size
+        yield (10102, (total, ), self._setStepsCount, total)
 
-    def getJobSteps(self, ctx, job, listener, /, args, **_kwargs):
+    def getJobSteps(self, ctx, _job, _listener, /, args, **_kwargs):
         # --- PHASE 1 : SYNCHRONISATION DES CARTES
         users = set()
         sessions = json.loads(args)
@@ -145,6 +145,9 @@ class Replicator(Task):
     def getStepInitialize(self, size):
         return (10101, (size, ), self._init)
 
+    def getStepCountSteps(self, total):
+        return (10102, (total, ), self._setStepsCount, total)
+
     def getStepFinalize(self):
         return (10104, (), self._finalize)
 
@@ -168,3 +171,6 @@ class Replicator(Task):
 
     def _init(self):
         pass
+
+    def _setStepsCount(self, total):
+        self.total += total

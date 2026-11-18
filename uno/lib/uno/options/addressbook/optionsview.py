@@ -29,18 +29,15 @@
 
 from com.sun.star.awt import Size
 
-
 from ..unotool import Layout
 from ..unotool import SubLayout
 
 
 class OptionsView():
-    def __init__(self, window, update, links):
+    def __init__(self, window, setup, update):
         self._window = window
-        self._getSetupMode().Model.Enabled = update
-        for i, link in enumerate(links, start=1):
-            self._getLink(i).URL = link
-        self._layout = SubLayout(Layout(window, size=Size(279, 225), **self._getLayouts(links)))
+        self._setSetup(setup, update)
+        self._layout = SubLayout(Layout(window, size=Size(279, 225), **self._getLayouts()))
         window.addWindowListener(self._layout)
 
 # OptionView getter methods
@@ -50,37 +47,30 @@ class OptionsView():
     def getFrame(self):
         return self._getFrame()
 
-    def getData(self):
-        return self.getSetupMode()
-
     def getSetupMode(self):
         return self._getSetupMode().getSelectedItemPos()
 
 # OptionView setter methods
-    def initView(self, setup, state):
-        self._setSetup(setup)
-        self.refreshView(state)
-
-    def refreshView(self, state):
-        self._window.Model.Step = state.step
+    def refreshView(self, text, url):
+        control = self._getLink()
+        control.Text = text
+        control.URL = url
 
 # OptionsView private methods
-    def _getLayouts(self, links):
-        return {'horizontals': self._getHorizontals(links),
+    def _getLayouts(self):
+        return {'horizontals': self._getHorizontals(),
                 'tops': (self._getSetup(), )}
 
-    def _getHorizontals(self, links):
+    def _getHorizontals(self):
         yield self._getFrame()
         yield self._getFixedLine()
         yield self._getSetupMode()
-        for index in range(2, 14):
-            yield self._getLabel(index)
-        for index, _ in enumerate(links, start=1):
-            yield self._getLink(index)
+        yield self._getLink()
 
-    def _setSetup(self, setup):
-        control = self._getSetupMode()
-        if control.Model.Enabled:
+    def _setSetup(self, setup, update):
+        if update:
+            control = self._getSetupMode()
+            control.Model.Enabled = True
             control.selectItemPos(setup, True)
 
 # OptionsView private control methods
@@ -96,8 +86,5 @@ class OptionsView():
     def _getSetup(self):
         return self._window.getControl('CommandButton1')
 
-    def _getLabel(self, index):
-        return self._window.getControl(f'Label{index}')
-
-    def _getLink(self, index):
-        return self._window.getControl(f'Hyperlink{index}')
+    def _getLink(self):
+        return self._window.getControl('Hyperlink1')

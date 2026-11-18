@@ -39,7 +39,7 @@ try:
 
     from .dbsetup import DBSetup
 
-    from .replicator import ReplicatorManager
+    from .replicator import showReplicator
 
     from .helper import getExtensions
 

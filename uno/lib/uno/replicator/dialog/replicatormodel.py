@@ -33,18 +33,18 @@ from ...unotool import getConfiguration
 from ...unotool import getStringResource
 from ...unotool import saveWindowPosSize
 
+from ...configuration import g_extension
 from ...configuration import g_identifier
 
 
 class ReplicatorModel():
     def __init__(self, ctx):
         self._ctx = ctx
-        self._indicator = None
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'Replicator')
         self._resources = {'Title':  'Replicator.Title',
-                           'Button': 'Replicator.CommandButton1.Label.%s',
-                           'Label':  'Replicator.Label1.Label.%s'}
+                           'Label':  'Replicator.Label1.Label.%s',
+                           'Button': 'Replicator.CommandButton2.Label.%s'}
 
 # ReplicatorModel getter methods
     def getViewData(self):
@@ -53,47 +53,10 @@ class ReplicatorModel():
     def getLabelState(self, state):
         return self._getLabelState(state)
 
-    def initState(self, state):
-        return state, self._getToggleState(state), self._getLabelState(state)
-
-    def getState(self, state):
-        return state, self._getToggleState(state), self._getLabelState(state)
-
-    def hasIndicator(self):
-        return self._indicator is not None
-
-    def getSpooler(self):
-        return self._spooler
+    def getLogState(self, state):
+        return self._getLogState(state), state
 
 # ReplicatorModel setter methods
-    def initReplicator(self):
-        print("ReplicatorModel.initReplicator()")
-
-    def startReplicator(self, indicator):
-        self._indicator = indicator
-        # self._spooler.start(indicator)
-
-    def stopReplicator(self):
-        # self._spooler.stop()
-        pass
-
-    def resetIndicator(self):
-        self._indicator = None
-
-    def addSpoolerIndicator(self, indicator):
-        if self._spooler:
-            self._indicator = indicator
-            self._spooler.addStatusIndicator(indicator)
-
-    def disposeSpooler(self, listener):
-        if self._spooler:
-            self._spooler.removeSpoolerListener(listener)
-            if self._indicator:
-                self._spooler.removeStatusIndicator(self._indicator)
-            self._spooler.dispose()
-        self._spooler = None
-        self._indicator = None
-
     def savePosSize(self, possize):
         saveWindowPosSize(self._config, possize, 'ReplicatorPosSize')
 
@@ -104,12 +67,12 @@ class ReplicatorModel():
 # ReplicatorModel private setter methods
     def _getDialogTitle(self):
         resource = self._resources.get('Title')
-        return self._resolver.resolveString(resource)
+        return self._resolver.resolveString(resource).format(extension=g_extension)
 
     def _getLabelState(self, state):
         resource = self._resources.get('Label') % state
         return self._resolver.resolveString(resource)
 
-    def _getToggleState(self, state):
+    def _getLogState(self, state):
         resource = self._resources.get('Button') % state
         return self._resolver.resolveString(resource)
