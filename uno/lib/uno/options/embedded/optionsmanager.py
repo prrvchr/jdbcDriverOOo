@@ -62,7 +62,7 @@ class OptionsManager():
         self._agent = g_service, g_protocol, g_agent
         self._extensions = getExtensions()
         self._model = OptionsModel(ctx, logger, url)
-        self._view = OptionsView(window, *self._model.getViewData())
+        self._view = OptionsView(ctx, window, self._model.getViewData())
         self._manager = Manager(ctx, self._view.getFrame(), g_defaultlog)
         window.addEventListener(OptionsListener(self))
         self._view.getLayout().addLayout(self._manager.getLayout())
@@ -71,7 +71,7 @@ class OptionsManager():
     def init(self, state):
         if not self._disposed:
             self._manager.init(state)
-            self._view.refreshView(*self._model.getInitData(state))
+            self._view.initView(*self._model.getInitData(state))
             if state.java:
                 version = self._model.getDriverVersion(self._getConfigApiLevel())
                 self._view.setDriverVersion(version)
@@ -79,7 +79,7 @@ class OptionsManager():
     def refresh(self, state):
         if not self._disposed:
             self._manager.refresh(state)
-            self._view.refreshView(*self._model.getInitData(state))
+            self._view.refreshView(*self._model.getRefreshData(state))
 
     def dispose(self):
         self._disposed = True

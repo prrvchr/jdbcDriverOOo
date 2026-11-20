@@ -60,7 +60,7 @@ class OptionsManager():
         self._java = g_extension, g_java, g_script
         self._agent = g_service, g_protocol, g_agent
         self._model = OptionsModel(ctx)
-        self._view = OptionsView(window, *self._model.getViewData())
+        self._view = OptionsView(ctx, window, *self._model.getViewData())
         self._manager = OptionManager(ctx, logger, self._view.getFrame(), self._model.getConfig())
         window.addEventListener(OptionsListener(self))
         self._loadView(self.init)

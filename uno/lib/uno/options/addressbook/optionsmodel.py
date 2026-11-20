@@ -31,6 +31,7 @@ from ..unotool import canUpdatePackages
 from ..unotool import getConfiguration
 from ..unotool import getStringResource
 
+from ..configuration import g_extension
 from ..configuration import g_identifier
 
 
@@ -40,15 +41,16 @@ class OptionsModel():
         self._update = canUpdatePackages()
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._resources = {'Link': 'OptionsDialog.Hyperlink1.Url.%s'}
+        self._resources = {'Title': 'OptionsDialog.FixedLine1.Label',
+                           'Link': 'OptionsDialog.Label2.Url.%s'}
 
     @property
-    def _setup(self):
+    def _Setup(self):
         return self._config.getByName('SetupUpdate')
 
-# OptionModel getter methods
+# OptionsModel getter methods
     def getViewData(self):
-        return self._setup, self._update
+        return self._getTitle(), self._Setup, self._update
 
     def getConfig(self):
         return self._config
@@ -56,10 +58,14 @@ class OptionsModel():
     def getRefreshData(self, state):
         return state.getMessage(self._ctx), self._getLink(state.code)
 
-# OptionModel setter methods
+# OptionsModel setter methods
     def saveData(self, setup):
-        if self._update and setup != self._setup:
+        if self._update and setup != self._Setup:
             self._config.replaceByName('SetupUpdate', setup)
+
+    def _getTitle(self):
+        resource = self._resources.get('Title')
+        return self._resolver.resolveString(resource).format(extension=g_extension)
 
     def _getLink(self, code):
         resource = self._resources.get('Link') % code

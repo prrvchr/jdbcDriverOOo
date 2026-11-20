@@ -47,7 +47,7 @@ class OptionManager():
     def __init__(self, ctx, logger, window, config):
         self._ctx = ctx
         self._model = OptionModel(ctx, config)
-        self._view = OptionView(ctx, window, OptionHandler(self))
+        self._view = OptionView(ctx, window, OptionHandler(self), self._model.getViewData())
         self._logmanager = LogManager(ctx, self._view.getFrame(), 'requirements.txt', g_defaultlog, g_synclog)
         self._logmanager.initView()
         self._logger = logger

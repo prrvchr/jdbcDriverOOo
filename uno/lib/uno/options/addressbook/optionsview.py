@@ -30,13 +30,16 @@
 from com.sun.star.awt import Size
 
 from ..unotool import Layout
+from ..unotool import LinkListener
 from ..unotool import SubLayout
 
 
 class OptionsView():
-    def __init__(self, window, setup, update):
+    def __init__(self, ctx, window, title, setup, update):
         self._window = window
         self._setSetup(setup, update)
+        self._getTitle().Model.Label = title
+        self._link = LinkListener(ctx, self._getLabel())
         self._layout = SubLayout(Layout(window, size=Size(279, 225), **self._getLayouts()))
         window.addWindowListener(self._layout)
 
@@ -51,10 +54,8 @@ class OptionsView():
         return self._getSetupMode().getSelectedItemPos()
 
 # OptionView setter methods
-    def refreshView(self, text, url):
-        control = self._getLink()
-        control.Text = text
-        control.URL = url
+    def refreshView(self, label, url):
+        self._setLabel(label, url)
 
 # OptionsView private methods
     def _getLayouts(self):
@@ -63,9 +64,9 @@ class OptionsView():
 
     def _getHorizontals(self):
         yield self._getFrame()
-        yield self._getFixedLine()
+        yield self._getTitle()
         yield self._getSetupMode()
-        yield self._getLink()
+        yield self._getLabel()
 
     def _setSetup(self, setup, update):
         if update:
@@ -73,11 +74,15 @@ class OptionsView():
             control.Model.Enabled = True
             control.selectItemPos(setup, True)
 
+    def _setLabel(self, label, url):
+        self._getLabel().Model.Label = label
+        self._link.setUrl(url)
+
 # OptionsView private control methods
     def _getFrame(self):
         return self._window.getControl('FrameControl1')
 
-    def _getFixedLine(self):
+    def _getTitle(self):
         return self._window.getControl('FixedLine1')
 
     def _getSetupMode(self):
@@ -86,5 +91,5 @@ class OptionsView():
     def _getSetup(self):
         return self._window.getControl('CommandButton1')
 
-    def _getLink(self):
-        return self._window.getControl('Hyperlink1')
+    def _getLabel(self):
+        return self._window.getControl('Label2')

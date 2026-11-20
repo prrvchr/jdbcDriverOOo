@@ -70,9 +70,9 @@ class Driver(DriverBase,
         return data
 
     # XCreateCatalog
-    def createCatalog(self, info):
+    def createCatalog(self, _info):
         self._logger.logprb(INFO, 'Driver', 'createCatalog()', 171)
 
     # XDropCatalog
-    def dropCatalog(self, name, info):
+    def dropCatalog(self, name, _info):
         self._logger.logprb(INFO, 'Driver', 'dropCatalog()', 181, name)

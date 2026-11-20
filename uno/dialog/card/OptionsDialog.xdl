@@ -45,7 +45,6 @@
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:left="184" dlg:top="160" dlg:width="90" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton1.HelpText" dlg:value="&amp;OptionsDialog.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ShowSetup" script:language="UNO"/>
     </dlg:button>
-    <dlg:linklabel dlg:style-id="0" dlg:id="Hyperlink1" dlg:tab-index="4" dlg:left="10" dlg:top="185" dlg:width="259" dlg:height="25" dlg:help-text="&amp;OptionsDialog.Hyperlink1.HelpText" dlg:value="&amp;OptionsDialog.Hyperlink1.Label" dlg:align="center" dlg:valign="center" dlg:multiline="true"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label2" dlg:tab-index="4" dlg:left="10" dlg:top="185" dlg:width="259" dlg:height="25" dlg:help-text="&amp;OptionsDialog.Label2.HelpText" dlg:value="&amp;OptionsDialog.Label2.Label" dlg:align="center" dlg:valign="center" dlg:multiline="true"/>
   </dlg:bulletinboard>
 </dlg:window>
-

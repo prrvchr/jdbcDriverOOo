@@ -44,4 +44,3 @@
     <dlg:textfield dlg:id="TextField1" dlg:tab-index="6" dlg:left="184" dlg:top="120" dlg:width="90" dlg:height="15" dlg:help-text="&amp;OptionDialog.TextField1.HelpText" dlg:value="&amp;OptionDialog.TextField1.Text"/>
   </dlg:bulletinboard>
 </dlg:window>
-

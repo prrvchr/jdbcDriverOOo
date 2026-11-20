@@ -36,8 +36,9 @@ from ...configuration import g_identifier
 
 
 class OptionView():
-    def __init__(self, ctx, window, handler):
+    def __init__(self, ctx, window, handler, title):
         self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'OptionDialog')
+        self._getTitle().Model.Label = title
         self._layout = SubLayout(Layout(self._window, **self._getLayouts()))
         self._window.setVisible(True)
 
@@ -65,14 +66,14 @@ class OptionView():
         self._getViewName().Model.Enabled = not state.database
 
     def _getLayouts(self):
-        return {'horizontals': (self._getFrame(), self._getFixedLine(), self._getViewName()),
+        return {'horizontals': (self._getFrame(), self._getTitle(), self._getViewName()),
                 'tops': (self._getTimeout(), self._getDatasource())}
 
 # OptionView private control methods
     def _getFrame(self):
         return self._window.getControl('FrameControl1')
 
-    def _getFixedLine(self):
+    def _getTitle(self):
         return self._window.getControl('FixedLine1')
 
     def _getTimeout(self):
