@@ -29,7 +29,7 @@
 
 from com.sun.star.sdbc import SQLException
 
-from .setup import SetupCheck
+from .setup import Check
 
 from .jdbcdriver import g_agent
 from .jdbcdriver import g_extension
@@ -47,13 +47,13 @@ def getExtensions():
 
 def isSetupValid(ctx):
     java = g_extension, g_java, g_script
-    return SetupCheck.isValid(ctx, java, extensions=getExtensions())
+    return Check.isValid(ctx, java, extensions=getExtensions())
 
 
 def checkSetup(ctx, source):
     java = g_extension, g_java, g_script
     agent = g_service, g_protocol, g_agent
-    state = SetupCheck.getState(ctx, java=java, agent=agent, python=True, extensions=getExtensions())
+    state = Check.getState(ctx, java=java, agent=agent, python=True, extensions=getExtensions())
     if not state.runnable:
         raise SQLException(state.getMessage(ctx), source, '08001', state.code, None)
 

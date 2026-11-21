@@ -46,12 +46,19 @@ class LinkListener(unohelper.Base,
         self._ctx = ctx
         self._url = ''
         self._control = control
-        self._pointer = createService(ctx, 'com.sun.star.awt.Pointer')
         self._control.addMouseListener(self)
+        self._pointer = createService(ctx, 'com.sun.star.awt.Pointer')
 
     def setUrl(self, url):
         self._url = url
         self._control.Model.HelpText = url
+
+    def dispose(self):
+        if self._control:
+            self._control.removeMouseListener(self)
+            self._control = None
+        if self._pointer:
+            self._pointer = None
 
     # XMouseListener
     def mousePressed(self, event):
@@ -72,5 +79,4 @@ class LinkListener(unohelper.Base,
         pass
 
     def disposing(self, _event):
-        self._control = None
-        self._pointer = None
+        pass

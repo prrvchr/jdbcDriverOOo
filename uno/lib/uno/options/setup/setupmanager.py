@@ -40,6 +40,9 @@ class SetupManager():
     def init(self):
         self._view.initView(*self._model.getInitData())
 
+    def dispose(self):
+        self._view.dispose()
+
     def getLayout(self):
         return self._view.getLayout()
 

@@ -50,7 +50,12 @@ class OptionView():
 
 # OptionView setter methods
     def dispose(self):
-        self._window.dispose()
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+        if self._window:
+            self._window.dispose()
+            self._window = None
 
     def initView(self, level, crs, system, rst, enabled, state):
         self._getApiLevel(level).State = 1

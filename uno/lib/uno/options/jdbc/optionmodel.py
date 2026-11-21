@@ -27,17 +27,13 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import getConfiguration
-
-from ...configuration import g_identifier
-
 
 class OptionModel():
-    def __init__(self, ctx):
+    def __init__(self, config):
         self._rebootkeys = ('ApiLevel', )
         configkeys = ('ResultSetType', 'ShowSystemTable', 'UseCachedRowSet')
         self._keys = self._rebootkeys + configkeys
-        self._config = getConfiguration(ctx, g_identifier, True)
+        self._config = config
         self._settings = self._getSettings()
         self._java = False
 

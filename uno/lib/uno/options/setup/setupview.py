@@ -52,6 +52,14 @@ class SetupView():
         return self._getSetupMode().getSelectedItemPos()
 
 # OptionView setter methods
+    def dispose(self):
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+        if self._window:
+            self._window.dispose()
+            self._window = None
+
     def initView(self, setup, update):
         self._setSetup(setup, update)
 

@@ -89,10 +89,6 @@ class SetupState:
             return 13
         return 0
 
-    @property
-    def step(self) -> int:
-        return self.code + 1
-
     def getMessage(self, ctx) -> str:
         resolver = getStringResource(ctx, g_identifier, g_resource, 'SetupState')
         return resolver.resolveString(self.code).format(extension=g_extension)

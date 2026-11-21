@@ -192,6 +192,11 @@ class Layout(unohelper.Base,
                 self._controls[index] = (ctrl, Rectangle(pos.X, pos.Y, right, bottom))
                 return
 
+    def dispose(self):
+        if self.window:
+            self.window.removeWindowListener(self)
+            self.window = None
+
     def windowResized(self, event):
         """Handles `XWindowListener.windowResized` to enforce minimum size and reposition controls.
 

@@ -80,6 +80,12 @@ class SubLayout(unohelper.Base,
             self.windowResized(event)
         return self
 
+    def updateControl(self, control):
+        self._layout.updateControl(control)
+
+    def dispose(self):
+        self._layout.dispose()
+
     def windowResized(self, event):
         """Propagates resize events to the root layout and cascades size deltas to all children.
 
