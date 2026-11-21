@@ -75,15 +75,18 @@ class OptionView():
 
     def _getLayouts(self):
         return {'horizontals': self._getHorizontals(),
+                'rows': self._getRows(),
                 'tops': self._getTops()}
 
     def _getHorizontals(self):
         yield self._getFrame()
         yield self._getFixedLine()
 
+    def _getRows(self):
+        yield self._getOptionButton(2), self._getOptionButton(3)
+        yield self._getOptionButton(5), self._getOptionButton(6)
+
     def _getTops(self):
-        for index in range(1, 7):
-            yield self._getOptionButton(index)
         yield self._getSytemTable()
 
 # OptionView private control methods

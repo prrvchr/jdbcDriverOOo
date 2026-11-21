@@ -43,6 +43,7 @@ class OptionManager():
         self._view = OptionView(ctx, window, OptionHandler(self))
         self._logmanager = LogManager(ctx, self._view.getFrame(), 'requirements.txt', logger, *loggers)
         self._logmanager.initView()
+        self._view.getLayout().addLayout(self._logmanager.getLayout())
 
     def init(self, state):
         self._view.initView(*self._model.getInitData(state))
@@ -57,7 +58,7 @@ class OptionManager():
 
 # OptionManager getter methods
     def getLayout(self):
-        return self._view.getLayout().addLayout(self._logmanager.getLayout())
+        return self._view.getLayout()
 
     def getConfigApiLevel(self):
         return self._model.getConfigApiLevel()

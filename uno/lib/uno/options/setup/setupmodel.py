@@ -42,20 +42,24 @@ class SetupModel():
         self._resources = {'Title': 'SetupOption.FixedLine1.Label'}
 
     @property
-    def _Setup(self):
+    def _setup(self):
         return self._config.getByName('SetupUpdate')
+
+    @_setup.setter
+    def _setup(self, setup):
+        self._config.replaceByName('SetupUpdate', setup)
 
 # OptionsModel getter methods
     def getViewData(self):
         return self._getTitle()
 
     def getInitData(self):
-        return self._Setup, self._update
+        return self._setup, self._update
 
 # OptionsModel setter methods
     def setViewData(self, setup):
-        if self._update and setup != self._Setup:
-            self._config.replaceByName('SetupUpdate', setup)
+        if self._update and setup != self._setup:
+            self._setup = setup
 
 # OptionsModel private getter methods
     def _getTitle(self):
