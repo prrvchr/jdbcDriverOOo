@@ -47,8 +47,7 @@ def getExtensions():
 
 def isSetupValid(ctx):
     java = g_extension, g_java, g_script
-    agent = g_service, g_protocol, g_agent
-    return SetupCheck.isValid(ctx, java, agent, python=True, extensions=getExtensions())
+    return SetupCheck.isValid(ctx, java, extensions=getExtensions())
 
 
 def checkSetup(ctx, source):

@@ -48,7 +48,7 @@ class Driver(DriverBase,
 
     def __init__(self, ctx, lock, logger, service, implementation):
         services = ('com.sun.star.sdbc.Driver', 'com.sun.star.sdbcx.Driver')
-        DriverBase.__init__(self, ctx, lock, logger, service, implementation, services)
+        super().__init__(ctx, lock, logger, service, implementation, services)
 
     # XDataDefinitionSupplier
     def getDataDefinitionByConnection(self, connection):
