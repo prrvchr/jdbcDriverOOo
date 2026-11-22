@@ -35,7 +35,7 @@ from com.sun.star.awt.PosSize import POSSIZE
 
 from com.sun.star.util.MeasureUnit import APPFONT
 
-from ...unotool import Layout
+from ...unotool.layout import Layout
 
 from ...unotool import getContainerWindow
 
@@ -164,7 +164,7 @@ class GridView(unohelper.Base):
         return '%s/%s' % (url, self._getUnSelectedImage())
 
     def _getSelectedUrl(self, url):
-        return '%s/%s' % (url,  self._getSelectedImage())
+        return '%s/%s' % (url, self._getSelectedImage())
 
     def _isUnSelectedUrl(self, url):
         return url.endswith(self._getUnSelectedImage())
@@ -197,7 +197,12 @@ class GridView(unohelper.Base):
 
     def _getLayouts(self):
         return {'controls': (self._getFrame(), self._getGrid(), ),
-                'tops':     (self._getColumnLabel(), self._getColumn())}
+                'tops': (self._getColumnLabel(), self._getColumn())}
+
+    def _getControls(self):
+        yield self._getFrame()
+        yield self._getGrid()
+
 
 # GridView private control methods
     def _getFrame(self):

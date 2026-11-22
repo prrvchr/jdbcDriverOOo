@@ -598,13 +598,13 @@ def executeShell(ctx, url, option='', flag=DEFAULTS):
     shell.execute(url, option, flag)
 
 
-def executeDispatch(ctx, url, /, **kwargs):
+def executeDispatch(ctx, url, /, **kwargs):  # noqa
     frame = _getCurrentFrame(ctx)
     properties = getPropertyValueSet(kwargs)
     getDispatcher(ctx).executeDispatch(frame, url, '', 0, properties)
 
 
-def executeDesktopDispatch(ctx, url, listener=None, /, **kwargs):
+def executeDesktopDispatch(ctx, url, listener=None, /, **kwargs):  # noqa
     frame = _getCurrentFrame(ctx)
     properties = getPropertyValueSet(kwargs)
     executeFrameDispatch(ctx, frame, url, listener, *properties)
@@ -634,7 +634,7 @@ def _getCurrentFrame(ctx):
     return frame
 
 
-def executeFrameDispatch(ctx, frame, url, listener=None, /, *properties):
+def executeFrameDispatch(ctx, frame, url, listener=None, /, *properties):  # noqa
     url = getUrl(ctx, url)
     dispatcher = frame.queryDispatch(url, '', 0)
     if dispatcher is not None:
@@ -644,7 +644,7 @@ def executeFrameDispatch(ctx, frame, url, listener=None, /, *properties):
             dispatcher.dispatch(url, properties)
 
 
-def showMessageBox(ctx, code, identifier, resource, basename, /, box=WARNINGBOX, **kwargs):
+def showMessageBox(ctx, code, identifier, resource, basename, /, box=WARNINGBOX, **kwargs):  # noqa
     resolver = getStringResource(ctx, identifier, resource, basename)
     title = resolver.resolveString(code)
     message = resolver.resolveString(code + 1).format(**kwargs)
@@ -732,7 +732,7 @@ def _getUniqueName(frames, name):
         if frames.getByIndex(i).getName() == name:
             count += 1
     if count > 0:
-        name = '%s - %s' % (name, (count +1))
+        name = '%s - %s' % (name, (count + 1))
     return name
 
 
@@ -754,7 +754,7 @@ def parseDateTime(timestr='', options='%Y-%m-%dT%H:%M:%S.%fZ', utc=True):
     return _getDateTime(t.microsecond, t.second, t.minute, t.hour, t.day, t.month, t.year, utc)
 
 
-def unparseDateTime(t=None, utc=True, decimal=6):
+def unparseDateTime(t=None, utc=True, decimal=6):  # noqa
     if t is None:
         if utc:
             now = datetime.datetime.utcnow()
@@ -763,7 +763,7 @@ def unparseDateTime(t=None, utc=True, decimal=6):
         return now.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     fraction = 0
     if hasattr(t, 'HundredthSeconds'):
-        fraction = t.HundredthSeconds // (10 ** (3 -decimal))
+        fraction = t.HundredthSeconds // (10 ** (3 - decimal))
     elif hasattr(t, 'NanoSeconds'):
         fraction = t.NanoSeconds // (10 ** (9 - decimal))
     options = '%04d-%02d-%02dT%02d:%02d:%02d.%'

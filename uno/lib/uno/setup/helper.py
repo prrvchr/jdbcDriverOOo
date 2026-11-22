@@ -70,8 +70,8 @@ OPERATORS = {'==': operator.eq,
              '!=': operator.ne,
              '>=': operator.ge,
              '<=': operator.le,
-             '>':  operator.gt,
-             '<':  operator.lt}
+             '>':  operator.gt,  # noqa
+             '<':  operator.lt}  # noqa
 
 
 def getOsLocation(url):
@@ -86,7 +86,7 @@ def getSetupUpdateMode(ctx, identifier):
     return getConfiguration(ctx, identifier).getByName('SetupUpdate')
 
 
-def showSetup(ctx, listener=None, /, **kwargs):
+def showSetup(ctx, listener=None, /, **kwargs):  # noqa
     url = f'vnd.sun.star.job:service={g_identifier}.Setup'
     executeDesktopDispatch(ctx, url, listener, **kwargs)
 

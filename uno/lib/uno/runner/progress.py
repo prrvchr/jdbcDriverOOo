@@ -29,7 +29,7 @@
 
 
 class Progress():
-    def __init__(self, progress, label, /, start=True, finish=True):
+    def __init__(self, progress, label, /, start=True, finish=True):   # noqa
         self._progress = progress
         self._label = label
         self._start = start

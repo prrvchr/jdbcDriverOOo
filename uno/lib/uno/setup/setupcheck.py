@@ -141,7 +141,7 @@ class Check():
 class SetupCheck(unohelper.Base,
                  XCallback,
                  Check):
-    def __init__(self, ctx, callback, /, database=None, java=None, agent=None, python=False, extensions=None, mode=None, progress=None, **kwargs):
+    def __init__(self, ctx, callback, /, database=None, java=None, agent=None, python=False, extensions=None, mode=None, progress=None, **kwargs):  # noqa
         Check.__init__(self, ctx, database=database, java=java, agent=agent, python=python, extensions=extensions, mode=mode)
         self._delai = 0.1
         self._callback = callback

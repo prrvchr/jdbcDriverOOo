@@ -30,7 +30,7 @@
 import uno
 import unohelper
 
-from com.sun.star.logging import XLogger2
+from com.sun.star.logging import XLogger2  # @UnresolvedImport
 
 
 class Logger(unohelper.Base,

@@ -85,7 +85,7 @@ class Layout(unohelper.Base,
             (fixed size).
     """
 
-    def __init__(self, window, /, size=None, controls=(), columns=(), rows=(), links=(), horizontals=(), verticals=(), tops=(), lefts=(), bottoms=()):
+    def __init__(self, window, /, size=None, controls=(), columns=(), rows=(), links=(), horizontals=(), verticals=(), tops=(), lefts=(), bottoms=()):  # noqa
         self.window = window
         self.size = window.convertSizeToPixel(size, APPFONT) if size else window.getPosSize()
         controls = list(controls)

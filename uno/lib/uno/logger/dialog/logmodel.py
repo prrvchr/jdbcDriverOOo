@@ -176,7 +176,7 @@ class LogModel():
         return index
 
     def _getLogHandler(self, index):
-        return self._logHandlers()[index -1]
+        return self._logHandlers()[index - 1]
 
     def _getHandlerIndex(self, handler):
         return self._logHandlers().index(handler) + 1

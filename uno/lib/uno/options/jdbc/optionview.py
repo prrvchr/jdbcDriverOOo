@@ -27,8 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import Layout
-from ...unotool import SubLayout
+from ...unotool.layout import Layout
+
+from ...unotool.sublayout import SubLayout
 
 from ...unotool import getContainerWindow
 

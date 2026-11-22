@@ -33,7 +33,7 @@ from .optionview import OptionView
 
 from .optionhandler import OptionHandler
 
-from ..logger import LogManager
+from ..logger.logmanager import LogManager
 
 
 class OptionManager():

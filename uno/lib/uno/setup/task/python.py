@@ -52,7 +52,7 @@ from ...configuration import g_identifier
 class Python(Setup):
     def __init__(self, ctx, callback, mode):
         super().__init__(ctx, callback)
-        self._packages ={}
+        self._packages = {}
         self._data = None
         self._url = None
         self._version = None
