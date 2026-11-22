@@ -39,13 +39,14 @@ from com.sun.star.logging.LogLevel import FINEST
 from com.sun.star.logging.LogLevel import ALL
 from com.sun.star.logging.LogLevel import OFF
 
-from ...logger import LogConfig
-from ...logger import LoggerPool
+from ...logger.logconfig import LogConfig
 
-from ...logger import getLoggerName
+from ...logger.loggerpool import LoggerPool
 
-from ...setup import isLinuxDistribution
-from ...setup import parseRequirements
+from ...logger.helper import getLoggerName
+
+from ...setup.helper import isLinuxDistribution
+from ...setup.helper import parseRequirements
 
 from ...unotool import getPathSubstitution
 from ...unotool import getResourceLocation

@@ -29,15 +29,15 @@
 
 from com.sun.star.awt import Rectangle
 
-from ..task import Conflict
-from ..task import Extension
-from ..task import Java
-from ..task import Pypi
-from ..task import Python
+from ..task.conflict import Conflict
+from ..task.extension import Extension
+from ..task.java import Java
+from ..task.pypi import Pypi
+from ..task.python import Python
 
 from ...configuration import State
 
-from ...runner import Runner
+from ...runner.runner import Runner
 
 from ...unotool import deregisterStartupJob
 from ...unotool import getConfiguration

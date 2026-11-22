@@ -27,19 +27,27 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from com.sun.star.logging.LogLevel import SEVERE
+
+from .dbtool import getSqlException as getException
+
 from .unotool import createService
 from .unotool import executeDesktopDispatch
 from .unotool import getDesktop
 from .unotool import getNamedValue
 
-from .oauth20 import g_identifier as g_identifier1
-from .oauth20 import g_extension as g_extension1
-from .oauth20 import g_version as g_version1
+from .logger.helper import getLogger
 
-from .jdbcdriver import g_identifier as g_identifier2
-from .jdbcdriver import g_extension as g_extension2
-from .jdbcdriver import g_version as g_version2
+from .oauth20.configuration import g_identifier as g_identifier1
+from .oauth20.configuration import g_extension as g_extension1
+from .oauth20.configuration import g_version as g_version1
 
+from .jdbcdriver.configuration import g_identifier as g_identifier2
+from .jdbcdriver.configuration import g_extension as g_extension2
+from .jdbcdriver.configuration import g_version as g_version2
+
+from .configuration import g_basename
+from .configuration import g_defaultlog
 from .configuration import g_extension
 # from .configuration import g_identifier
 
@@ -74,6 +82,18 @@ def startReplication1(ctx, listener=None, /, **arguments):
 def startReplication(ctx, listener=None, /, **kwargs):
     url = f'vnd.sun.star.job:alias={g_extension}.Replicator'
     executeDesktopDispatch(ctx, url, listener, **kwargs)
+
+
+def getSqlException(ctx, source, state, code, cls, mtd, *args):
+    logger = getLogger(ctx, g_defaultlog, g_basename)
+    return getLogException(logger, source, state, code, cls, mtd, *args)
+
+
+def getLogException(logger, source, state, code, cls, mtd, *args):
+    status = logger.resolveString(state)
+    msg = logger.resolveString(code, *args)
+    logger.logp(SEVERE, cls, mtd, msg)
+    return getException(status, code, msg, source)
 
 
 def _getAvailableStatusIndicator(ctx):

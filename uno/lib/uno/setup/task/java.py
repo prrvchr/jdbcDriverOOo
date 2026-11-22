@@ -29,7 +29,7 @@
 
 from .setup import Setup
 
-from ...unotool import Resource
+from ...unotool.resource import Resource
 
 from ..helper import checkAgent
 from ..helper import getJavaStatus

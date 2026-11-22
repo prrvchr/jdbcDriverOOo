@@ -40,9 +40,9 @@ from ..setupcheck import SetupCheck
 
 from ...configuration import State
 
-from ...runner import Cancel
+from ...runner.cancel import Cancel
 
-from ...unotool import Transferable
+from ...unotool.transferable import Factory as Transferable
 
 from ...unotool import getSystemClipboard
 from ...unotool import notifyDispatch

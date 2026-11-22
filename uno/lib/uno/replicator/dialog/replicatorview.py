@@ -36,8 +36,9 @@ from com.sun.star.awt.PosSize import HEIGHT
 
 from com.sun.star.util.MeasureUnit import APPFONT
 
-from ...unotool import Layout
-from ...unotool import Indicator
+from ...unotool.layout import Layout
+
+from ...unotool.indicator import Indicator
 
 from ...unotool import getContainerWindow
 from ...unotool import getDesktop

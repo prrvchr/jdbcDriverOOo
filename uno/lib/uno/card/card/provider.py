@@ -31,7 +31,7 @@ import uno
 
 from .helper import getSqlException
 
-from ..oauth20 import getRequest
+from ..oauth20.oauth2tool import getRequest
 
 from dateutil import parser
 from dateutil import tz

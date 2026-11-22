@@ -38,7 +38,7 @@ from ...database import DataBase
 
 from ...provider import Provider
 
-from ...runner import Task
+from ...runner.task import Task
 
 from ...user import User
 

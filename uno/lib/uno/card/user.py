@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .card import UserBase
+from .card.base.user import User as UserBase
 
 
 class User(UserBase):

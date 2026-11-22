@@ -27,6 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from ..unotool.resource import Resource
+
+from ..runner.error import RunnerException
+
+from ..runner.task import Task
+
 from .dbinit import createStaticTables
 from .dbinit import createStaticIndexes
 from .dbinit import createStaticForeignKeys
@@ -49,11 +55,6 @@ from .dbtool import getDataBaseIndexes
 from .dbtool import getDataBaseTables
 from .dbtool import getDataSourceConnection
 from .dbtool import getDriverInfos
-
-from ..unotool import Resource
-
-from ..runner import RunnerException
-from ..runner import Task
 
 from ..unotool import checkVersion
 from ..unotool import getSimpleFile

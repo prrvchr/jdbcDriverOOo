@@ -40,7 +40,7 @@ class OptionHandler(unohelper.Base,
         self._manager = manager
 
     # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
+    def callHandlerMethod(self, _window, _event, method):
         try:
             handled = False
             if method == 'ViewData':

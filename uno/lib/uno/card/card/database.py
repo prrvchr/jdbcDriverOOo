@@ -34,7 +34,8 @@ from com.sun.star.sdbc.DataType import VARCHAR
 from com.sun.star.sdbcx.CheckOption import CASCADE
 from com.sun.star.sdbcx.PrivilegeObject import TABLE
 
-from ..dbtool import Array
+from ..dbtool.array import Array
+
 from ..dbtool import createUser
 from ..dbtool import createViews
 from ..dbtool import currentDateTimeInTZ

@@ -26,15 +26,3 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
-
-from .setupcheck import Check
-from .setupcheck import SetupCheck
-
-from .setupstate import SetupState
-
-from .dialog import SetupManager
-
-from .helper import getSetupUpdateMode
-from .helper import isLinuxDistribution
-from .helper import parseRequirements
-from .helper import showSetup

@@ -33,63 +33,81 @@ from .optionsview import OptionsView
 
 from .optionshandler import OptionsListener
 
-from .option import OptionManager
+from .option.optionmanager import OptionManager
 
-from ..runner import DispatchListener
+from .setup.setuphandler import SetupHandler
 
-from ..setup import SetupCheck
+from .setup.setupmanager import SetupManager
 
-from ..setup import showSetup
+from ..runner.listener import DispatchListener
+
+from ..setup.setupcheck import SetupCheck
+
+from ..configuration import State
+
+from ..setup.helper import showSetup
 
 from ..helper import getExtensions
 
-from ..jdbcdriver import g_agent
-from ..jdbcdriver import g_java
-from ..jdbcdriver import g_protocol
-from ..jdbcdriver import g_script
-from ..jdbcdriver import g_service
+from ..jdbcdriver.configuration import g_agent
+from ..jdbcdriver.configuration import g_java
+from ..jdbcdriver.configuration import g_protocol
+from ..jdbcdriver.configuration import g_script
+from ..jdbcdriver.configuration import g_service
 
-from ..configuration import State
 from ..configuration import g_extension
 
 
 class OptionsManager():
-    def __init__(self, ctx, logger, window):
+    def __init__(self, ctx, window, logger):
         self._ctx = ctx
+        self._checker = None
         self._disposed = False
         self._java = g_extension, g_java, g_script
         self._agent = g_service, g_protocol, g_agent
         self._model = OptionsModel(ctx)
-        self._view = OptionsView(ctx, window, *self._model.getViewData())
-        self._manager = OptionManager(ctx, logger, self._view.getFrame(), self._model.getConfig())
-        window.addEventListener(OptionsListener(self))
+        self._view = OptionsView(ctx, window)
+        self._manager = OptionManager(ctx, self._view.getFrame(), self._model.getConfig(), logger)
+        self._setup = SetupManager(ctx, self._view.getSetup(), SetupHandler(self), self._model.getConfig())
+        self._listener = OptionsListener(self)
+        window.addEventListener(self._listener)
         self._loadView(self.init)
-        self._view.getLayout().addLayout(self._manager.getLayout())
+        self._view.getLayout().addLayout(self._manager.getLayout()).addLayout(self._setup.getLayout())
 
     def init(self, state):
+        self._checker = None
         if not self._disposed:
+            self._setup.init()
             self._manager.init(state)
             self._view.refreshView(*self._model.getRefreshData(state))
 
     def refresh(self, state):
+        self._checker = None
         if not self._disposed:
             self._manager.refresh(state)
             self._view.refreshView(*self._model.getRefreshData(state))
 
     def saveSetting(self):
-        self._model.saveData(self._view.getSetupMode())
+        if self._checker:
+            self._checker.cancel()
+        self._setup.saveSetting()
         if self._manager.saveSetting():
             State.restart = True
-            self._loadView(self.refresh)
 
     def loadSetting(self):
         self._loadView(self.init)
 
-    def dispose(self):
+    def dispose(self, window):
+        if self._disposed:
+            return
         self._disposed = True
+        self._manager.dispose()
+        self._setup.dispose()
+        self._view.dispose()
+        window.removeEventListener(self._listener)
 
     def showSetup(self):
-        mode = self._view.getSetupMode()
+        mode = self._setup.getSetupMode()
         showSetup(self._ctx, Dispatch=DispatchListener(self), Mode=mode)
 
     def dispatchFinished(self, _notification):
@@ -97,7 +115,8 @@ class OptionsManager():
             self._loadView(self.refresh)
 
     def _loadView(self, callback):
-        mode = self._view.getSetupMode()
-        database = self._manager.getDataSourceUrl()
-        setup = SetupCheck(self._ctx, callback, database=database, java=self._java, agent=self._agent, python=True, extensions=getExtensions(), mode=mode)
-        setup.start()
+        if not self._disposed:
+            mode = self._setup.getSetupMode()
+            database = self._manager.getDataSourceUrl()
+            self._checker = SetupCheck(self._ctx, callback, database=database, java=self._java, agent=self._agent, python=True, extensions=getExtensions(), mode=mode)
+            self._checker.start()

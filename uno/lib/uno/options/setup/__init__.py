@@ -26,7 +26,3 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
-
-from .setupmanager import SetupManager
-
-from .setuphandler import SetupHandler

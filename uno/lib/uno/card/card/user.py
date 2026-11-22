@@ -31,7 +31,7 @@ from com.sun.star.logging.LogLevel import INFO
 
 from com.sun.star.ucb.ConnectionMode import ONLINE
 
-from .base import UserBase
+from .base.user import User as UserBase
 
 from .helper import getSqlException
 from .helper import getUserId

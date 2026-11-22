@@ -29,7 +29,7 @@
 
 import uno
 
-from ...unotool import Layout
+from ...unotool.layout import Layout
 
 from ...unotool import getContainerWindow
 from ...unotool import getDialog

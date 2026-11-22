@@ -30,6 +30,7 @@
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
+
 from com.sun.star.awt import XDialogEventHandler
 
 import traceback

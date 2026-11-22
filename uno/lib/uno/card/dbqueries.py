@@ -31,7 +31,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from .configuration import g_errorlog
 
-from .logger import getLogger
+from .logger.helper import getLogger
 
 g_basename = 'dbqueries'
 

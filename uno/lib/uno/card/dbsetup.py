@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .dbtool import DBTask
+from .dbtool.dbtask import DBTask
 
 from .dbinit import getDataBaseUrl
 from .dbinit import getDataSourceUrl

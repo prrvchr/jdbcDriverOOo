@@ -59,7 +59,7 @@ class TerminateListener(unohelper.Base,
         self._replicator = replicator
 
 # XTerminateListener
-    def queryTermination(self, event):
+    def queryTermination(self, _event):
         try:
             self._replicator.dispose()
         except Exception:

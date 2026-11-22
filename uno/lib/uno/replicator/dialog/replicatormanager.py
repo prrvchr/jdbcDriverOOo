@@ -41,31 +41,29 @@ from .replicatorhandler import CloseListener
 from .replicatorhandler import WindowHandler
 from .replicatorhandler import TerminateListener
 
-from ..task import Replicator
+from ..task.replicator import Replicator
 
 from ...dbsetup import DBSetup
 
-from ...logger import LogController
+from ...logger.logcontroller import LogController
 
-from ...runner import Cancel
-from ...runner import Runner
+from ...runner.cancel import Cancel
 
-from ...unotool import CallBack
+from ...runner.runner import Runner
 
-# from ...setup import SetupCheck
-from ...setup import SetupManager
+from ...unotool.callback import CallBack
 
-from ...logger import ViewHandler
+from ...setup.dialog.setupmanager import SetupManager
 
-# from ...dbinit import getDataSourceUrl
+from ...logger.loghandler import ViewHandler
 
 from ...helper import getExtensions
 
 from ...unotool import getCallBack
 from ...unotool import getDesktop
 
-from ...jdbcdriver import g_java
-from ...jdbcdriver import g_script
+from ...jdbcdriver.configuration import g_java
+from ...jdbcdriver.configuration import g_script
 
 from ...configuration import g_extension
 from ...configuration import g_setup

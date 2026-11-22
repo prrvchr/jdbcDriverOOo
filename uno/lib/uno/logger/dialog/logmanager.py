@@ -37,9 +37,9 @@ from .logview import LogDialog
 from .loghandler import WindowHandler
 from .loghandler import DialogHandler
 
-from ...logger import LoggerListener
+from ...logger.listener import LoggerListener
 
-from ...logger import getLoggerName
+from ...logger.helper import getLoggerName
 
 
 class LogManager():

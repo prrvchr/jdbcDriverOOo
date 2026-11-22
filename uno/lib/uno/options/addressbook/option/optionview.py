@@ -27,8 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import Layout
-from ...unotool import SubLayout
+from ...unotool.layout import Layout
+from ...unotool.sublayout import SubLayout
 
 from ...unotool import getContainerWindow
 
@@ -46,9 +46,6 @@ class OptionView():
     def getLayout(self):
         return self._layout
 
-    def getWindow(self):
-        return self._window
-
     def getFrame(self):
         return self._getFrame()
 
@@ -56,6 +53,11 @@ class OptionView():
         return int(self._getTimeout().Value), self._getViewName().Text
 
 # OptionView setter methods
+    def dispose(self):
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+
     def initView(self, timeout, view, state):
         self._getTimeout().Value = timeout
         self._getViewName().Text = view
@@ -66,8 +68,17 @@ class OptionView():
         self._getViewName().Model.Enabled = not state.database
 
     def _getLayouts(self):
-        return {'horizontals': (self._getFrame(), self._getTitle(), self._getViewName()),
-                'tops': (self._getTimeout(), self._getDatasource())}
+        return {'horizontals': self._getHorizontals(),
+                'tops': self._getTops()}
+
+    def _getHorizontals(self):
+        yield self._getFrame()
+        yield self._getTitle()
+        yield self._getViewName()
+
+    def _getTops(self):
+        yield self._getTimeout()
+        yield self._getDatasource()
 
 # OptionView private control methods
     def _getFrame(self):

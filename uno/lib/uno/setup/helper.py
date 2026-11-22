@@ -29,7 +29,7 @@
 
 import uno
 
-from ..runner import RunnerException
+from ..runner.error import RunnerException
 
 from ..unotool import checkVersion
 from ..unotool import createService
@@ -44,6 +44,7 @@ from ..configuration import g_identifier
 
 import gzip
 import importlib
+from importlib import metadata
 import io
 import json
 import operator
@@ -179,7 +180,7 @@ def getInstalledPackages(location):
     python = f'{info.major}{info.minor}'
     ext = _getBinaryExtension()
 
-    for dist in importlib.metadata.distributions():
+    for dist in metadata.distributions():
         try:
             path = os.path.normpath(dist.locate_file(''))
             if not path.startswith(location):
@@ -326,7 +327,7 @@ def uninstallPackage(package, url):
         namespaces = set()
         depth = len(package.split('.'))
 
-        dists = [d for d in importlib.metadata.distributions() if d.metadata['Name'] == package]
+        dists = [d for d in metadata.distributions() if d.metadata['Name'] == package]
         for dist in dists:
             try:
                 distinfo = None
@@ -438,7 +439,7 @@ def renamePackageSuffix(package, url):
         ext = _getBinaryExtension()
         importlib.invalidate_caches()
 
-        dists = [d for d in importlib.metadata.distributions() if d.metadata['Name'] == package]
+        dists = [d for d in metadata.distributions() if d.metadata['Name'] == package]
         for dist in dists:
             modules = dist.files
             if not modules:
@@ -469,7 +470,7 @@ def checkPython(url, requirements, mode):
     importlib.invalidate_caches()
     location = getOsLocation(url)
     packages = getInstalledPackages(location)
-    dists = list(importlib.metadata.distributions())
+    dists = list(metadata.distributions())
     for requirement in parseRequirements(requirements):
         try:
             package = parsePackageName(requirement.name)

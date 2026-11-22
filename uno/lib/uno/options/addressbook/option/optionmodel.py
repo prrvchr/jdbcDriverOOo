@@ -47,20 +47,28 @@ class OptionModel():
         self._resources = {'Title': 'OptionDialog.FixedLine1.Label'}
 
     @property
-    def _Timeout(self):
+    def _timeout(self):
         timeout = self._config.getByName('ReplicatorTimeout')
         return timeout // self._factor
 
+    @_timeout.setter
+    def _timeout(self, timeout):
+        self._config.replaceByName('ReplicatorTimeout', timeout * self._factor)
+
     @property
-    def _ViewName(self):
+    def _view(self):
         return self._config.getByName('AddressBookName')
+
+    @_view.setter
+    def _view(self, view):
+        self._config.replaceByName('AddressBookName', view)
 
 # OptionModel getter methods
     def getViewData(self):
         return self._getTitle()
 
     def getInitData(self, state):
-        return self._Timeout, self._ViewName, state
+        return self._timeout, self._view, state
 
     def getDataSourceUrl(self):
         return self._url
@@ -75,10 +83,10 @@ class OptionModel():
 
 # OptionModel getter methods
     def setViewData(self, timeout, view):
-        if timeout != self._Timeout:
-            self._config.replaceByName('ReplicatorTimeout', timeout * self._factor)
-        if view != self._ViewName:
-            self._config.replaceByName('AddressBookName', view)
+        if timeout != self._timeout:
+            self._timeout = timeout
+        if view != self._view:
+            self._view = view
         if self._config.hasPendingChanges():
             self._config.commitChanges()
             return True

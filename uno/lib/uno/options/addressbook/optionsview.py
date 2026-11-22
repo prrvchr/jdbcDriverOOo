@@ -29,50 +29,50 @@
 
 from com.sun.star.awt import Size
 
-from ..unotool import Layout
-from ..unotool import LinkListener
-from ..unotool import SubLayout
+from ..unotool.layout import Layout
+
+from ..unotool.linklistener import LinkListener
+
+from ..unotool.sublayout import SubLayout
 
 
 class OptionsView():
-    def __init__(self, ctx, window, title, setup, update):
+    def __init__(self, ctx, window):
         self._window = window
-        self._setSetup(setup, update)
-        self._getTitle().Model.Label = title
         self._link = LinkListener(ctx, self._getLabel())
         self._layout = SubLayout(Layout(window, size=Size(279, 225), **self._getLayouts()))
         window.addWindowListener(self._layout)
 
-# OptionView getter methods
+# OptionsView getter methods
     def getLayout(self):
         return self._layout
 
     def getFrame(self):
         return self._getFrame()
 
-    def getSetupMode(self):
-        return self._getSetupMode().getSelectedItemPos()
+    def getSetup(self):
+        return self._getSetup()
 
-# OptionView setter methods
+# OptionsView setter methods
+    def dispose(self):
+        if self._layout:
+            self._layout.dispose()
+            self._layout = None
+        if self._link:
+            self._link.dispose()
+            self._link = None
+
     def refreshView(self, label, url):
         self._setLabel(label, url)
 
 # OptionsView private methods
     def _getLayouts(self):
-        return {'horizontals': self._getHorizontals(),
-                'tops': (self._getSetup(), )}
+        return {'horizontals': self._getHorizontals()}
 
     def _getHorizontals(self):
         yield self._getFrame()
-        yield self._getTitle()
-        yield self._getSetupMode()
+        yield self._getSetup()
         yield self._getLabel()
-
-    def _setSetup(self, setup, update):
-        if update:
-            control = self._getSetupMode()
-            control.Model.Enabled = True
-            control.selectItemPos(setup, True)
 
     def _setLabel(self, label, url):
         self._getLabel().Model.Label = label
@@ -82,14 +82,8 @@ class OptionsView():
     def _getFrame(self):
         return self._window.getControl('FrameControl1')
 
-    def _getTitle(self):
-        return self._window.getControl('FixedLine1')
-
-    def _getSetupMode(self):
-        return self._window.getControl('ListBox1')
-
     def _getSetup(self):
-        return self._window.getControl('CommandButton1')
+        return self._window.getControl('FrameControl2')
 
     def _getLabel(self):
-        return self._window.getControl('Label2')
+        return self._window.getControl('Label1')

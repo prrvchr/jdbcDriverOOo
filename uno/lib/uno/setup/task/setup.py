@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...runner import Task
+from ...runner.task import Task
 
 
 class Setup(Task):

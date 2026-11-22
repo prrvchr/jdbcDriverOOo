@@ -27,7 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .dialog import ReplicatorManager
+from .dialog.replicatormanager import ReplicatorManager
 
 from ..unotool import findFrame
 

@@ -27,9 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import Layout
+from ...unotool.layout import Layout
 
-from ...runner import Progress
+from ...runner.progress import Progress
 
 from ...unotool import getContainerWindow
 from ...unotool import getDesktop
