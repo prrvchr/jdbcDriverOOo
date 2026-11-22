@@ -37,25 +37,25 @@ from com.sun.star.sdbcx import PrivilegeObject
 from com.sun.star.sdbcx.KeyType import PRIMARY
 from com.sun.star.sdbcx.KeyType import FOREIGN
 
-from com.sun.star.sdbc.DataType2 import TINYINT
-from com.sun.star.sdbc.DataType2 import SMALLINT
-from com.sun.star.sdbc.DataType2 import INTEGER
-from com.sun.star.sdbc.DataType2 import BIGINT
-from com.sun.star.sdbc.DataType2 import FLOAT
-from com.sun.star.sdbc.DataType2 import DOUBLE
-from com.sun.star.sdbc.DataType2 import CHAR
-from com.sun.star.sdbc.DataType2 import VARCHAR
-from com.sun.star.sdbc.DataType2 import LONGVARCHAR
-from com.sun.star.sdbc.DataType2 import DATE
-from com.sun.star.sdbc.DataType2 import TIME
-from com.sun.star.sdbc.DataType2 import TIME_WITH_TIMEZONE
-from com.sun.star.sdbc.DataType2 import TIMESTAMP
-from com.sun.star.sdbc.DataType2 import TIMESTAMP_WITH_TIMEZONE
-from com.sun.star.sdbc.DataType2 import BINARY
-from com.sun.star.sdbc.DataType2 import VARBINARY
-from com.sun.star.sdbc.DataType2 import LONGVARBINARY
-from com.sun.star.sdbc.DataType2 import ARRAY
-from com.sun.star.sdbc.DataType2 import BOOLEAN
+from com.sun.star.sdbc.DataType2 import TINYINT                  # noqa
+from com.sun.star.sdbc.DataType2 import SMALLINT                 # noqa
+from com.sun.star.sdbc.DataType2 import INTEGER                  # noqa
+from com.sun.star.sdbc.DataType2 import BIGINT                   # noqa
+from com.sun.star.sdbc.DataType2 import FLOAT                    # noqa
+from com.sun.star.sdbc.DataType2 import DOUBLE                   # noqa
+from com.sun.star.sdbc.DataType2 import CHAR                     # noqa
+from com.sun.star.sdbc.DataType2 import VARCHAR                  # noqa
+from com.sun.star.sdbc.DataType2 import LONGVARCHAR              # noqa
+from com.sun.star.sdbc.DataType2 import DATE                     # noqa
+from com.sun.star.sdbc.DataType2 import TIME                     # noqa
+from com.sun.star.sdbc.DataType2 import TIME_WITH_TIMEZONE       # noqa
+from com.sun.star.sdbc.DataType2 import TIMESTAMP                # noqa
+from com.sun.star.sdbc.DataType2 import TIMESTAMP_WITH_TIMEZONE  # noqa
+from com.sun.star.sdbc.DataType2 import BINARY                   # noqa
+from com.sun.star.sdbc.DataType2 import VARBINARY                # noqa
+from com.sun.star.sdbc.DataType2 import LONGVARBINARY            # noqa
+from com.sun.star.sdbc.DataType2 import ARRAY                    # noqa
+from com.sun.star.sdbc.DataType2 import BOOLEAN                  # noqa
 
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -78,7 +78,7 @@ from ..dbconfig import g_class
 from ..dbconfig import g_options
 from ..dbconfig import g_version
 
-from ..logger import getLogger
+from ..logger.helper import getLogger
 
 from ..configuration import g_errorlog
 from ..configuration import g_identifier
@@ -627,7 +627,7 @@ def createTables(tables, items):
         table.setPropertyValue('Name', name)
         table.setPropertyValue('CatalogName', catalog)
         table.setPropertyValue('SchemaName', schema)
-        table.setPropertyValue('Type',  item.get('Type', 'TABLE'))
+        table.setPropertyValue('Type', item.get('Type', 'TABLE'))
         _createTableColumns(table.getColumns(), item.get('Columns'), catalog, schema)
         primarykeys = item.get('PrimaryKeys')
         if primarykeys is not None:

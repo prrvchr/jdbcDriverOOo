@@ -151,9 +151,9 @@ def _getTableItems(catalog, schema, statics=None):
 
 
 def _getStaticTables(catalog, schema):
-    yield 'Tables',          {'CatalogName': catalog,
-                              'SchemaName':  schema,
-                              'Type':        'TEXT TABLE',
+    yield 'Tables',          {'CatalogName': catalog,                    # noqa
+                              'SchemaName':  schema,                     # noqa
+                              'Type':        'TEXT TABLE',               # noqa
                               'Columns': ({'Name': 'Table',
                                            'TypeName': 'INTEGER',
                                            'Type': INTEGER,
@@ -184,9 +184,9 @@ def _getStaticTables(catalog, schema):
                                            'IsNullable': NULLABLE,
                                            'DefaultValue': 'FALSE'}),
                               'PrimaryKeys': ('Table', )}
-    yield 'Columns',         {'CatalogName': catalog,
-                              'SchemaName':  schema,
-                              'Type':        'TEXT TABLE',
+    yield 'Columns',         {'CatalogName': catalog,                    # noqa
+                              'SchemaName':  schema,                     # noqa
+                              'Type':        'TEXT TABLE',               # noqa
                               'Columns': ({'Name': 'Column',
                                            'TypeName': 'INTEGER',
                                            'Type': INTEGER,
@@ -197,9 +197,9 @@ def _getStaticTables(catalog, schema):
                                            'Scale': 100,
                                            'IsNullable': NO_NULLS}),
                               'PrimaryKeys': ('Column', )}
-    yield 'TableColumn',     {'CatalogName': catalog,
-                              'SchemaName':  schema,
-                              'Type':        'TEXT TABLE',
+    yield 'TableColumn',     {'CatalogName': catalog,                    # noqa
+                              'SchemaName':  schema,                     # noqa
+                              'Type':        'TEXT TABLE',               # noqa
                               'Columns': ({'Name': 'Table',
                                            'TypeName': 'INTEGER',
                                            'Type': INTEGER,
@@ -249,9 +249,9 @@ def _getStaticTables(catalog, schema):
                                            'IsNullable': NULLABLE,
                                            'DefaultValue': 'NULL'}),
                               'PrimaryKeys': ('Table', 'Column')}
-    yield 'ForeignKeys',     {'CatalogName': catalog,
-                              'SchemaName':  schema,
-                              'Type':        'TEXT TABLE',
+    yield 'ForeignKeys',     {'CatalogName': catalog,                    # noqa
+                              'SchemaName':  schema,                     # noqa
+                              'Type':        'TEXT TABLE',               # noqa
                               'Columns': ({'Name': 'Table',
                                            'TypeName': 'INTEGER',
                                            'Type': INTEGER,
@@ -276,9 +276,9 @@ def _getStaticTables(catalog, schema):
                                            'TypeName': 'INTEGER',
                                            'Type': INTEGER,
                                            'IsNullable': NO_NULLS})}
-    yield 'Indexes',         {'CatalogName': catalog,
-                              'SchemaName':  schema,
-                              'Type':        'TEXT TABLE',
+    yield 'Indexes',         {'CatalogName': catalog,                    # noqa
+                              'SchemaName':  schema,                     # noqa
+                              'Type':        'TEXT TABLE',               # noqa
                               'Columns': ({'Name': 'Index',
                                            'TypeName': 'INTEGER',
                                            'Type': INTEGER,
@@ -299,7 +299,7 @@ def _getStaticTables(catalog, schema):
 
 
 def _getUniqueIndexes(catalog, schema, *args):
-    indexes = [(f'{catalog}.{schema}.Tables',  True, ('CatalogName', 'SchemaName', 'Name')),
+    indexes = [(f'{catalog}.{schema}.Tables',  True, ('CatalogName', 'SchemaName', 'Name')),  # noqa
                (f'{catalog}.{schema}.Columns', True, ('Name', ))]
     for index in args:
         indexes.append(index)
@@ -313,12 +313,12 @@ def _getForeignKeyItems(catalog, schema, foreignkeys=None):
 
 
 def _getForeignKeys(catalog, schema):
-    yield (f'{catalog}.{schema}.TableColumn', 'Table',  f'{catalog}.{schema}.Tables',  'Table',  CASCADE, CASCADE)
-    yield (f'{catalog}.{schema}.TableColumn', 'Column', f'{catalog}.{schema}.Columns', 'Column', CASCADE, CASCADE)
-    yield (f'{catalog}.{schema}.ForeignKeys', 'Table',  f'{catalog}.{schema}.Tables',  'Table',  CASCADE, CASCADE)
-    yield (f'{catalog}.{schema}.ForeignKeys', 'Column', f'{catalog}.{schema}.Columns', 'Column', CASCADE, CASCADE)
-    yield (f'{catalog}.{schema}.Indexes',     'Table',  f'{catalog}.{schema}.Tables',  'Table',  CASCADE, CASCADE)
-    yield (f'{catalog}.{schema}.Indexes',     'Column', f'{catalog}.{schema}.Columns', 'Column', CASCADE, CASCADE)
+    yield (f'{catalog}.{schema}.TableColumn', 'Table',  f'{catalog}.{schema}.Tables',  'Table',  CASCADE, CASCADE)  # noqa
+    yield (f'{catalog}.{schema}.TableColumn', 'Column', f'{catalog}.{schema}.Columns', 'Column', CASCADE, CASCADE)  # noqa
+    yield (f'{catalog}.{schema}.ForeignKeys', 'Table',  f'{catalog}.{schema}.Tables',  'Table',  CASCADE, CASCADE)  # noqa
+    yield (f'{catalog}.{schema}.ForeignKeys', 'Column', f'{catalog}.{schema}.Columns', 'Column', CASCADE, CASCADE)  # noqa
+    yield (f'{catalog}.{schema}.Indexes',     'Table',  f'{catalog}.{schema}.Tables',  'Table',  CASCADE, CASCADE)  # noqa
+    yield (f'{catalog}.{schema}.Indexes',     'Column', f'{catalog}.{schema}.Columns', 'Column', CASCADE, CASCADE)  # noqa
 
 
 # Set Static Table Queries
