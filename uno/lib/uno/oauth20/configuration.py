@@ -50,5 +50,9 @@ g_refresh_overlap = 10  # must be positive, in second
 g_setup = '%s.Setup' % g_extension
 
 
+# Setup frame and Job name
+g_setup = '%s.Setup' % g_extension
+
+
 class State:
     restart = False

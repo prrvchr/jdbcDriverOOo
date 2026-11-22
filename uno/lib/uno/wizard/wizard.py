@@ -56,7 +56,7 @@ from .wizardhandler import CloseListener
 from .wizardhandler import ItemListener
 from .wizardhandler import WindowHandler
 
-from ..logger import getLogger
+from ..logger.helper import getLogger
 
 from ..unotool import hasInterface
 
@@ -65,7 +65,7 @@ from ..configuration import g_extension
 
 class Wizard(unohelper.Base,
              XWizard):
-    def __init__(self, ctx, auto=-1, /, name=None, possize=None, parent=None, resize=True, **_kwargs):
+    def __init__(self, ctx, auto=-1, /, name=None, possize=None, parent=None, resize=True, **_kwargs):# noqa
         self._ctx = ctx
         self._helpUrl = ''
         self._auto = auto

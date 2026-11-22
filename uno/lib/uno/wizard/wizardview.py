@@ -38,8 +38,9 @@ from com.sun.star.ui.dialogs.WizardButton import HELP
 
 from com.sun.star.util.MeasureUnit import APPFONT
 
-from ..unotool import Layout
-from ..unotool import SubLayout
+from ..unotool.layout import Layout
+
+from ..unotool.sublayout import SubLayout
 
 from ..unotool import getContainerWindow
 from ..unotool import getDialog
@@ -196,10 +197,24 @@ class WizardView():
         return SubLayout(Layout(self._window, **self._getLayouts()))
 
     def _getLayouts(self):
-        return {'verticals': (self._getRoadmapFrame(), self._getRoadmap()),
-                'lefts':     (self._getButton(HELP), ),
-                'bottoms':   (self._getButtonByIndex(i) for i in range(2, 6)),
-                'controls':  (self._getPageWindow(), )}
+        return {'verticals': self._getVerticals(),
+                'lefts': self._getLefts(),
+                'bottoms': self._getBottoms(),
+                'controls': self._getControls()}
+
+    def _getVerticals(self):
+        yield self._getRoadmapFrame()
+        yield self._getRoadmap()
+
+    def _getLefts(self):
+        yield self._getButton(HELP)
+
+    def _getBottoms(self):
+        for index in range(2, 6):
+            yield self._getButtonByIndex(index)
+
+    def _getControls(self):
+        yield self._getPageWindow()
 
     def _setButtonPosition(self, name, x, y):
         button = self._getButton(name).Model

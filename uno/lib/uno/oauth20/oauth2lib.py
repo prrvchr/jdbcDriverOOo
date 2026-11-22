@@ -32,8 +32,9 @@ import unohelper
 
 from com.sun.star.task import XInteractionRequest
 from com.sun.star.task import XInteractionAbort
-from com.sun.star.auth import XInteractionUserName
-from com.sun.star.auth import OAuth2Request
+
+from com.sun.star.auth import XInteractionUserName  # noqa
+from com.sun.star.auth import OAuth2Request         # noqa
 
 from .configuration import g_token
 

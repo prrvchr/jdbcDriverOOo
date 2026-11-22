@@ -129,9 +129,9 @@ def getJavaStatus(ctx):
 def getJavaVersion(ctx, extension, java, script, error=False):
     results = 3, java
     try:
-        service = 'com.sun.star.script.provider.MasterScriptProviderFactory'
-        factory = createService(ctx, service)
-        provider = factory.createScriptProvider('')
+        service = '/singletons/com.sun.star.script.provider.theMasterScriptProviderFactory'
+        factory = ctx.getByName(service)
+        provider = factory.createScriptProvider(ctx)
         url = f'vnd.sun.star.script:{script}?language=Java&location=user:uno_packages/{extension}'
         macro = provider.getScript(url)
         if macro:

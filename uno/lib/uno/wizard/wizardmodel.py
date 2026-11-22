@@ -120,7 +120,7 @@ class WizardModel():
         return tuple(paths)
 
     def initRoadmap(self, controller, paths, complete):
-        for i in range(self._roadmap.getCount() -1, -1, -1):
+        for i in range(self._roadmap.getCount() - 1, - 1, - 1):
             self._roadmap.removeByIndex(i)
         i = 0
         for page in paths:
