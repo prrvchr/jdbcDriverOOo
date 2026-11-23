@@ -46,8 +46,9 @@ from .helper import getJavaVersion
 from .helper import getRequirementsUrl
 from .helper import getSetupUpdateMode
 
+from ..config.configuration import g_resource
+
 from ..configuration import g_identifier
-from ..configuration import g_resource
 
 from threading import Timer
 

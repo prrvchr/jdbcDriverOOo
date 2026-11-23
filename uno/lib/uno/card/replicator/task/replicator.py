@@ -79,7 +79,7 @@ class Replicator(Task):
         total = sum(1 for _ in self.getJobSteps(ctx, job, listener, **kwargs)) * size
         yield (10102, (total, ), self._setStepsCount, total)
 
-    def getJobSteps(self, ctx, _job, _listener, /, args, **_kwargs):
+    def getJobSteps(self, ctx, _job, _listener, /, args, **_kwargs):  # noqa
         # --- PHASE 1 : SYNCHRONISATION DES CARTES
         users = set()
         sessions = json.loads(args)

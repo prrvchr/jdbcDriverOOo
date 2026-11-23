@@ -37,7 +37,7 @@ from ..helper import getUserSchema
 
 from ...unotool import getConnectionMode
 
-from ...configuration import g_sep
+from ...config.configuration import g_sep
 
 
 class User():

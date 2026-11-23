@@ -55,6 +55,7 @@ class Extension(Setup):
         self._callback(self._getSuccess(success), error)
 
     def stepCheckExtension(self, ctx, identifier, name, version):
+        print("Extension.stepCheckExtension()")
         if checkExtension(ctx, identifier, name, version):
             self._present.append((name, version))
         else:

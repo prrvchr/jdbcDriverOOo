@@ -42,8 +42,8 @@ class ReplicatorModel():
         self._ctx = ctx
         self._config = getConfiguration(ctx, g_identifier, True)
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'Replicator')
-        self._resources = {'Title':  'Replicator.Title',
-                           'Label':  'Replicator.Label1.Label.%s',
+        self._resources = {'Title': 'Replicator.Title',
+                           'Label': 'Replicator.Label1.Label.%s',
                            'Button': 'Replicator.CommandButton2.Label.%s'}
 
 # ReplicatorModel getter methods

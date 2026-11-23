@@ -35,7 +35,7 @@ from ..task.java import Java
 from ..task.pypi import Pypi
 from ..task.python import Python
 
-from ...configuration import State
+from ...config.configuration import State
 
 from ...runner.runner import Runner
 

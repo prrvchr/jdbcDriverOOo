@@ -42,8 +42,9 @@ from .unotool import getSimpleFile
 from .unotool import getTypeDetection
 from .unotool import hasInterface
 
+from ..config.configuration import g_resource
+
 from ..configuration import g_identifier
-from ..configuration import g_resource
 
 
 class Factory():

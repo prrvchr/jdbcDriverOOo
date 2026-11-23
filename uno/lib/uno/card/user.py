@@ -31,7 +31,7 @@ from .card.base.user import User as UserBase
 
 
 class User(UserBase):
-    def __init__(self, ctx, provider, database, /, url, server, name, token, new):
+    def __init__(self, ctx, provider, database, /, url, server, name, token, new):  # noqa
         metadata, arguments = database.selectUser(server, name)
         request = provider.getRequest(url, name)
         super().__init__(ctx, request, metadata, arguments, token, new)

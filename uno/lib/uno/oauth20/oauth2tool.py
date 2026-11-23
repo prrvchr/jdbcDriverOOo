@@ -33,7 +33,7 @@ from ..unotool import createService
 from ..unotool import executeDesktopDispatch
 from ..unotool import getExtensionVersion
 
-from ..configuration import State
+from ..config.configuration import State
 
 from .configuration import g_chunk
 from .configuration import g_identifier

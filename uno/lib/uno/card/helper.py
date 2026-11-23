@@ -68,7 +68,7 @@ def getExtensions():
 #        runner.start()
 
 
-def startReplication1(ctx, listener=None, /, **arguments):
+def startReplication1(ctx, listener=None, /, **arguments):  # noqa
     try:
         service = 'com.sun.star.task.Job'
         args = getNamedValue('JobName', f'{g_extension}.Replicator')
@@ -79,7 +79,7 @@ def startReplication1(ctx, listener=None, /, **arguments):
         print("helper.startReplication() ERROR: %s" % traceback.format_exc())
 
 
-def startReplication(ctx, listener=None, /, **kwargs):
+def startReplication(ctx, listener=None, /, **kwargs):  # noqa
     url = f'vnd.sun.star.job:alias={g_extension}.Replicator'
     executeDesktopDispatch(ctx, url, listener, **kwargs)
 

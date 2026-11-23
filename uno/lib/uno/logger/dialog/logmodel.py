@@ -53,8 +53,9 @@ from ...unotool import getResourceLocation
 from ...unotool import getSimpleFile
 from ...unotool import getStringResourceWithLocation
 
+from ...config.configuration import g_resource
+
 from ...configuration import g_identifier
-from ...configuration import g_resource
 from ...configuration import g_basename
 
 from importlib import metadata

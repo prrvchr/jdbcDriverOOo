@@ -35,13 +35,15 @@ from .unotool import findFrame
 from .unotool import getWindowHeight
 from .unotool import setWindowHeight
 
+from ..config.configuration import g_offset
+
 
 class Factory():
-    def __init__(self, ctx=None, name=None, frame=None, offset=11):
+    def __init__(self, ctx=None, name=None, frame=None):
         self._ctx = ctx
         self._name = name
         self._frame = frame if frame is not None else findFrame(ctx, name)
-        self._point = getWindowHeight(self._frame, offset)
+        self._point = getWindowHeight(self._frame, g_offset)
         self._indicators = set()
 
     def createIndicator(self):

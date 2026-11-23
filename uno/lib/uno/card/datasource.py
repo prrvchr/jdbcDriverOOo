@@ -52,11 +52,8 @@ from .dbinit import getDataSourceUrl
 from .helper import getExtensions
 from .helper import startReplication
 
-from .jdbcdriver.configuration import g_agent
 from .jdbcdriver.configuration import g_java
-from .jdbcdriver.configuration import g_protocol
 from .jdbcdriver.configuration import g_script
-from .jdbcdriver.configuration import g_service
 
 from .configuration import g_extension
 
@@ -133,8 +130,7 @@ class DataSource():
     @classmethod
     def checkSetup(cls, ctx, source):
         java = g_extension, g_java, g_script
-        agent = g_service, g_protocol, g_agent
         database = getDataSourceUrl(ctx)
-        state = Check.getState(ctx, database=database, java=java, agent=agent, python=True, extensions=getExtensions())
+        state = Check.getState(ctx, database=database, java=java, python=True, extensions=getExtensions())
         if not state.runnable:
             raise SQLException(state.getMessage(ctx), source, '08001', state.code, None)

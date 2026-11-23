@@ -43,7 +43,7 @@ from ..runner.listener import DispatchListener
 
 from ..setup.setupcheck import SetupCheck
 
-from ..configuration import State
+from ..config.configuration import State
 
 from ..setup.helper import showSetup
 

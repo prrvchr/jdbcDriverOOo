@@ -29,8 +29,9 @@
 
 from ..unotool import getStringResource
 
+from ..config.configuration import g_resource
+
 from ..configuration import g_identifier
-from ..configuration import g_resource
 
 
 class Task():

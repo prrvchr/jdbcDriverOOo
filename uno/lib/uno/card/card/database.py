@@ -352,7 +352,7 @@ class DataBase():
 
     def createGroupView(self, user, group):
         schema = user.getSchema()
-        template = {'Catalog': g_catalog, 'Schema':  g_schema, 'ItemId': group.Id}
+        template = {'Catalog': g_catalog, 'Schema': g_schema, 'ItemId': group.Id}
         command = getSqlQuery(self._ctx, 'getGroupViewCommand', template)
         self._createUserView(g_catalog, schema, group.Name, command, CASCADE)
         self._grantPrivileges(g_catalog, schema, group.Name, user.Name, TABLE, 1)

@@ -65,8 +65,9 @@ from ...unotool import getDesktop
 from ...jdbcdriver.configuration import g_java
 from ...jdbcdriver.configuration import g_script
 
+from ...config.configuration import g_setup
+
 from ...configuration import g_extension
-from ...configuration import g_setup
 from ...configuration import g_synclog
 
 from threading import Timer
@@ -76,7 +77,7 @@ class ReplicatorManager():
     def __init__(self, ctx, job, queue):
         print("ReplicatorManager.__init__() 1")
         self._ctx = ctx
-        self._job =job
+        self._job = job
         self._queue = queue
         self._data = set()
         self._model = ReplicatorModel(ctx)

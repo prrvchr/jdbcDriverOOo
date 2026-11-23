@@ -34,9 +34,10 @@ from .loggerpool import LoggerPool
 from ..unotool import getResourceLocation
 from ..unotool import getStringResourceWithLocation
 
+from ..config.configuration import g_resource
+
 from ..configuration import g_extension
 from ..configuration import g_identifier
-from ..configuration import g_resource
 
 
 def getLogName(name):

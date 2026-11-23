@@ -122,7 +122,7 @@ def createDataSource(ctx, url, infos=None):
     dbcontext = createService(ctx, service)
     datasource = dbcontext.createInstance()
     datasource.URL = getDataBaseUrl(url)
-    if infos is not None:
+    if infos:
         datasource.Info = infos
     return datasource
 
@@ -881,14 +881,12 @@ def getDriverInfos(ctx, location, options):
 def _getDriverPropertyInfo(ctx, location, properties, options):
     url = g_protocol + location
     service = 'com.sun.star.sdbc.DriverManager'
-    drivers = createService(ctx, service).createEnumeration()
-    while drivers.hasMoreElements():
-        driver = drivers.nextElement()
-        if driver is not None and driver.acceptsURL(url):
-            for info in driver.getPropertyInfo(url, properties):
-                if info.Name in options:
-                    yield info.Name, options[info.Name](info)
-            break
+    manager = createService(ctx, service)
+    driver = manager.getDriverByURL(url)
+    if driver:
+        for info in driver.getPropertyInfo(url, properties):
+            if info.Name in options:
+                yield info.Name, options[info.Name](info)
 
 
 def createUser(connection, name, password='', role=None):

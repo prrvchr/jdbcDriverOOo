@@ -38,7 +38,7 @@ from .setuphandler import WindowHandler
 
 from ..setupcheck import SetupCheck
 
-from ...configuration import State
+from ...config.configuration import State
 
 from ...runner.cancel import Cancel
 
@@ -46,6 +46,8 @@ from ...unotool.transferable import Factory as Transferable
 
 from ...unotool import getSystemClipboard
 from ...unotool import notifyDispatch
+
+import traceback
 
 
 class SetupManager():
@@ -55,6 +57,7 @@ class SetupManager():
         self._dispatch = dispatch
         self._cancel = Cancel()
         self._running = True
+        self._step = 0
         self._steps = None
         self._reported = False
         self._model = SetupModel(ctx, name, database, java, agent, python, extensions, mode)
@@ -63,9 +66,10 @@ class SetupManager():
         if state:
             self.notify(state)
         else:
-            path = self._model.getDataBasePath()
-            self._check = SetupCheck(self._ctx, self.notify, path, java, agent, python, extensions)
+            database = self._model.getDataBasePath()
+            self._check = SetupCheck(self._ctx, self.notify, database=database, java=java, agent=agent, python=python, extensions=extensions)
             self._check.start()
+        print("SetupManager.__init__() 1")
 
     def notify(self, state):
         self._running = False
@@ -89,26 +93,34 @@ class SetupManager():
             steps.append(self._checkDataBase)
         if self._model.hasPython():
             steps.append(self._checkPython)
+        print("SetupManager._buildSteps() 1")
         return steps
 
     def next(self):
-        if self._running:
-            return
+        try:
+            self._step += 1
+            print("SetupManager.next() 1 step: %s" % self._step)
+            if self._running:
+                return
 
-        if self._steps:
-            step = self._steps.pop(0)
-            step()
-            return
+            if self._steps:
+                step = self._steps.pop(0)
+                print("SetupManager.next() 2")
+                step()
+                print("SetupManager.next() 3")
+                return
 
-        if self._state.runnable or not self._steps:
-            if not self._reported:
-                self._setReport()
-                self._reported = True
-            else:
-                self._running = True
-                self._model.deregisterJob()
-                self._running = False
-                self._close()
+            if self._state.runnable or not self._steps:
+                if not self._reported:
+                    self._setReport()
+                    self._reported = True
+                else:
+                    self._running = True
+                    self._model.deregisterJob()
+                    self._running = False
+                    self._close()
+        except Exception:
+            print("SetupManager.next() ERROR: %s" % traceback.format_exc())
 
 # XCloseListener
     def queryClosing(self, _source, ownership):
@@ -171,7 +183,7 @@ class SetupManager():
         self._running = True
         self._model.setCheckDataBase(self.notifyCheck)
         self._setHeader()
-        self._model.startCheck(Cancel(), self._view.getIndicator())
+        self._model.startCheck(self._cancel, self._view.getIndicator())
 
     def _checkPython(self):
         self._running = True

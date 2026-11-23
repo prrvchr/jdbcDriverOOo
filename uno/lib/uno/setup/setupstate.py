@@ -29,11 +29,12 @@
 
 from ..unotool import getStringResource
 
-from ..configuration import State
+from ..config.configuration import State
+
+from ..config.configuration import g_resource
 
 from ..configuration import g_extension
 from ..configuration import g_identifier
-from ..configuration import g_resource
 
 from dataclasses import dataclass
 from dataclasses import InitVar

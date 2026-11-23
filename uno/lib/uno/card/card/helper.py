@@ -31,7 +31,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from ..dbtool import getSqlException as getException
 
-from ..logger import getLogger
+from ..logger.helper import getLogger
 
 from ..dbconfig import g_dotcode
 

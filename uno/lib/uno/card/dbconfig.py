@@ -44,12 +44,12 @@ g_dotcode = 183
 g_catalog = 'PUBLIC'
 g_schema = 'PUBLIC'
 
-g_view = {'CardTable':  f'{g_catalog}.{g_schema}."Cards"',
+g_view = {'CardTable':  f'{g_catalog}.{g_schema}."Cards"',       # noqa
           'CardColumn': 'Card',
-          'CardUri':    'Uri',
-          'DataTable':  f'{g_catalog}.{g_schema}."CardValues"',
+          'CardUri':    'Uri',                                   # noqa
+          'DataTable':  f'{g_catalog}.{g_schema}."CardValues"',  # noqa
           'DataColumn': 'Column',
-          'DataValue':  'Value'}
+          'DataValue':  'Value'}                                 # noqa
 
 # XXX: If we want to be able to create DataBase we need to get some
 # XXX: DriverPropertyInfo from the driver. Here is the necessary information
