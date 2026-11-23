@@ -121,6 +121,12 @@ class SetupModel():
         runner = Runner(self._ctx, self._check, cancel, indicator)
         runner.start()
 
+    def hasExtension(self):
+        return bool(self._extensions)
+
+    def hasJava(self):
+        return bool(self._java)
+
     def hasDataBase(self):
         return self._database is not None
 

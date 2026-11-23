@@ -55,7 +55,6 @@ from threading import Timer
 
 class Check():
     def __init__(self, ctx, *, database=None, java=None, agent=None, python=False, extensions=None, mode=None):
-        self._ctx = ctx
         self._state = SetupState()
         self._steps = self._getCheckStep(ctx, database, java, agent, python, extensions, mode)
 

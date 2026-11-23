@@ -51,7 +51,7 @@ import traceback
 
 
 class SetupManager():
-    def __init__(self, ctx, source, /, database=None, java=None, agent=None, python=False, extensions=None, *, dispatch=None, mode=None, parent=None, name=None, state=None):  # noqa
+    def __init__(self, ctx, source, /, database=None, java=(), agent=(), python=False, extensions=None, *, dispatch=None, mode=None, parent=None, name=None, state=None):  # noqa
         self._ctx = ctx
         self._source = source
         self._dispatch = dispatch
@@ -85,11 +85,11 @@ class SetupManager():
 
     def _buildSteps(self) -> list:
         steps = []
-        if not self._state.extension:
+        if self._model.hasExtension() and not self._state.extension:
             steps.append(self._checkExtension)
-        if not self._state.java:
+        if self._model.hasJava() and not self._state.java:
             steps.append(self._checkJava)
-        if self._state.extension and self._state.java and self._model.hasDataBase():
+        if self._model.hasDataBase() and self._state.extension and self._state.java:
             steps.append(self._checkDataBase)
         if self._model.hasPython():
             steps.append(self._checkPython)
