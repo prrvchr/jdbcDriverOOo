@@ -80,7 +80,7 @@ class DocumentHandler(unohelper.Base,
         return self._url
 
     # XCloseListener
-    def queryClosing(self, event, owner):
+    def queryClosing(self, event, _owner):
         url = self._url
         cls, method = 'DocumentHandler', 'queryClosing()'
         self._logger.logprb(INFO, cls, method, 201, url)
@@ -171,7 +171,7 @@ class DocumentHandler(unohelper.Base,
     def _getDataBaseFolder(self, transformer, location):
         url = transformer.getPresentation(location, False)
         uri = getUriFactory(self._ctx).parse(url)
-        name = uri.getPathSegment(uri.getPathSegmentCount() -1)
+        name = uri.getPathSegment(uri.getPathSegmentCount() - 1)
         return self._getDocumentName(name)
 
     def _getDocumentName(self, title):

@@ -38,32 +38,31 @@ from com.sun.star.sdbcx import XDropCatalog
 
 from ..driver import Driver as DriverBase
 
-import traceback
-
 
 class Driver(DriverBase,
              XDataDefinitionSupplier,
              XCreateCatalog,
              XDropCatalog):
 
-    def __init__(self, ctx, lock, logger, service, implementation):
+    def __init__(self, ctx, config, lock, logger, service, implementation):
         services = ('com.sun.star.sdbc.Driver', 'com.sun.star.sdbcx.Driver')
-        super().__init__(ctx, lock, logger, service, implementation, services)
+        super().__init__(ctx, config, lock, logger, service, implementation, services)
 
     # XDataDefinitionSupplier
     def getDataDefinitionByConnection(self, connection):
         try:
-            self._logger.logprb(INFO, 'Driver', 'getDataDefinitionByConnection()', 151)
+            mtd = 'getDataDefinitionByConnection'
+            self._logger.logprb(INFO, self._cls, mtd, 151)
             data = None
             if connection.supportsService("com.sun.star.sdbcx.DatabaseDefinition"):
                 data = connection
             return data
         except SQLException as e:
-            self._logger.logprb(SEVERE, 'Driver', 'getDataDefinitionByConnection()', 152, e, traceback.format_exc())
-            raise e
+            self._logger.logp(SEVERE, self._cls, mtd, e.Message)
+            raise
 
     def getDataDefinitionByURL(self, url, infos):
-        self._logger.logprb(INFO, 'Driver', 'getDataDefinitionByURL()', 161, url)
+        self._logger.logprb(INFO, self._cls, 'getDataDefinitionByURL', 161, url)
         data = None
         if self.acceptsURL(url):
             data = self.getDataDefinitionByConnection(self.connect(url, infos))
@@ -71,8 +70,8 @@ class Driver(DriverBase,
 
     # XCreateCatalog
     def createCatalog(self, _info):
-        self._logger.logprb(INFO, 'Driver', 'createCatalog()', 171)
+        self._logger.logprb(INFO, self._cls, 'createCatalog', 171)
 
     # XDropCatalog
     def dropCatalog(self, name, _info):
-        self._logger.logprb(INFO, 'Driver', 'dropCatalog()', 181, name)
+        self._logger.logprb(INFO, self._cls, 'dropCatalog', 181, name)

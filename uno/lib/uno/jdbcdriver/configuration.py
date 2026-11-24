@@ -34,7 +34,8 @@ g_services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
               'io.github.prrvchr.jdbcdriver.sdbcx.Driver',
               'io.github.prrvchr.jdbcdriver.sdb.Driver')
 g_service = f'{g_identifier}.Driver'
-g_version = '1.7.1'
+g_drivers = f'{g_identifier}.Drivers'
+
 g_agent = 'SupportsInstrumentationAgent'
 g_url = 'juda:'
 g_protocol = g_url + 'jdbc'
@@ -45,3 +46,5 @@ g_script = 'JavaInfo.io.github.prrvchr.java.info.JavaInfo.getVersion'
 g_basename = 'Driver'
 g_defaultlog = 'Driver'
 g_errorlog = 'jdbcDriverError'
+
+g_version = '1.7.1'

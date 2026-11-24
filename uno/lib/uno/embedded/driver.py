@@ -39,21 +39,23 @@ from com.sun.star.sdbc import SQLException
 
 from .documenthandler import DocumentHandler
 
-from .helper import checkSetup
-from .helper import isSetupValid
+from .config.configuration import State
+
 from .helper import getException
 
 from .unotool import createService
-from .unotool import getConfiguration
 from .unotool import getPropertyValueSet
 from .unotool import getResourceLocation
 
+from .helper import getSetupState
+
 from .configuration import g_dbname
+from .configuration import g_driver
 from .configuration import g_identifier
 from .configuration import g_protocol
 from .configuration import g_url
 from .configuration import g_user
-from .configuration import g_driver
+from .configuration import g_version
 
 import traceback
 
@@ -61,37 +63,56 @@ import traceback
 class Driver(unohelper.Base,
              XServiceInfo,
              XDriver):
-
-    def __init__(self, ctx, lock, logger, service, implementation, services):
+    def __init__(self, ctx, config, lock, logger, service, implementation, services):
         self._ctx = ctx
+        self._cls = 'Driver'
+        mtd = '__init__'
         self._lock = lock
-        self._driver = None
+        self._config = config
         self._service = service
-        self._config = getConfiguration(ctx, g_identifier)
         self._implementation = implementation
         self._services = services
+        state = getSetupState(ctx)
+        self._error = False
+        if state.runnable:
+            try:
+                driver = createService(ctx, service)
+            except SQLException as e:
+                self._error = True
+                State.restart = True
+                self._driver = None
+                logger.logp(SEVERE, self._cls, mtd, e.Message)
+            else:
+                self._driver = driver
+                logger.logprb(INFO, self._cls, mtd, 101, implementation, service)
+        else:
+            State.restart = True
+            self._driver = None
+            logger.logp(SEVERE, self._cls, mtd, state.getMessage(ctx))
         self._logger = logger
+        self._version = [int(x) for x in g_version.split('.')] + [0, 0]
         # FIXME: If we want to add the StorageChangeListener only once,
         # FIXME: we need to be able to retrieve the DocumentHandler (keep a reference)
         self._handlers = []
 
     # XDriver
     def connect(self, url, infos):
+        mtd = 'connect'
         # XXX: We need to test first if configuration is OK...
         newinfos, document, storage, location = self._getConnectionInfo(infos)
         if storage is None or location is None:
             self._logException(112, url, ' ')
             raise self._getException(1001, None, 111, 112, url, '\n')
         handler = None
-        driver = self._getDriver()
+        driver = self._getDriver(mtd)
         try:
             handler = self._getDocumentHandler(driver, location)
             # XXX: Getting path from handler unpacks the database files
             path = handler.getConnectionUrl(storage)
-            self._logger.logprb(INFO, 'Driver', 'connect()', 113, location)
+            self._logger.logprb(INFO, self._cls, mtd, 113, location)
             connection = driver.connect(path, newinfos)
         except Exception as e:
-            self._logger.logprb(SEVERE, 'Driver', 'connect()', 115, str(e), traceback.format_exc())
+            self._logger.logprb(SEVERE, self._cls, mtd, 115, str(e), traceback.format_exc())
             # XXX: Database files will only be deleted if they have been unpacked
             if handler:
                 handler.removeFolder()
@@ -99,36 +120,40 @@ class Driver(unohelper.Base,
         # XXX: Connection has been done we can add close and change listener to document
         self._setDocumentHandler(document, handler)
         version = connection.getMetaData().getDriverVersion()
-        self._logger.logprb(INFO, 'Driver', 'connect()', 114, g_dbname, version, g_user)
+        self._logger.logprb(INFO, self._cls, mtd, 114, g_dbname, version, g_user)
         return connection
 
     def acceptsURL(self, url):
-        accept = url.startswith(g_url)
-        self._logger.logprb(INFO, 'Driver', 'acceptsURL()', 131, url, accept)
+        accept = url and url.startswith(g_url)
+        self._logger.logprb(INFO, self._cls, 'acceptsURL()', 131, url, accept)
         return accept
 
     def getPropertyInfo(self, url, infos):
         try:
-            self._logger.logprb(INFO, 'Driver', 'getPropertyInfo()', 141, url)
+            mtd = 'getPropertyInfo'
+            self._logger.logprb(INFO, self._cls, mtd, 141, url)
             # XXX: We need to test first if configuration is OK...
-            if self._driver is None and not isSetupValid(self._ctx):
+            if not self.acceptsURL(url) or self._driver is None:
+                if self._driver is None:
+                    state = getSetupState(self._ctx)
+                    self._logger.logp(SEVERE, self._cls, mtd, state.getMessage(self._ctx))
                 return ()
-            drvinfo = self._getDriver().getPropertyInfo(g_protocol, infos)
+            drvinfo = self._getDriver(mtd).getPropertyInfo(g_protocol, infos)
             for info in drvinfo:
-                self._logger.logprb(INFO, 'Driver', 'getPropertyInfo()', 142, info.Name, info.Value)
+                self._logger.logprb(INFO, self._cls, mtd, 142, info.Name, info.Value)
             return drvinfo
         except SQLException as e:
-            self._logger.logp(SEVERE, 'Driver', 'getPropertyInfo()', 143, e.Message)
-            raise e
+            self._logger.logp(SEVERE, self._cls, mtd, 143, e.Message)
+            raise
         except Exception as e:
-            self._logger.logprb(SEVERE, 'Driver', 'getPropertyInfo()', 144, e, traceback.format_exc())
+            self._logger.logprb(SEVERE, self._cls, mtd, 144, e, traceback.format_exc())
             raise e
 
     def getMajorVersion(self):
-        return 1
+        return self._version[0]
 
     def getMinorVersion(self):
-        return 0
+        return self._version[1]
 
     # XServiceInfo
     def supportsService(self, service):
@@ -141,11 +166,23 @@ class Driver(unohelper.Base,
         return self._services
 
     # Driver private getter methods
-    def _getDriver(self):
+    def _getDriver(self, mtd):
         with self._lock:
             if self._driver is None:
-                checkSetup(self._ctx, self)
-                self._driver = createService(self._ctx, self._service)
+                if self._error:
+                    try:
+                        driver = createService(self._ctx, self._service)
+                    except SQLException as e:
+                        self._logger.logp(SEVERE, self._cls, mtd, e.Message)
+                        raise
+                    else:
+                        self._error = False
+                        self._driver = driver
+                else:
+                    state = getSetupState(self._ctx)
+                    msg = state.getMessage(self._ctx)
+                    self._logger.logp(SEVERE, self._cls, mtd, msg)
+                    raise SQLException(msg, self, '08001', state.code, None)
             return self._driver
 
     def _getConnectionInfo(self, infos):

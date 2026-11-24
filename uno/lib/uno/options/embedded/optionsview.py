@@ -29,9 +29,11 @@
 
 from com.sun.star.awt import Size
 
-from ..unotool import Layout
-from ..unotool import LinkListener
-from ..unotool import SubLayout
+from ..unotool.layout import Layout
+
+from ..unotool.linklistener import LinkListener
+
+from ..unotool.sublayout import SubLayout
 
 
 class OptionsView():

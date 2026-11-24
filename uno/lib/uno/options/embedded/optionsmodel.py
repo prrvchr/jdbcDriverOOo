@@ -36,7 +36,7 @@ from ..unotool import createService
 from ..unotool import getConfiguration
 from ..unotool import getStringResource
 
-from ..jdbcdriver import g_service as jdbc
+from ..jdbcdriver.configuration import g_service as jdbc
 
 from ..configuration import g_identifier
 from ..configuration import g_service as embedded
