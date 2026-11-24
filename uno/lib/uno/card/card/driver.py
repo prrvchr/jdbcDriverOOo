@@ -29,9 +29,10 @@
 
 import unohelper
 
-from com.sun.star.lang import XServiceInfo
-
 from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
+
+from com.sun.star.lang import XServiceInfo
 
 from com.sun.star.sdbc import SQLException
 from com.sun.star.sdbc import XDriver
@@ -40,9 +41,13 @@ from com.sun.star.sdbcx import XCreateCatalog
 from com.sun.star.sdbcx import XDataDefinitionSupplier
 from com.sun.star.sdbcx import XDropCatalog
 
+from .helper import getSetupState
+
+from .helper import getLogException
+
 from ..datasource import DataSource
 
-from ..helper import getLogException
+from ..config.configuration import State
 
 from ..dbtool import getDriverPropertyInfos
 
@@ -61,19 +66,28 @@ class Driver(unohelper.Base,
     def __init__(self, ctx, logger, implementation, services):
         self._ctx = ctx
         self._cls = 'Driver'
+        mtd = '__init__'
         self._implementation = implementation
         self._services = services
-        self._supportedProtocol = g_protocol
+        state = getSetupState(ctx)
+        self._error = False
+        if state.runnable:
+            try:
+                datasource = DataSource(ctx, logger, self)
+            except SQLException as e:
+                self._error = True
+                State.restart = True
+                self._datasource = None
+                logger.logp(SEVERE, self._cls, '__init__', e.Message)
+            else:
+                self._datasource = datasource
+                logger.logprb(INFO, self._cls, mtd, 101, implementation)
+        else:
+            State.restart = True
+            self._datasource = None
+            logger.logp(SEVERE, self._cls, mtd, state.getMessage(ctx))
         self._logger = logger
-        self._datasource = None
         self._version = [int(x) for x in g_version.split('.')] + [0, 0]
-
-    @property
-    def DataSource(self):
-        if self._datasource is None:
-            DataSource.checkSetup(self._ctx, self)
-            self._datasource = DataSource(self._ctx, self._logger, self)
-        return self._datasource
 
 # XCreateCatalog
     def createCatalog(self, info):
@@ -96,23 +110,26 @@ class Driver(unohelper.Base,
             mtd = 'connect'
             self._logger.logprb(INFO, self._cls, mtd, 1111, url)
             params = self._getConnectionParams(url, infos, mtd)
-            connection = self.DataSource.getConnection(self, self._logger, *params)
+            connection = self._getDataSource(mtd).getConnection(self, self._logger, *params)
             metadata = connection.getMetaData()
             self._logger.logprb(INFO, self._cls, mtd, 1115, metadata.getDriverVersion(), metadata.getUserName())
             return connection
         except SQLException as e:
+            self._logger.logp(SEVERE, self._cls, mtd, e.Message)
             raise e
         except Exception as e:
             raise getLogException(self._logger, self, 1005, 1116, self._cls, mtd, str(e), traceback.format_exc())
 
     def acceptsURL(self, url):
-        return url and url.startswith(self._supportedProtocol)
+        return url and url.startswith(g_protocol)
 
     def getPropertyInfo(self, url, _infos):
-        properties = ()
-        if self.acceptsURL(url):
-            properties = getDriverPropertyInfos()
-        return properties
+        if not self.acceptsURL(url) or self._datasource is None:
+            if self._datasource is None:
+                state = getSetupState(self._ctx)
+                self._logger.logp(SEVERE, self._cls, 'getPropertyInfo', state.getMessage(self._ctx))
+            return ()
+        return getDriverPropertyInfos()
 
     def getMajorVersion(self):
         return self._version[0]
@@ -133,3 +150,21 @@ class Driver(unohelper.Base,
 # Private getter methods
     def _getConnectionParams(self, url, infos, mtd):
         raise NotImplementedError
+
+    def _getDataSource(self, mtd):
+        if self._datasource is None:
+            if self._error:
+                try:
+                    datasource = DataSource(self._ctx, self._logger, self)
+                except SQLException as e:
+                    self._logger.logp(SEVERE, self._cls, mtd, e.Message)
+                    raise
+                else:
+                    self._error = False
+                    self._datasource = datasource
+            else:
+                state = getSetupState(self._ctx)
+                msg = state.getMessage(self._ctx)
+                self._logger.logp(SEVERE, self._cls, mtd, msg)
+                raise SQLException(msg, self, '08001', state.code, None)
+        return self._datasource

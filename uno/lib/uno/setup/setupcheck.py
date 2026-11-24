@@ -38,13 +38,13 @@ from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 from ..unotool import getStringResource
 
-from .helper import checkAgent
-from .helper import checkExtension
-from .helper import checkPython
-from .helper import getJavaStatus
-from .helper import getJavaVersion
-from .helper import getRequirementsUrl
-from .helper import getSetupUpdateMode
+from .task.helper import checkAgent
+from .task.helper import checkExtension
+from .task.helper import checkPython
+from .task.helper import getJavaStatus
+from .task.helper import getJavaVersion
+from .task.helper import getRequirementsUrl
+from .task.helper import getSetupUpdateMode
 
 from ..config.configuration import g_resource
 

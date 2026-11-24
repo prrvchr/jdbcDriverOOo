@@ -74,21 +74,21 @@ class LoggerPool(unohelper.Base,
         return Logger(self._ctx, logger, listeners, resolver)
 
     def getLoggerNames(self):
-        return tuple(LoggerPool._loggers.keys())
+        with LoggerPool._lock:
+            return tuple(LoggerPool._loggers.keys())
 
     def getFilteredLoggerNames(self, fltr):
-        names = []
         start = len(fltr) + 1
-        for name in LoggerPool._loggers:
-            if name.startswith(fltr):
-                names.append(name[start:])
-        return tuple(names)
+        with LoggerPool._lock:
+            return tuple(name[start:] for name in LoggerPool._loggers if name.startswith(fltr))
 
     def addModifyListener(self, listener):
-        LoggerPool._listeners.add(listener)
+        with LoggerPool._lock:
+            LoggerPool._listeners.add(listener)
 
     def removeModifyListener(self, listener):
-        LoggerPool._listeners.discard(listener)
+        with LoggerPool._lock:
+            LoggerPool._listeners.discard(listener)
 
     def _getNamedLogger(self, name):
         with LoggerPool._lock:
@@ -103,5 +103,7 @@ class LoggerPool(unohelper.Base,
     def _notifyListener(self):
         event = uno.createUnoStruct('com.sun.star.lang.EventObject')
         event.Source = self
-        for listener in list(LoggerPool._listeners):
+        with LoggerPool._lock:
+            listeners = list(LoggerPool._listeners)
+        for listener in listeners:
             listener.modified(event)

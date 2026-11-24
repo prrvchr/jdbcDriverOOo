@@ -31,12 +31,12 @@ from .setup import Setup
 
 from ...unotool.resource import Resource
 
-from ..helper import checkPython
-from ..helper import getRequirementsUrl
-from ..helper import hasFaultySuffix
-from ..helper import installPackage
-from ..helper import renamePackageSuffix
-from ..helper import uninstallPackage
+from .helper import checkPython
+from .helper import getRequirementsUrl
+from .helper import hasFaultySuffix
+from .helper import installPackage
+from .helper import renamePackageSuffix
+from .helper import uninstallPackage
 
 
 class Pypi(Setup):

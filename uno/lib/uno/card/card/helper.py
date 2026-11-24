@@ -29,14 +29,30 @@
 
 from com.sun.star.logging.LogLevel import SEVERE
 
+from ..setup.setupcheck import Check
+
+from ..dbinit import getDataSourceUrl
+
 from ..dbtool import getSqlException as getException
 
 from ..logger.helper import getLogger
 
+from ..helper import getExtensions
+
 from ..dbconfig import g_dotcode
+
+from ..jdbcdriver.configuration import g_java
+from ..jdbcdriver.configuration import g_script
 
 from ..configuration import g_basename
 from ..configuration import g_defaultlog
+from ..configuration import g_extension
+
+
+def getSetupState(ctx):
+    database = getDataSourceUrl(ctx)
+    java = g_extension, g_java, g_script
+    return Check.getState(ctx, database=database, java=java, python=True, extensions=getExtensions())
 
 
 def getUserId(metadata):

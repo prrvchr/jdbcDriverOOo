@@ -27,65 +27,78 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .optionsmodel import OptionsModel
+import traceback
 
-from .optionsview import OptionsView
+try:
+    from .optionsmodel import OptionsModel
 
-from .optionshandler import OptionsListener
+    from .optionsview import OptionsView
 
-from .option.optionmanager import OptionManager
+    from .optionshandler import OptionsListener
 
-from .setup.setuphandler import SetupHandler
+    from .option.optionmanager import OptionManager
 
-from .setup.setupmanager import SetupManager
+    from .setup.setuphandler import SetupHandler
 
-from ..runner.listener import DispatchListener
+    from .setup.setupmanager import SetupManager
 
-from ..setup.setupcheck import SetupCheck
+    from ..runner.listener import DispatchListener
 
-from ..config.configuration import State
+    from ..setup.setupcheck import SetupCheck
 
-from ..setup.helper import showSetup
+    from ..config.configuration import State
 
-from ..helper import getExtensions
+    from ..setup.helper import getSetupListener
+    from ..setup.helper import removeSetupListener
+    from ..setup.helper import showSetup
 
-from ..jdbcdriver.configuration import g_agent
-from ..jdbcdriver.configuration import g_java
-from ..jdbcdriver.configuration import g_protocol
-from ..jdbcdriver.configuration import g_script
-from ..jdbcdriver.configuration import g_service
+    from ..helper import getExtensions
 
-from ..configuration import g_extension
+    from ..jdbcdriver.configuration import g_agent
+    from ..jdbcdriver.configuration import g_java
+    from ..jdbcdriver.configuration import g_protocol
+    from ..jdbcdriver.configuration import g_script
+    from ..jdbcdriver.configuration import g_service
+
+    from ..configuration import g_extension
+except Exception:
+    print("OptionsManager.__init__() ERROR: %s" % traceback.format_exc())
 
 
 class OptionsManager():
     def __init__(self, ctx, window, logger):
-        self._ctx = ctx
-        self._checker = None
-        self._disposed = False
-        self._java = g_extension, g_java, g_script
-        self._agent = g_service, g_protocol, g_agent
-        self._model = OptionsModel(ctx)
-        self._view = OptionsView(ctx, window)
-        self._manager = OptionManager(ctx, self._view.getFrame(), self._model.getConfig(), logger)
-        self._setup = SetupManager(ctx, self._view.getSetup(), SetupHandler(self), self._model.getConfig())
-        self._listener = OptionsListener(self)
-        window.addEventListener(self._listener)
-        self._loadView(self.init)
-        self._view.getLayout().addLayout(self._manager.getLayout()).addLayout(self._setup.getLayout())
+        try:
+            self._ctx = ctx
+            self._checker = None
+            self._disposed = False
+            self._java = g_extension, g_java, g_script
+            self._agent = g_service, g_protocol, g_agent
+            self._model = OptionsModel(ctx)
+            self._view = OptionsView(ctx, window)
+            self._manager = OptionManager(ctx, self._view.getFrame(), self._model.getConfig(), logger)
+            self._setup = SetupManager(ctx, self._view.getSetup(), SetupHandler(self), self._model.getConfig())
+            self._listener = OptionsListener(self)
+            window.addEventListener(self._listener)
+            self._slistener = getSetupListener(ctx, self)
+            self._loadView(self.init)
+            self._view.getLayout().addLayout(self._manager.getLayout()).addLayout(self._setup.getLayout())
+        except Exception:
+            print("OptionsManager.__init__() ERROR: %s" % traceback.format_exc())
 
     def init(self, state):
         self._checker = None
-        if not self._disposed:
-            self._setup.init()
-            self._manager.init(state)
-            self._view.refreshView(*self._model.getRefreshData(state))
+        if self._disposed:
+            return
+        self._setup.init()
+        self._manager.init(state)
+        self._view.refreshView(*self._model.getRefreshData(state))
 
     def refresh(self, state):
         self._checker = None
-        if not self._disposed:
-            self._manager.refresh(state)
-            self._view.refreshView(*self._model.getRefreshData(state))
+        if self._disposed:
+            return
+        self._manager.refresh(state)
+        self._view.refreshView(*self._model.getRefreshData(state))
 
     def saveSetting(self):
         if self._checker:
@@ -97,6 +110,12 @@ class OptionsManager():
     def loadSetting(self):
         self._loadView(self.init)
 
+    def closeSetup(self):
+        self._slistener = None
+        if self._disposed:
+            return
+        self._loadView(self.refresh)
+
     def dispose(self, window):
         if self._disposed:
             return
@@ -105,18 +124,23 @@ class OptionsManager():
         self._setup.dispose()
         self._view.dispose()
         window.removeEventListener(self._listener)
+        if self._slistener:
+            removeSetupListener(self._ctx, self._slistener)
+            self._slistener = None
 
     def showSetup(self):
         mode = self._setup.getSetupMode()
         showSetup(self._ctx, Dispatch=DispatchListener(self), Mode=mode)
 
     def dispatchFinished(self, _notification):
-        if not self._disposed:
-            self._loadView(self.refresh)
+        if self._disposed:
+            return
+        self._loadView(self.refresh)
 
     def _loadView(self, callback):
-        if not self._disposed:
-            mode = self._setup.getSetupMode()
-            database = self._manager.getDataSourceUrl()
-            self._checker = SetupCheck(self._ctx, callback, database=database, java=self._java, agent=self._agent, python=True, extensions=getExtensions(), mode=mode)
-            self._checker.start()
+        if self._disposed:
+            return
+        mode = self._setup.getSetupMode()
+        database = self._manager.getDataSourceUrl()
+        self._checker = SetupCheck(self._ctx, callback, database=database, java=self._java, agent=self._agent, python=True, extensions=getExtensions(), mode=mode)
+        self._checker.start()

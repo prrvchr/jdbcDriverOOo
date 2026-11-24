@@ -31,6 +31,8 @@ import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
 
+from com.sun.star.lang import XEventListener
+
 from com.sun.star.util import XCloseListener
 
 import traceback
@@ -62,6 +64,19 @@ class WindowHandler(unohelper.Base,
         return ('Cancel',
                 'Copy',
                 'Next')
+
+
+class SetupListener(unohelper.Base,
+                    XEventListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+# com.sun.star.lang.XEventListener
+    def disposing(self, _event):
+        try:
+            self._manager.closeSetup()
+        except Exception:
+            print("SetupListener.disposing() ERROR: %s" % traceback.format_exc())
 
 
 class CloseListener(unohelper.Base,

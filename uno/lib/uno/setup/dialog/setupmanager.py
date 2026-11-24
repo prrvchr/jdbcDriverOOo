@@ -47,8 +47,6 @@ from ...unotool.transferable import Factory as Transferable
 from ...unotool import getSystemClipboard
 from ...unotool import notifyDispatch
 
-import traceback
-
 
 class SetupManager():
     def __init__(self, ctx, source, /, database=None, java=(), agent=(), python=False, extensions=None, *, dispatch=None, mode=None, parent=None, name=None, state=None):  # noqa
@@ -69,7 +67,6 @@ class SetupManager():
             database = self._model.getDataBasePath()
             self._check = SetupCheck(self._ctx, self.notify, database=database, java=java, agent=agent, python=python, extensions=extensions)
             self._check.start()
-        print("SetupManager.__init__() 1")
 
     def notify(self, state):
         self._running = False
@@ -93,34 +90,27 @@ class SetupManager():
             steps.append(self._checkDataBase)
         if self._model.hasPython():
             steps.append(self._checkPython)
-        print("SetupManager._buildSteps() 1")
         return steps
 
     def next(self):
-        try:
-            self._step += 1
-            print("SetupManager.next() 1 step: %s" % self._step)
-            if self._running:
-                return
+        self._step += 1
+        if self._running:
+            return
 
-            if self._steps:
-                step = self._steps.pop(0)
-                print("SetupManager.next() 2")
-                step()
-                print("SetupManager.next() 3")
-                return
+        if self._steps:
+            step = self._steps.pop(0)
+            step()
+            return
 
-            if self._state.runnable or not self._steps:
-                if not self._reported:
-                    self._setReport()
-                    self._reported = True
-                else:
-                    self._running = True
-                    self._model.deregisterJob()
-                    self._running = False
-                    self._close()
-        except Exception:
-            print("SetupManager.next() ERROR: %s" % traceback.format_exc())
+        if self._state.runnable or not self._steps:
+            if not self._reported:
+                self._setReport()
+                self._reported = True
+            else:
+                self._running = True
+                self._model.deregisterJob()
+                self._running = False
+                self._close()
 
 # XCloseListener
     def queryClosing(self, _source, ownership):

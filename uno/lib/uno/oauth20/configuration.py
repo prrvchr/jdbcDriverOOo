@@ -31,7 +31,6 @@
 g_extension = 'OAuth2OOo'
 g_identifier = 'io.github.prrvchr.%s' % g_extension
 g_service = '%s.OAuth2Service' % g_identifier
-g_resource = 'resource'
 
 g_version = '1.7.0'
 g_chunk = g_chunk = 320 * 1024
@@ -45,14 +44,3 @@ g_errorlog = 'OAuth2Error'
 g_wizard_page = 2  # -1 to disable
 g_wizard_paths = ((1, 2, 3, 4), (1, 4))
 g_refresh_overlap = 10  # must be positive, in second
-
-# Setup frame and Job name
-g_setup = '%s.Setup' % g_extension
-
-
-# Setup frame and Job name
-g_setup = '%s.Setup' % g_extension
-
-
-class State:
-    restart = False

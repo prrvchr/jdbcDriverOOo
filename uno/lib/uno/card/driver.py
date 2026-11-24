@@ -29,7 +29,7 @@
 
 from .card.driver import Driver as DriverBase
 
-from .helper import getLogException
+from .card.helper import getLogException
 
 from .configuration import g_scheme
 from .configuration import g_scope

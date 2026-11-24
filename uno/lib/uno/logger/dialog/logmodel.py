@@ -45,8 +45,8 @@ from ...logger.loggerpool import LoggerPool
 
 from ...logger.helper import getLoggerName
 
-from ...setup.helper import isLinuxDistribution
-from ...setup.helper import parseRequirements
+from ...setup.task.helper import isLinuxDistribution
+from ...setup.task.helper import parseRequirements
 
 from ...unotool import getPathSubstitution
 from ...unotool import getResourceLocation
