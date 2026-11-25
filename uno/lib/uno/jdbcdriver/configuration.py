@@ -35,6 +35,7 @@ g_services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
               'io.github.prrvchr.jdbcdriver.sdb.Driver')
 g_service = f'{g_identifier}.Driver'
 g_drivers = f'{g_identifier}.Drivers'
+g_apilevel = {0: 'css.sdbc', 1: 'css.sdbcx', 2: 'css.sdb'}
 
 g_agent = 'SupportsInstrumentationAgent'
 g_url = 'juda:'
