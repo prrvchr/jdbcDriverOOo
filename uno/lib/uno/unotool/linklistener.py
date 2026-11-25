@@ -36,8 +36,8 @@ from com.sun.star.awt.SystemPointer import REFHAND
 
 from com.sun.star.system.SystemShellExecuteFlags import URIS_ONLY
 
-from .unotool import createService
-from .unotool import executeShell
+from .helper import createService
+from .helper import executeShell
 
 
 class LinkListener(unohelper.Base,

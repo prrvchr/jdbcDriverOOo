@@ -119,12 +119,17 @@ class Driver(unohelper.Base,
             path = handler.getConnectionUrl(storage)
             self._logger.logprb(INFO, self._cls, mtd, 113, location)
             connection = driver.connect(path, newinfos)
+        except SQLException:
+            # XXX: Database files will only be deleted if they have been unpacked
+            if handler:
+                handler.removeFolder()
+            raise
         except Exception as e:
             self._logger.logprb(SEVERE, self._cls, mtd, 115, str(e), traceback.format_exc())
             # XXX: Database files will only be deleted if they have been unpacked
             if handler:
                 handler.removeFolder()
-            raise e
+            raise
         # XXX: Connection has been done we can add close and change listener to document
         self._setDocumentHandler(document, handler)
         version = connection.getMetaData().getDriverVersion()

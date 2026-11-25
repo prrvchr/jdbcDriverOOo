@@ -115,8 +115,7 @@ class Driver(unohelper.Base,
             self._logger.logprb(INFO, self._cls, mtd, 1115, metadata.getDriverVersion(), metadata.getUserName())
             return connection
         except SQLException as e:
-            self._logger.logp(SEVERE, self._cls, mtd, e.Message)
-            raise e
+            raise
         except Exception as e:
             raise getLogException(self._logger, self, 1005, 1116, self._cls, mtd, str(e), traceback.format_exc())
 

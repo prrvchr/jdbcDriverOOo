@@ -92,7 +92,7 @@ class SetupModel():
         return self._getDialogPosition(), self._getTitle(), self._getHeader(1, extension=g_extension)
 
     def getDataBasePath(self):
-        return self._database.path if self.hasDataBase() else None
+        return self._database.getPath() if self.hasDataBase() else None
 
     def setCheckExtension(self, callback):
         self._check = Extension(self._ctx, callback, self._extensions)

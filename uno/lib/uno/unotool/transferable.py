@@ -33,14 +33,14 @@ import unohelper
 from com.sun.star.datatransfer import UnsupportedFlavorException
 from com.sun.star.datatransfer import XTransferable
 
-from .unotool import getMimeTypeFactory
-from .unotool import getPropertyValueSet
-from .unotool import getStringResource
-from .unotool import getSequenceInputStream
-from .unotool import getStreamSequence
-from .unotool import getSimpleFile
-from .unotool import getTypeDetection
-from .unotool import hasInterface
+from .helper import getMimeTypeFactory
+from .helper import getPropertyValueSet
+from .helper import getStringResource
+from .helper import getSequenceInputStream
+from .helper import getStreamSequence
+from .helper import getSimpleFile
+from .helper import getTypeDetection
+from .helper import hasInterface
 
 from ..config.configuration import g_resource
 

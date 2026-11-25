@@ -38,6 +38,8 @@ from com.sun.star.sdbc import KeyRule
 
 from com.sun.star.sdbcx import CheckOption
 
+from .unotool import getPropertyValueSet
+
 from .dbtool import getConnectionUrl
 from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceConnection
@@ -56,18 +58,26 @@ from .configuration import g_host
 from collections import OrderedDict
 
 
+def getDataBaseName():
+    return g_host
+
+
+def getDataBasePath(ctx):
+    return getConnectionUrl(ctx, g_folder + g_sep)
+
+
 def getDataBaseUrl(ctx):
-    return getConnectionUrl(ctx, g_folder + g_sep + g_host)
+    return getDataBasePath(ctx) + g_host
 
 
 def getDataSourceUrl(ctx):
-    return getConnectionUrl(ctx, g_folder + g_sep + g_host + '.odb')
+    return getDataBaseUrl(ctx) + '.odb'
 
 
 def getDataBaseConnection(ctx, path, url, user, pwd, new, infos=None):
     if new:
         infos = getDriverInfos(ctx, url, g_drvinfos)
-    return getDataSourceConnection(ctx, path, url, user, pwd, new, infos)
+    return getDataSourceConnection(ctx, path, url, user, pwd, new, getPropertyValueSet(infos))
 
 
 def getViews(ctx, connection):

@@ -37,9 +37,9 @@ from com.sun.star.sdbc.DataType import VARCHAR
 
 from com.sun.star.sdbc.KeyRule import CASCADE
 
-from .dbtool import createTables
-from .dbtool import createIndexes
-from .dbtool import createForeignKeys
+from .helper import createTables
+from .helper import createIndexes
+from .helper import createForeignKeys
 
 
 def createStaticTables(catalog, schema, tables, statics=None):

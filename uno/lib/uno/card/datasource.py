@@ -67,7 +67,7 @@ class DataSource():
         logger.logprb(INFO, self._cls, mtd, 1201)
         self._ctx = ctx
         self._maps = {}
-        database = DataBase(ctx)
+        database = DataBase(ctx, logger)
         provider = Provider(ctx, database, source)
         self._users = {}
         self._database = database

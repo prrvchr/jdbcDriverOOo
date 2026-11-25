@@ -29,6 +29,10 @@
 
 import uno
 
+from com.sun.star.beans.PropertyAttribute import READONLY
+
+from com.sun.star.logging.LogLevel import SEVERE
+
 from com.sun.star.sdbc import SQLException
 from com.sun.star.sdbc import SQLWarning
 
@@ -57,8 +61,6 @@ from com.sun.star.sdbc.DataType2 import LONGVARBINARY            # noqa
 from com.sun.star.sdbc.DataType2 import ARRAY                    # noqa
 from com.sun.star.sdbc.DataType2 import BOOLEAN                  # noqa
 
-from com.sun.star.logging.LogLevel import SEVERE
-
 from .object import Object
 
 from ..unotool import checkVersion
@@ -79,6 +81,8 @@ from ..dbconfig import g_options
 from ..dbconfig import g_version
 
 from ..logger.helper import getLogger
+
+from ..jdbcdriver.configuration import g_drivers
 
 from ..configuration import g_errorlog
 from ..configuration import g_identifier
@@ -102,6 +106,38 @@ def checkConnection(connection, version, minimum, new):
     if new and not _checkConnectionApi(connection, service, interface):
         return False
     return True
+
+
+def getDriverConnection(ctx, url, user='', pwd='', logger=None, infos=None, level=2):
+    log = logger.Logger if logger else None
+    driver = createService(ctx, g_drivers, level, log)
+    drvinfos = dict(infos) if infos else {}
+    if user:
+        drvinfos['user'] = user
+    if pwd:
+        drvinfos['password'] = pwd
+    return driver.connect(getDataBaseUrl(url), getPropertyValueSet(drvinfos))
+
+
+def cleanDataBaseFolder(sf, odb, path):
+    if not sf.exists(odb) and sf.exists(path):
+        for item in sf.getFolderContents(path, True):
+            if not item.endswith('.csv'):
+                sf.kill(item)
+
+
+def createOdbDocument(ctx, connection, path):
+    service = 'com.sun.star.sdb.DatabaseContext'
+    dbcontext = createService(ctx, service)
+    datasource = dbcontext.createInstance()
+    metadata = connection.getMetaData()
+    datasource.URL = metadata.getURL()
+    infos = metadata.getConnectionInfo()
+    if infos:
+        datasource.Info = infos
+    document = datasource.DatabaseDocument
+    document.storeAsURL(path, ())
+    document.close(True)
 
 
 def getDataSourceConnection(ctx, path, name='', password='', url=None, infos=None, isolated=True):
@@ -670,13 +706,20 @@ def createForeignKeys(tables, items):
         keys.appendByDescriptor(key)
 
 
+def _setPropertyValue(descriptor, info, name, value):
+    if info.hasPropertyByName(name):
+        if not (info.getPropertyByName(name).Attributes & READONLY):
+            descriptor.setPropertyValue(name, value)
+
+
 def _createTableColumns(columns, items, catalog, schema):
     for item in items:
         column = columns.createDataDescriptor()
-        column.setPropertyValue('CatalogName', catalog)
-        column.setPropertyValue('SchemaName', schema)
+        info = column.getPropertySetInfo()
+        _setPropertyValue(column, info, 'CatalogName', catalog)
+        _setPropertyValue(column, info, 'SchemaName', schema)
         for name, value in item.items():
-            column.setPropertyValue(name, value)
+            _setPropertyValue(column, info, name, value)
         columns.appendByDescriptor(column)
 
 
@@ -870,23 +913,22 @@ def _getPrivilegeType(column):
     return PrivilegeObject.TABLE if column is None else PrivilegeObject.COLUMN
 
 
-def getDriverInfos(ctx, location, options):
-    infos = {}
+# FIXME: ***
+def getDriverInfos(ctx, location, options, logger=None, infos=None):
+    drvinfos = dict(infos) if infos else {}
     properties = getDefaultPropertyValueSet(options, '')
-    for name, value in _getDriverPropertyInfo(ctx, location, properties, options):
-        infos[name] = value
-    return getPropertyValueSet(infos) if infos else None
+    for name, value in _getDriverPropertyInfo(ctx, location, properties, options, logger):
+        drvinfos[name] = value
+    return drvinfos if drvinfos else None
 
 
-def _getDriverPropertyInfo(ctx, location, properties, options):
+def _getDriverPropertyInfo(ctx, location, properties, options, logger=None, level=2):
     url = g_protocol + location
-    service = 'com.sun.star.sdbc.DriverManager'
-    manager = createService(ctx, service)
-    driver = manager.getDriverByURL(url)
-    if driver:
-        for info in driver.getPropertyInfo(url, properties):
-            if info.Name in options:
-                yield info.Name, options[info.Name](info)
+    log = logger.Logger if logger else None
+    driver = createService(ctx, g_drivers, level, log)
+    for info in driver.getPropertyInfo(url, properties):
+        if info.Name in options:
+            yield info.Name, options[info.Name](info)
 
 
 def createUser(connection, name, password='', role=None):

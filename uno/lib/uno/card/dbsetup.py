@@ -29,33 +29,29 @@
 
 from .dbtool.dbtask import DBTask
 
-from .dbinit import getDataBaseUrl
-from .dbinit import getDataSourceUrl
+from .dbinit import getDataBaseName
+from .dbinit import getDataBasePath
 from .dbinit import getForeignKeys
 from .dbinit import getProcedures
 from .dbinit import getStaticTables
 from .dbinit import getViews
 
+from .configuration import g_infos
+
 
 class DBSetup(DBTask):
     def __init__(self, ctx, user='', pwd=''):
-        super().__init__(ctx, getDataSourceUrl(ctx), getDataBaseUrl(ctx))
-        self.steps = self._getSetupSteps(ctx, user, pwd)
+        super().__init__(ctx, getDataBasePath(ctx), getDataBaseName(), user, pwd, g_infos)
 
-    def _getSetupSteps(self, ctx, user, pwd):
-        yield self._getStepGetConnection(ctx, user, pwd)
-        yield self._getStepCheckConnection()
-        if self._connection:
-            self.total += 1
-            yield self._getStepCreateStaticTables(getStaticTables())
-            if self._statics:
-                self.total += 8
-                yield self._getStepCreateStaticIndexes()
-                yield self._getStepCreateStaticForeignKeys(getForeignKeys())
-                yield self._getStepSetStaticTable()
-                yield self._getStepCreateTables()
-                yield self._getstepCreateIndexes()
-                yield self._getstepCreateForeignKeys()
-                yield self._getStepCreateProcedures(ctx, getProcedures())
-                yield self._getStepCreateViews(ctx, getViews)
-        yield self._getStepFinalize(True)
+    def _getSetupSteps(self, ctx, count=False):
+        yield self._getStepCreateStaticTables(getStaticTables())
+        if count or self._statics:
+            yield self._getStepCreateStaticIndexes()
+            yield self._getStepCreateStaticForeignKeys(getForeignKeys())
+            yield self._getStepSetStaticTable()
+            yield self._getStepCreateTables()
+            yield self._getstepCreateIndexes()
+            yield self._getstepCreateForeignKeys()
+            yield self._getStepCreateProcedures(ctx, getProcedures())
+            yield self._getStepCreateViews(ctx, getViews)
+            self._created = not count

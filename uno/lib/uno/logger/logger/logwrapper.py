@@ -70,6 +70,10 @@ class LogWrapper():
     def Level(self, value):
         self._logger.Level = value
 
+    @property
+    def Logger(self):
+        return self._logger.Loger
+
     # Public getter method
     def getLogger(self):
         return self._logger.Logger

@@ -41,7 +41,7 @@ from ..dbtool import createViews
 from ..dbtool import currentDateTimeInTZ
 from ..dbtool import getDataFromResult
 from ..dbtool import getDataSourceCall
-from ..dbtool import getDataSourceConnection
+from ..dbtool import getDriverConnection
 from ..dbtool import getSequenceFromResult
 from ..dbtool import getValueFromResult
 
@@ -52,10 +52,12 @@ from ..configuration import g_host
 
 from ..dbqueries import getSqlQuery
 
-from ..dbinit import getDataSourceUrl
+from ..dbinit import getDataBaseUrl
 
 from ..dbconfig import g_catalog
 from ..dbconfig import g_schema
+
+from ..configuration import g_infos
 
 from collections import OrderedDict
 import json
@@ -63,13 +65,14 @@ import traceback
 
 
 class DataBase():
-    def __init__(self, ctx, _user='', _pwd=''):
+    def __init__(self, ctx, logger=None):
         self._cls = 'DataBase'
         self._ctx = ctx
-        self._statement = None
+        self._logger = logger
         self._fieldsMap = {}
+        self._statement = None
         self._batchedCalls = OrderedDict()
-        self._url = getDataSourceUrl(ctx)
+        self._url = getDataBaseUrl(ctx)
 
     @property
     def Connection(self):
@@ -82,34 +85,22 @@ class DataBase():
     def Url(self):
         return self._url
 
-    def getConnection(self, user='', password=''):
-        return getDataSourceConnection(self._ctx, self._url, user, password)
+    def getConnection(self, user='', pwd=''):
+        return getDriverConnection(self._ctx, self._url, user=user, pwd=pwd, logger=self._logger, infos=g_infos)
 
     def dispose(self):
         if self._statement is not None:
             connection = self._statement.getConnection()
-            self._statement.dispose()
+            self._statement.close()
             self._statement = None
-            # connection.getParent().dispose()
             connection.close()
             print("gContact.DataBase.dispose() ***************** database: %s closed!!!" % g_host)
 
-    def getDataSource(self):
-        return self.Connection.getParent()
-
-    def getDatabaseDocument(self):
-        return self.getDataSource().DatabaseDocument
-
-    def addCloseListener(self, listener):
-        datasource = self.Connection.getParent()
-        document = datasource.DatabaseDocument
-        document.addCloseListener(listener)
-
     def shutdownDataBase(self, compact=False):
-        statement = self.Connection.createStatement()
-        query = getSqlQuery(self._ctx, 'shutdown', compact)
-        statement.execute(query)
-        statement.close()
+        if self._statement is not None:
+            query = getSqlQuery(self._ctx, 'shutdown', compact)
+            self._statement.execute(query)
+            self._dispose()
 
     def getColumnIndexes(self, default=None):
         indexes = {} if default is None else default

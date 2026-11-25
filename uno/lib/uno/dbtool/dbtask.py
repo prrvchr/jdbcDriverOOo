@@ -42,19 +42,21 @@ from .dbinit import getTableNames
 from .dbinit import getTables
 from .dbinit import setStaticTable
 
-from .dbtool import checkConnection
-from .dbtool import createForeignKeys
-from .dbtool import createTables
-from .dbtool import createIndexes
-from .dbtool import createRoleAndPrivileges
-from .dbtool import createViews
-from .dbtool import executeQueries
-from .dbtool import getConnectionInfos
-from .dbtool import getDataBaseForeignKeys
-from .dbtool import getDataBaseIndexes
-from .dbtool import getDataBaseTables
-from .dbtool import getDataSourceConnection
-from .dbtool import getDriverInfos
+from .helper import checkConnection
+from .helper import cleanDataBaseFolder
+from .helper import createForeignKeys
+from .helper import createTables
+from .helper import createIndexes
+from .helper import createOdbDocument
+from .helper import createRoleAndPrivileges
+from .helper import createViews
+from .helper import executeQueries
+from .helper import getConnectionInfos
+from .helper import getDataBaseForeignKeys
+from .helper import getDataBaseIndexes
+from .helper import getDataBaseTables
+from .helper import getDriverConnection
+from .helper import getDriverInfos
 
 from ..unotool import checkVersion
 from ..unotool import getSimpleFile
@@ -69,20 +71,27 @@ import traceback
 
 
 class DBTask(Task):
-    def __init__(self, ctx, path, url):
+    def __init__(self, ctx, path, dbname, user, pwd, infos=None):
         super().__init__(ctx, 'dbtool')
-        self._url = url
-        self.path = path
-        self._exists = getSimpleFile(ctx).exists(self.path)
+        self._path = path
+        self._url = path + dbname
+        self._odb = path + dbname + '.odb'
+        self._sf = getSimpleFile(ctx)
+        self._exists = self._sf.exists(self._odb)
         self._success = False
         self._version = None
         self._statics = None
         self._tables = None
         self._connection = None
         self._connected = False
+        self._created = False
         self._statement = None
-        self.total = 3
+        self.total = 3 if self._exists else 5
         self._resources = {1: Resource(10101), 2: Resource(10102)}
+        self.steps = self.getSetupSteps(ctx, user, pwd, infos)
+
+    def getPath(self):
+        return self._odb
 
     def withCallback(self, callback):
         self._callback = callback
@@ -101,12 +110,35 @@ class DBTask(Task):
         if self._callback:
             self._callback(self._getSuccess(success), error)
 
-    def stepGetConnection(self, ctx, user, pwd, infos=None):
+    def getSetupSteps(self, ctx, user, pwd, infos):
+        if not self._exists:
+            yield self._getStepGetStepCount(ctx)
+            yield self._getStepCleanDataBaseFolder()
+        yield self._getStepGetConnection(ctx, user, pwd, infos)
+        yield self._getStepCheckConnection()
+        if not self._exists:
+            yield from self._getSetupSteps(ctx)
+        yield self._getStepFinalize(ctx)
+
+    def _getSetupSteps(self, ctx, count=False):
+        raise NotImplementedError
+
+    def stepGetStepCount(self, ctx):
+        self.total += sum(1 for _ in self._getSetupSteps(ctx, True))
+
+    def stepCleanDataBaseFolder(self):
+        try:
+            cleanDataBaseFolder(self._sf, self._odb, self._path)
+        except Exception as e:
+            trace = traceback.format_exc()
+            raise RunnerException(e, trace)
+
+    def stepGetConnection(self, ctx, user, pwd, infos):
         new = not self._exists
         try:
             if new:
-                infos = getDriverInfos(ctx, self._url, g_drvinfos)
-            self._connection = getDataSourceConnection(ctx, self.path, user, pwd, self._url, infos)
+                infos = getDriverInfos(ctx, self._url, g_drvinfos, infos=infos)
+            self._connection = getDriverConnection(ctx, self._url, user=user, pwd=pwd, infos=infos)
         except Exception as e:
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
@@ -213,69 +245,75 @@ class DBTask(Task):
             trace = traceback.format_exc()
             raise RunnerException(e, trace)
 
-    def stepFinalize(self, save=False):
+    def stepFinalize(self, ctx):
         try:
             if self._statement:
                 self._statement.close()
                 self._statement = None
             if self._connection:
-                if save:
-                    self._connection.getParent().DatabaseDocument.storeAsURL(self.path, ())
+                if self._created:
+                    createOdbDocument(ctx, self._connection, self._odb)
                     self._success = True
                 self._connection.close()
                 self._connection = None
         except Exception:
             pass
 
-    def _getStepGetConnection(self, ctx, user, pwd):
-        return 10301, (), self.stepGetConnection, ctx, user, pwd
+    def _getStepGetStepCount(self, ctx):
+        return 10301, (), self.stepGetStepCount, ctx
+
+    def _getStepCleanDataBaseFolder(self):
+        return 10401, (), self.stepCleanDataBaseFolder
+
+    def _getStepGetConnection(self, ctx, user, pwd, infos):
+        return 10501, (), self.stepGetConnection, ctx, user, pwd, infos
 
     def _getStepCheckConnection(self):
-        return 10401, (), self.stepCheckConnection
+        return 10601, (), self.stepCheckConnection
 
     def _getStepCreateStaticTables(self, tables=None):
-        return 10501, (), self.stepCreateStaticTables, tables
+        return 10701, (), self.stepCreateStaticTables, tables
 
     def _getStepCreateStaticIndexes(self):
-        return 10601, (), self.stepCreateStaticIndexes
+        return 10801, (), self.stepCreateStaticIndexes
 
     def _getStepCreateStaticForeignKeys(self, foreignkeys=None):
-        return 10701, (), self.stepCreateStaticForeignKeys, foreignkeys
+        return 10901, (), self.stepCreateStaticForeignKeys, foreignkeys
 
     def _getStepSetStaticTable(self):
-        return 10801, (), self.stepSetStaticTable
+        return 11001, (), self.stepSetStaticTable
 
     def _getStepCreateTables(self):
-        return 10901, (), self.stepCreateTables
+        return 11101, (), self.stepCreateTables
 
     def _getstepCreateIndexes(self):
-        return 11001, (), self.stepCreateIndexes
+        return 11201, (), self.stepCreateIndexes
 
     def _getstepCreateForeignKeys(self):
-        return 11101, (), self.stepCreateForeignKeys
+        return 11301, (), self.stepCreateForeignKeys
 
     def _getstepCreateRoleAndPrivileges(self, privileges):
-        return 11201, (), self.stepCreateRoleAndPrivileges, privileges
+        return 11401, (), self.stepCreateRoleAndPrivileges, privileges
 
     def _getStepCreateFunctions(self, ctx, functions, *options):
-        return 11301, (), self.stepCreateFunctions, ctx, functions, *options
+        return 11501, (), self.stepCreateFunctions, ctx, functions, *options
 
     def _getStepCreateViews(self, ctx, views):
-        return 11401, (), self.stepCreateViews, ctx, views
+        return 11601, (), self.stepCreateViews, ctx, views
 
     def _getStepCreateProcedures(self, ctx, procedures, *options):
-        return 11501, (), self.stepCreateProcedures, ctx, procedures, *options
+        return 11701, (), self.stepCreateProcedures, ctx, procedures, *options
 
-    def _getStepFinalize(self, save):
-        return 11601, (), self.stepFinalize, save
+    def _getStepFinalize(self, ctx):
+        return 11801, (), self.stepFinalize, ctx
 
     def _getResult(self):
         if not self._connected:
-            code = 11701 if checkVersion(self._version, g_version) else 11702
+            code = 11901 if checkVersion(self._version, g_version) else 11902
         elif self._success:
-            code = 11703 if self._exists else 11704
+            code = 11903 if self._exists else 11904
         else:
-            code = 11705
+            code = 11905
         return self._resolver.resolveString(code)
 
     def _getSuccess(self, success):

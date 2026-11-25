@@ -62,7 +62,7 @@ from ..configuration import g_defaultlog
 
 
 class OptionsManager():
-    def __init__(self, ctx, logger, window, url=None):
+    def __init__(self, ctx, window, logger, url=None):
         self._ctx = ctx
         self._checker = None
         self._disposed = False

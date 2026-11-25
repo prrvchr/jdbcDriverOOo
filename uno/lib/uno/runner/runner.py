@@ -164,6 +164,7 @@ class Runner(unohelper.Base,
                     self._task.callback(False, RunnerException(e, trace))
             except Exception:
                 print("Runner.notify() Exception ERROR: %s" % traceback.format_exc())
+            print("Runner.notify() Exception call: %s" % call)
             print("Runner.notify() Exception ERROR: %s" % traceback.format_exc())
 
     def _call(self):

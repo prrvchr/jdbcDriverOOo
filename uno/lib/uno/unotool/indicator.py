@@ -31,9 +31,9 @@ import unohelper
 
 from com.sun.star.task import XStatusIndicator
 
-from .unotool import findFrame
-from .unotool import getWindowHeight
-from .unotool import setWindowHeight
+from .helper import findFrame
+from .helper import getWindowHeight
+from .helper import setWindowHeight
 
 from ..config.configuration import g_offset
 
