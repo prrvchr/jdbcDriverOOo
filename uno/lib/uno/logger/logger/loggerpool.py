@@ -66,12 +66,12 @@ class LoggerPool(unohelper.Base,
     def getLocalizedLogger(self, name, url, basename):
         logger = self._getNamedLogger(name)
         listeners = LoggerPool._loggers[name]
-        key = '%s/%s' % (url, basename)
-        with LoggerPool._lock:
-            if key not in LoggerPool._resolvers:
-                LoggerPool._resolvers[key] = getStringResourceWithLocation(self._ctx, url, basename)
-        resolver = LoggerPool._resolvers[key]
+        resolver = self._getLoggerResolver(url, basename)
         return Logger(self._ctx, logger, listeners, resolver)
+
+    def getLocalizedLoggerFromLogger(self, logger, url, basename):
+        resolver = self._getLoggerResolver(url, basename)
+        return Logger(self._ctx, logger, set(), resolver)
 
     def getLoggerNames(self):
         with LoggerPool._lock:
@@ -99,6 +99,13 @@ class LoggerPool(unohelper.Base,
         if toadd:
             self._notifyListener()
         return logger
+
+    def _getLoggerResolver(self, url, basename):
+        key = '%s/%s' % (url, basename)
+        with LoggerPool._lock:
+            if key not in LoggerPool._resolvers:
+                LoggerPool._resolvers[key] = getStringResourceWithLocation(self._ctx, url, basename)
+        return LoggerPool._resolvers[key]
 
     def _notifyListener(self):
         event = uno.createUnoStruct('com.sun.star.lang.EventObject')

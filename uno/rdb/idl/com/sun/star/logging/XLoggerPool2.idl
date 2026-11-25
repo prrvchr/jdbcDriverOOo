@@ -28,6 +28,7 @@
 #define __com_sun_star_logging_XLoggerPool2_idl__
 
 #include <com/sun/star/logging/XLoggerPool.idl>
+#include <com/sun/star/logging/XLogger.idl>
 #include <com/sun/star/logging/XLogger2.idl>
 #include <com/sun/star/util/XModifyListener.idl>
 
@@ -51,6 +52,22 @@ interface XLoggerPool2 : com::sun::star::logging::XLoggerPool
     com::sun::star::logging::XLogger2 getLocalizedLogger([in] string Name,
                                                          [in] string Url,
                                                          [in] string Basename);
+
+    /** get a localized logger from a logger.
+
+        @param Name
+            the logger
+
+        @param Url
+            the location of the resource file
+
+        @param Basename
+            the base name of the resource file
+    */
+    com::sun::star::logging::XLogger2 getLocalizedLoggerFromLogger([in] com::sun::star::logging::XLogger xLogger,
+                                                                   [in] string Url,
+                                                                   [in] string BaseName);
+
 
     /** retrieves all logger names
     */

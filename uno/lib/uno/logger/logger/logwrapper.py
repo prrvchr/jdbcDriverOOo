@@ -31,8 +31,6 @@ from com.sun.star.logging.LogLevel import ALL
 
 from .loggerpool import LoggerPool
 
-from .logger import Logger
-
 from ..unotool import getResourceLocation
 from ..unotool import getStringResourceWithLocation
 
@@ -52,13 +50,8 @@ def getLogName(name):
 class LogWrapper():
     def __init__(self, ctx, name=None, basename=None, logger=None):
         self._ctx = ctx
-        if logger is None:
-            url, log = self._getPoolLogger(name, basename)
-        else:
-            basename = basename or g_basename
-            url = getResourceLocation(ctx, g_identifier, g_resource)
-            resolver = getStringResourceWithLocation(ctx, url, basename)
-            log = Logger(ctx, logger, set(), resolver)
+        basename = basename or g_basename
+        url, log = self._getPoolLogger(ctx, name, basename, logger)
         self._basename = basename
         self._logger = log
         self._level = ALL
@@ -79,7 +72,7 @@ class LogWrapper():
 
     # Public getter method
     def getLogger(self):
-        return self._logger.getLogger()
+        return self._logger.Logger
 
     def isLoggable(self, level):
         return self._logger.isLoggable(level)
@@ -133,7 +126,10 @@ class LogWrapper():
     def _resolveErrorMessage(self, resolver, resource):
         return resolver.resolveString(101).format(resource, g_extension, g_resource, self._basename)
 
-    def _getPoolLogger(self, name, basename):
-        url = getResourceLocation(self._ctx, g_identifier, g_resource)
-        logger = LoggerPool(self._ctx).getLocalizedLogger(getLogName(name), url, basename)
-        return url, logger
+    def _getPoolLogger(self, ctx, name, basename, logger):
+        url = getResourceLocation(ctx, g_identifier, g_resource)
+        if logger:
+            log = LoggerPool(ctx).getLocalizedLoggerFromLogger(logger, url, basename)
+        else:
+            log = LoggerPool(ctx).getLocalizedLogger(getLogName(name), url, basename)
+        return url, log

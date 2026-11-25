@@ -70,11 +70,11 @@ class OptionsModel():
                     version = connection.getMetaData().getDriverVersion()
                     connection.close()
                 else:
-                    self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 103, jdbc, apilevel)
+                    self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 402, jdbc, apilevel)
             except UnoException as e:
-                self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 102, embedded, apilevel, e.Message)
+                self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 403, embedded, apilevel, e.Message)
             except Exception as ex:
-                self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 102, embedded, apilevel, str(ex))
+                self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 403, embedded, apilevel, str(ex))
         return version
 
     def _getLink(self, code):

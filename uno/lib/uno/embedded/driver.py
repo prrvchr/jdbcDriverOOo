@@ -52,6 +52,7 @@ from .logger.helper import getLogger
 from .helper import getSetupState
 
 from .jdbcdriver.configuration import g_drivers
+from .jdbcdriver.configuration import g_apilevel
 
 from .configuration import g_basename
 from .configuration import g_dbname
@@ -79,6 +80,7 @@ class Driver(unohelper.Base,
         self._implementation = implementation
         self._services = services
         self._logger = getLogger(ctx, g_defaultlog, g_basename)
+        self._logger.logprb(INFO, self._cls, mtd, 101, implementation, g_apilevel[level])
         state = getSetupState(ctx)
         self._error = False
         if state.runnable:
@@ -91,7 +93,7 @@ class Driver(unohelper.Base,
                 self._logger.logp(SEVERE, self._cls, mtd, e.Message)
             else:
                 self._driver = driver
-                self._logger.logprb(INFO, self._cls, mtd, 101, implementation, g_drivers)
+                self._logger.logprb(INFO, self._cls, mtd, 102, implementation, g_apilevel[level])
         else:
             State.restart = True
             self._driver = None
