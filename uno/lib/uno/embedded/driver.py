@@ -47,9 +47,15 @@ from .unotool import createService
 from .unotool import getPropertyValueSet
 from .unotool import getResourceLocation
 
+from .logger.helper import getLogger
+
 from .helper import getSetupState
 
+from .jdbcdriver.configuration import g_drivers
+
+from .configuration import g_basename
 from .configuration import g_dbname
+from .configuration import g_defaultlog
 from .configuration import g_driver
 from .configuration import g_identifier
 from .configuration import g_protocol
@@ -63,33 +69,33 @@ import traceback
 class Driver(unohelper.Base,
              XServiceInfo,
              XDriver):
-    def __init__(self, ctx, config, lock, logger, service, implementation, services):
+    def __init__(self, ctx, config, lock, level, implementation, services):
         self._ctx = ctx
         self._cls = 'Driver'
         mtd = '__init__'
         self._lock = lock
         self._config = config
-        self._service = service
+        self._level = level
         self._implementation = implementation
         self._services = services
+        self._logger = getLogger(ctx, g_defaultlog, g_basename)
         state = getSetupState(ctx)
         self._error = False
         if state.runnable:
             try:
-                driver = createService(ctx, service)
+                driver = createService(ctx, g_drivers, level, self._logger.getLogger())
             except SQLException as e:
                 self._error = True
                 State.restart = True
                 self._driver = None
-                logger.logp(SEVERE, self._cls, mtd, e.Message)
+                self._logger.logp(SEVERE, self._cls, mtd, e.Message)
             else:
                 self._driver = driver
-                logger.logprb(INFO, self._cls, mtd, 101, implementation, service)
+                self._logger.logprb(INFO, self._cls, mtd, 101, implementation, g_drivers)
         else:
             State.restart = True
             self._driver = None
-            logger.logp(SEVERE, self._cls, mtd, state.getMessage(ctx))
-        self._logger = logger
+            self._logger.logp(SEVERE, self._cls, mtd, state.getMessage(ctx))
         self._version = [int(x) for x in g_version.split('.')] + [0, 0]
         # FIXME: If we want to add the StorageChangeListener only once,
         # FIXME: we need to be able to retrieve the DocumentHandler (keep a reference)
@@ -171,7 +177,7 @@ class Driver(unohelper.Base,
             if self._driver is None:
                 if self._error:
                     try:
-                        driver = createService(self._ctx, self._service)
+                        driver = createService(self._ctx, g_drivers, self._level, self._logger.getLogger())
                     except SQLException as e:
                         self._logger.logp(SEVERE, self._cls, mtd, e.Message)
                         raise

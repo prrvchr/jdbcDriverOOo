@@ -31,11 +31,14 @@ from com.sun.star.logging.LogLevel import ALL
 
 from .loggerpool import LoggerPool
 
+from .logger import Logger
+
 from ..unotool import getResourceLocation
 from ..unotool import getStringResourceWithLocation
 
 from ..config.configuration import g_resource
 
+from ..configuration import g_basename
 from ..configuration import g_extension
 from ..configuration import g_identifier
 
@@ -47,13 +50,19 @@ def getLogName(name):
 # XXX: This LogWrapper allows using variable number of argument in Python
 # XXX: while the UNO Logging API does not allow it
 class LogWrapper():
-    def __init__(self, ctx, name, basename):
+    def __init__(self, ctx, name=None, basename=None, logger=None):
         self._ctx = ctx
+        if logger is None:
+            url, log = self._getPoolLogger(name, basename)
+        else:
+            basename = basename or g_basename
+            url = getResourceLocation(ctx, g_identifier, g_resource)
+            resolver = getStringResourceWithLocation(ctx, url, basename)
+            log = Logger(ctx, logger, set(), resolver)
         self._basename = basename
-        url, logger = self._getPoolLogger(name, basename)
-        self._url = url
-        self._logger = logger
+        self._logger = log
         self._level = ALL
+        self._url = url
 
     # XLogger
     @property
@@ -69,6 +78,9 @@ class LogWrapper():
         self._logger.Level = value
 
     # Public getter method
+    def getLogger(self):
+        return self._logger.getLogger()
+
     def isLoggable(self, level):
         return self._logger.isLoggable(level)
 

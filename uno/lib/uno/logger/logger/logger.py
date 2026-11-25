@@ -41,6 +41,9 @@ class Logger(unohelper.Base,
         self._listeners = listeners
         self._resolver = resolver
 
+    def getLogger(self):
+        return self._logger
+
     # XLogger
     @property
     def Name(self):

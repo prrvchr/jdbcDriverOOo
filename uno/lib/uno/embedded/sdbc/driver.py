@@ -32,6 +32,6 @@ from ..driver import Driver as DriverBase
 
 class Driver(DriverBase):
 
-    def __init__(self, ctx, config, lock, logger, service, implementation):
+    def __init__(self, ctx, config, lock, level, implementation):
         services = ('com.sun.star.sdbc.Driver', )
-        super().__init__(ctx, config, lock, logger, service, implementation, services)
+        super().__init__(ctx, config, lock, level, implementation, services)

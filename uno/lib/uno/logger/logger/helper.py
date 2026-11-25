@@ -34,8 +34,8 @@ from ..configuration import g_defaultlog
 from ..configuration import g_basename
 
 
-def getLogger(ctx, logger=g_defaultlog, basename=g_basename):
-    return LogWrapper(ctx, logger, basename)
+def getLogger(ctx, name=g_defaultlog, basename=g_basename, logger=None):
+    return LogWrapper(ctx, name, basename, logger)
 
 
 def getLoggerName(name):
