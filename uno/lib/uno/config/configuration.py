@@ -38,6 +38,9 @@ g_resource = 'resource'
 # Setup frame and Job name
 g_setup = '%s.Setup' % g_extension
 
+# Replicator frame and Job name
+g_replicator = '%s.Replicator' % g_extension
+
 
 class State:
     restart = False

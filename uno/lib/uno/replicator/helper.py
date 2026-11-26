@@ -31,7 +31,7 @@ from .dialog.replicatormanager import ReplicatorManager
 
 from ..unotool import findFrame
 
-from ..configuration import g_replicator
+from ..config.configuration import g_replicator
 
 import traceback
 

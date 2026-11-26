@@ -134,11 +134,12 @@ class DBTask(Task):
             raise RunnerException(e, trace)
 
     def stepGetConnection(self, ctx, user, pwd, infos):
-        new = not self._exists
         try:
-            if new:
-                infos = getDriverInfos(ctx, self._url, g_drvinfos, infos=infos)
-            self._connection = getDriverConnection(ctx, self._url, user=user, pwd=pwd, infos=infos)
+            if self._exists:
+                drvinfos = infos
+            else:
+                drvinfos = getDriverInfos(ctx, self._url, g_drvinfos, infos=infos)
+            self._connection = getDriverConnection(ctx, self._url, user=user, pwd=pwd, infos=drvinfos)
         except Exception as e:
             trace = traceback.format_exc()
             raise RunnerException(e, trace)

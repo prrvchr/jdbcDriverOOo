@@ -46,7 +46,8 @@ from ...unotool import getTopWindow
 from ...unotool import getWindowPosSize
 from ...unotool import setWindowPosSize
 
-from ...configuration import g_replicator
+from ...config.configuration import g_replicator
+
 from ...configuration import g_identifier
 
 

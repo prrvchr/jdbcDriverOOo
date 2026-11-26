@@ -36,12 +36,13 @@ from .dbinit import getProcedures
 from .dbinit import getStaticTables
 from .dbinit import getViews
 
-from .configuration import g_infos
+from .configuration import g_protocol
 
 
 class DBSetup(DBTask):
     def __init__(self, ctx, user='', pwd=''):
-        super().__init__(ctx, getDataBasePath(ctx), getDataBaseName(), user, pwd, g_infos)
+        infos = {'Url': g_protocol, 'Admin': True}
+        super().__init__(ctx, getDataBasePath(ctx), getDataBaseName(), user, pwd, infos)
 
     def _getSetupSteps(self, ctx, count=False):
         yield self._getStepCreateStaticTables(getStaticTables())

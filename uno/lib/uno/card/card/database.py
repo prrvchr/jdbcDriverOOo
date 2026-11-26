@@ -57,8 +57,6 @@ from ..dbinit import getDataBaseUrl
 from ..dbconfig import g_catalog
 from ..dbconfig import g_schema
 
-from ..configuration import g_infos
-
 from collections import OrderedDict
 import json
 import traceback
@@ -85,8 +83,8 @@ class DataBase():
     def Url(self):
         return self._url
 
-    def getConnection(self, user='', pwd=''):
-        return getDriverConnection(self._ctx, self._url, user=user, pwd=pwd, logger=self._logger, infos=g_infos)
+    def getConnection(self, user='', pwd='', infos=None):
+        return getDriverConnection(self._ctx, self._url, user=user, pwd=pwd, logger=self._logger, infos=infos)
 
     def dispose(self):
         if self._statement is not None:

@@ -56,6 +56,7 @@ from .jdbcdriver.configuration import g_java
 from .jdbcdriver.configuration import g_script
 
 from .configuration import g_extension
+from .configuration import g_protocol
 
 import json
 
@@ -91,6 +92,9 @@ class DataSource():
         print("DataSource.dispatchFinished() state: %s - result: %s" % (notification.State, notification.Result))
 
 # Procedures called by Driver
+    def getAdminConnection(self):
+        return self._database.getConnection()
+
     def getConnection(self, source, logger, url, scheme, server, username, token=''):
         mtd = 'getConnection'
         uri = self._provider.getUserUri(server, username)
@@ -109,7 +113,7 @@ class DataSource():
                 e = getSqlException(self._ctx, source, 1001, 1402, self._cls, mtd, name, g_extension)
                 e.NextException = ex
                 raise e
-        connection = self._database.getConnection(name)
+        connection = self._database.getConnection(user=name, infos=self._getUserInfos(name))
         # XXX: New users are cached only if the connection is successful.
         if uri not in self._maps:
             self._users[name] = user
@@ -120,6 +124,9 @@ class DataSource():
         connection.addEventListener(self._listener)
         startReplication(self._ctx, Dispatch=DispatchListener(self), Args=self._getUserSessions())
         return connection
+
+    def _getUserInfos(self, user):
+        return {'Url': f'{g_protocol}:{user}'}
 
     def _getUserSessions(self):
         users = []

@@ -72,12 +72,9 @@ class LogWrapper():
 
     @property
     def Logger(self):
-        return self._logger.Loger
-
-    # Public getter method
-    def getLogger(self):
         return self._logger.Logger
 
+    # Public getter method
     def isLoggable(self, level):
         return self._logger.isLoggable(level)
 
